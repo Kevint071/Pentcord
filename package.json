@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev:zscaler": "set NODE_EXTRA_CA_CERTS=./zscaler-root.pem&& next dev",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
