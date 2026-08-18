@@ -1,8 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -12,10 +8,87 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id       String @id @default(cuid())
-  email    String @unique
-  username String @unique
-  password String
-  createdAt DateTime @default(now())
+// ==========================================
+// ENUMS
+// ==========================================
+enum MetodoAutenticacion {
+  local
+  google
+}
+
+enum Rol {
+  musico
+  administrador
+}
+
+enum EstadoVersion {
+  pendiente
+  verificada
+  rechazada
+}
+
+// ==========================================
+// MODELOS DE ENTIDAD
+// ==========================================
+model Usuario {
+  id                  Int                 @id @default(autoincrement())
+  nombre              String              @db.VarChar(120)
+  correo              String?             @db.Text
+  metodoAutenticacion MetodoAutenticacion @map("metodo_autenticacion")
+  passwordHash        String?             @map("password_hash") @db.Text
+  googleId            String?             @map("google_id") @db.Text
+  rol                 Rol                 @default(musico)
+  fotoPerfilUrl       String?             @map("foto_perfil_url") @db.Text
+  creadoEn            DateTime            @default(now()) @map("creado_en")
+  eliminadoEn         DateTime?           @map("eliminado_en")
+
+  versionesCreadas   Version[]  @relation("AutorVersion")
+  versionesRevisadas Version[]  @relation("RevisorVersion")
+  favoritos          Favorito[]
+
+  @@map("usuarios")
+}
+
+model Cancion {
+  id          Int       @id @default(autoincrement())
+  titulo      String    @db.VarChar(200)
+  artista     String    @db.VarChar(200)
+  creadoEn    DateTime  @default(now()) @map("creado_en")
+  eliminadoEn DateTime? @map("eliminado_en")
+
+  versiones Version[]
+
+  @@map("canciones")
+}
+
+model Version {
+  id                Int           @id @default(autoincrement())
+  cancionId         Int           @map("cancion_id")
+  autorId           Int           @map("autor_id")
+  revisorId         Int?          @map("revisor_id")
+  tonoOriginal      String        @map("tono_original") @db.VarChar(10)
+  contenidoChordpro String        @map("contenido_chordpro") @db.Text
+  estado            EstadoVersion @default(pendiente)
+  creadoEn          DateTime      @default(now()) @map("creado_en")
+  revisadoEn        DateTime?     @map("revisado_en")
+  eliminadoEn       DateTime?     @map("eliminado_en")
+
+  cancion   Cancion    @relation(fields: [cancionId], references: [id], onDelete: Cascade)
+  autor     Usuario    @relation("AutorVersion", fields: [autorId], references: [id], onDelete: Restrict)
+  revisor   Usuario?   @relation("RevisorVersion", fields: [revisorId], references: [id], onDelete: SetNull)
+  favoritos Favorito[]
+
+  @@map("versiones")
+}
+
+model Favorito {
+  usuarioId Int      @map("usuario_id")
+  versionId Int      @map("version_id")
+  creadoEn  DateTime @default(now()) @map("creado_en")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  version Version @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, versionId])
+  @@map("favoritos")
 }
