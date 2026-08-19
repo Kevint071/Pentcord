@@ -44,7 +44,6 @@ export async function POST(request: Request) {
         id: true,
         email: true,
         username: true,
-        // OJO: nunca incluyas "password" en el select de respuesta
       },
     });
 
