@@ -8,7 +8,7 @@
  *
  * 🟢 You can import this file directly.
  */
-export type * from './models/Usuario'
+export type * from './models/User'
 export type * from './models/Cancion'
 export type * from './models/Version'
 export type * from './models/Favorito'

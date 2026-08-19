@@ -38,6 +38,7 @@ export async function POST(request: Request) {
         email,
         username,
         password: hashedPassword,
+        metodoAutenticacion: "local",
       },
       select: {
         id: true,

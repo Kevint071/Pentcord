@@ -268,10 +268,10 @@ export type VersionWhereInput = {
   creadoEn?: Prisma.DateTimeFilter<"Version"> | Date | string
   revisadoEn?: Prisma.DateTimeNullableFilter<"Version"> | Date | string | null
   eliminadoEn?: Prisma.DateTimeNullableFilter<"Version"> | Date | string | null
-  cancion?: Prisma.XOR<Prisma.CancionScalarRelationFilter, Prisma.CancionWhereInput>
-  autor?: Prisma.XOR<Prisma.UsuarioScalarRelationFilter, Prisma.UsuarioWhereInput>
-  revisor?: Prisma.XOR<Prisma.UsuarioNullableScalarRelationFilter, Prisma.UsuarioWhereInput> | null
   favoritos?: Prisma.FavoritoListRelationFilter
+  autor?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  cancion?: Prisma.XOR<Prisma.CancionScalarRelationFilter, Prisma.CancionWhereInput>
+  revisor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type VersionOrderByWithRelationInput = {
@@ -285,10 +285,10 @@ export type VersionOrderByWithRelationInput = {
   creadoEn?: Prisma.SortOrder
   revisadoEn?: Prisma.SortOrderInput | Prisma.SortOrder
   eliminadoEn?: Prisma.SortOrderInput | Prisma.SortOrder
-  cancion?: Prisma.CancionOrderByWithRelationInput
-  autor?: Prisma.UsuarioOrderByWithRelationInput
-  revisor?: Prisma.UsuarioOrderByWithRelationInput
   favoritos?: Prisma.FavoritoOrderByRelationAggregateInput
+  autor?: Prisma.UserOrderByWithRelationInput
+  cancion?: Prisma.CancionOrderByWithRelationInput
+  revisor?: Prisma.UserOrderByWithRelationInput
 }
 
 export type VersionWhereUniqueInput = Prisma.AtLeast<{
@@ -305,10 +305,10 @@ export type VersionWhereUniqueInput = Prisma.AtLeast<{
   creadoEn?: Prisma.DateTimeFilter<"Version"> | Date | string
   revisadoEn?: Prisma.DateTimeNullableFilter<"Version"> | Date | string | null
   eliminadoEn?: Prisma.DateTimeNullableFilter<"Version"> | Date | string | null
-  cancion?: Prisma.XOR<Prisma.CancionScalarRelationFilter, Prisma.CancionWhereInput>
-  autor?: Prisma.XOR<Prisma.UsuarioScalarRelationFilter, Prisma.UsuarioWhereInput>
-  revisor?: Prisma.XOR<Prisma.UsuarioNullableScalarRelationFilter, Prisma.UsuarioWhereInput> | null
   favoritos?: Prisma.FavoritoListRelationFilter
+  autor?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  cancion?: Prisma.XOR<Prisma.CancionScalarRelationFilter, Prisma.CancionWhereInput>
+  revisor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
 
 export type VersionOrderByWithAggregationInput = {
@@ -352,10 +352,10 @@ export type VersionCreateInput = {
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
-  cancion: Prisma.CancionCreateNestedOneWithoutVersionesInput
-  autor: Prisma.UsuarioCreateNestedOneWithoutVersionesCreadasInput
-  revisor?: Prisma.UsuarioCreateNestedOneWithoutVersionesRevisadasInput
   favoritos?: Prisma.FavoritoCreateNestedManyWithoutVersionInput
+  autor: Prisma.UserCreateNestedOneWithoutVersionesCreadasInput
+  cancion: Prisma.CancionCreateNestedOneWithoutVersionesInput
+  revisor?: Prisma.UserCreateNestedOneWithoutVersionesRevisadasInput
 }
 
 export type VersionUncheckedCreateInput = {
@@ -379,10 +379,10 @@ export type VersionUpdateInput = {
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  cancion?: Prisma.CancionUpdateOneRequiredWithoutVersionesNestedInput
-  autor?: Prisma.UsuarioUpdateOneRequiredWithoutVersionesCreadasNestedInput
-  revisor?: Prisma.UsuarioUpdateOneWithoutVersionesRevisadasNestedInput
   favoritos?: Prisma.FavoritoUpdateManyWithoutVersionNestedInput
+  autor?: Prisma.UserUpdateOneRequiredWithoutVersionesCreadasNestedInput
+  cancion?: Prisma.CancionUpdateOneRequiredWithoutVersionesNestedInput
+  revisor?: Prisma.UserUpdateOneWithoutVersionesRevisadasNestedInput
 }
 
 export type VersionUncheckedUpdateInput = {
@@ -661,9 +661,9 @@ export type VersionCreateWithoutAutorInput = {
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
-  cancion: Prisma.CancionCreateNestedOneWithoutVersionesInput
-  revisor?: Prisma.UsuarioCreateNestedOneWithoutVersionesRevisadasInput
   favoritos?: Prisma.FavoritoCreateNestedManyWithoutVersionInput
+  cancion: Prisma.CancionCreateNestedOneWithoutVersionesInput
+  revisor?: Prisma.UserCreateNestedOneWithoutVersionesRevisadasInput
 }
 
 export type VersionUncheckedCreateWithoutAutorInput = {
@@ -696,9 +696,9 @@ export type VersionCreateWithoutRevisorInput = {
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
-  cancion: Prisma.CancionCreateNestedOneWithoutVersionesInput
-  autor: Prisma.UsuarioCreateNestedOneWithoutVersionesCreadasInput
   favoritos?: Prisma.FavoritoCreateNestedManyWithoutVersionInput
+  autor: Prisma.UserCreateNestedOneWithoutVersionesCreadasInput
+  cancion: Prisma.CancionCreateNestedOneWithoutVersionesInput
 }
 
 export type VersionUncheckedCreateWithoutRevisorInput = {
@@ -779,9 +779,9 @@ export type VersionCreateWithoutCancionInput = {
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
-  autor: Prisma.UsuarioCreateNestedOneWithoutVersionesCreadasInput
-  revisor?: Prisma.UsuarioCreateNestedOneWithoutVersionesRevisadasInput
   favoritos?: Prisma.FavoritoCreateNestedManyWithoutVersionInput
+  autor: Prisma.UserCreateNestedOneWithoutVersionesCreadasInput
+  revisor?: Prisma.UserCreateNestedOneWithoutVersionesRevisadasInput
 }
 
 export type VersionUncheckedCreateWithoutCancionInput = {
@@ -830,9 +830,9 @@ export type VersionCreateWithoutFavoritosInput = {
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
+  autor: Prisma.UserCreateNestedOneWithoutVersionesCreadasInput
   cancion: Prisma.CancionCreateNestedOneWithoutVersionesInput
-  autor: Prisma.UsuarioCreateNestedOneWithoutVersionesCreadasInput
-  revisor?: Prisma.UsuarioCreateNestedOneWithoutVersionesRevisadasInput
+  revisor?: Prisma.UserCreateNestedOneWithoutVersionesRevisadasInput
 }
 
 export type VersionUncheckedCreateWithoutFavoritosInput = {
@@ -871,9 +871,9 @@ export type VersionUpdateWithoutFavoritosInput = {
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autor?: Prisma.UserUpdateOneRequiredWithoutVersionesCreadasNestedInput
   cancion?: Prisma.CancionUpdateOneRequiredWithoutVersionesNestedInput
-  autor?: Prisma.UsuarioUpdateOneRequiredWithoutVersionesCreadasNestedInput
-  revisor?: Prisma.UsuarioUpdateOneWithoutVersionesRevisadasNestedInput
+  revisor?: Prisma.UserUpdateOneWithoutVersionesRevisadasNestedInput
 }
 
 export type VersionUncheckedUpdateWithoutFavoritosInput = {
@@ -920,9 +920,9 @@ export type VersionUpdateWithoutAutorInput = {
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  cancion?: Prisma.CancionUpdateOneRequiredWithoutVersionesNestedInput
-  revisor?: Prisma.UsuarioUpdateOneWithoutVersionesRevisadasNestedInput
   favoritos?: Prisma.FavoritoUpdateManyWithoutVersionNestedInput
+  cancion?: Prisma.CancionUpdateOneRequiredWithoutVersionesNestedInput
+  revisor?: Prisma.UserUpdateOneWithoutVersionesRevisadasNestedInput
 }
 
 export type VersionUncheckedUpdateWithoutAutorInput = {
@@ -957,9 +957,9 @@ export type VersionUpdateWithoutRevisorInput = {
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  cancion?: Prisma.CancionUpdateOneRequiredWithoutVersionesNestedInput
-  autor?: Prisma.UsuarioUpdateOneRequiredWithoutVersionesCreadasNestedInput
   favoritos?: Prisma.FavoritoUpdateManyWithoutVersionNestedInput
+  autor?: Prisma.UserUpdateOneRequiredWithoutVersionesCreadasNestedInput
+  cancion?: Prisma.CancionUpdateOneRequiredWithoutVersionesNestedInput
 }
 
 export type VersionUncheckedUpdateWithoutRevisorInput = {
@@ -1006,9 +1006,9 @@ export type VersionUpdateWithoutCancionInput = {
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  autor?: Prisma.UsuarioUpdateOneRequiredWithoutVersionesCreadasNestedInput
-  revisor?: Prisma.UsuarioUpdateOneWithoutVersionesRevisadasNestedInput
   favoritos?: Prisma.FavoritoUpdateManyWithoutVersionNestedInput
+  autor?: Prisma.UserUpdateOneRequiredWithoutVersionesCreadasNestedInput
+  revisor?: Prisma.UserUpdateOneWithoutVersionesRevisadasNestedInput
 }
 
 export type VersionUncheckedUpdateWithoutCancionInput = {
@@ -1078,10 +1078,10 @@ export type VersionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   creadoEn?: boolean
   revisadoEn?: boolean
   eliminadoEn?: boolean
-  cancion?: boolean | Prisma.CancionDefaultArgs<ExtArgs>
-  autor?: boolean | Prisma.UsuarioDefaultArgs<ExtArgs>
-  revisor?: boolean | Prisma.Version$revisorArgs<ExtArgs>
   favoritos?: boolean | Prisma.Version$favoritosArgs<ExtArgs>
+  autor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  cancion?: boolean | Prisma.CancionDefaultArgs<ExtArgs>
+  revisor?: boolean | Prisma.Version$revisorArgs<ExtArgs>
   _count?: boolean | Prisma.VersionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["version"]>
 
@@ -1096,8 +1096,8 @@ export type VersionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   creadoEn?: boolean
   revisadoEn?: boolean
   eliminadoEn?: boolean
+  autor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   cancion?: boolean | Prisma.CancionDefaultArgs<ExtArgs>
-  autor?: boolean | Prisma.UsuarioDefaultArgs<ExtArgs>
   revisor?: boolean | Prisma.Version$revisorArgs<ExtArgs>
 }, ExtArgs["result"]["version"]>
 
@@ -1112,8 +1112,8 @@ export type VersionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   creadoEn?: boolean
   revisadoEn?: boolean
   eliminadoEn?: boolean
+  autor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   cancion?: boolean | Prisma.CancionDefaultArgs<ExtArgs>
-  autor?: boolean | Prisma.UsuarioDefaultArgs<ExtArgs>
   revisor?: boolean | Prisma.Version$revisorArgs<ExtArgs>
 }, ExtArgs["result"]["version"]>
 
@@ -1132,30 +1132,30 @@ export type VersionSelectScalar = {
 
 export type VersionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "cancionId" | "autorId" | "revisorId" | "tonoOriginal" | "contenidoChordpro" | "estado" | "creadoEn" | "revisadoEn" | "eliminadoEn", ExtArgs["result"]["version"]>
 export type VersionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  cancion?: boolean | Prisma.CancionDefaultArgs<ExtArgs>
-  autor?: boolean | Prisma.UsuarioDefaultArgs<ExtArgs>
-  revisor?: boolean | Prisma.Version$revisorArgs<ExtArgs>
   favoritos?: boolean | Prisma.Version$favoritosArgs<ExtArgs>
+  autor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  cancion?: boolean | Prisma.CancionDefaultArgs<ExtArgs>
+  revisor?: boolean | Prisma.Version$revisorArgs<ExtArgs>
   _count?: boolean | Prisma.VersionCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type VersionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  autor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   cancion?: boolean | Prisma.CancionDefaultArgs<ExtArgs>
-  autor?: boolean | Prisma.UsuarioDefaultArgs<ExtArgs>
   revisor?: boolean | Prisma.Version$revisorArgs<ExtArgs>
 }
 export type VersionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  autor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   cancion?: boolean | Prisma.CancionDefaultArgs<ExtArgs>
-  autor?: boolean | Prisma.UsuarioDefaultArgs<ExtArgs>
   revisor?: boolean | Prisma.Version$revisorArgs<ExtArgs>
 }
 
 export type $VersionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Version"
   objects: {
-    cancion: Prisma.$CancionPayload<ExtArgs>
-    autor: Prisma.$UsuarioPayload<ExtArgs>
-    revisor: Prisma.$UsuarioPayload<ExtArgs> | null
     favoritos: Prisma.$FavoritoPayload<ExtArgs>[]
+    autor: Prisma.$UserPayload<ExtArgs>
+    cancion: Prisma.$CancionPayload<ExtArgs>
+    revisor: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1562,10 +1562,10 @@ readonly fields: VersionFieldRefs;
  */
 export interface Prisma__VersionClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  cancion<T extends Prisma.CancionDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CancionDefaultArgs<ExtArgs>>): Prisma.Prisma__CancionClient<runtime.Types.Result.GetResult<Prisma.$CancionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  autor<T extends Prisma.UsuarioDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UsuarioDefaultArgs<ExtArgs>>): Prisma.Prisma__UsuarioClient<runtime.Types.Result.GetResult<Prisma.$UsuarioPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  revisor<T extends Prisma.Version$revisorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Version$revisorArgs<ExtArgs>>): Prisma.Prisma__UsuarioClient<runtime.Types.Result.GetResult<Prisma.$UsuarioPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   favoritos<T extends Prisma.Version$favoritosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Version$favoritosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FavoritoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  autor<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  cancion<T extends Prisma.CancionDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CancionDefaultArgs<ExtArgs>>): Prisma.Prisma__CancionClient<runtime.Types.Result.GetResult<Prisma.$CancionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  revisor<T extends Prisma.Version$revisorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Version$revisorArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2006,25 +2006,6 @@ export type VersionDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
 }
 
 /**
- * Version.revisor
- */
-export type Version$revisorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Usuario
-   */
-  select?: Prisma.UsuarioSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Usuario
-   */
-  omit?: Prisma.UsuarioOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.UsuarioInclude<ExtArgs> | null
-  where?: Prisma.UsuarioWhereInput
-}
-
-/**
  * Version.favoritos
  */
 export type Version$favoritosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2046,6 +2027,25 @@ export type Version$favoritosArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.FavoritoScalarFieldEnum | Prisma.FavoritoScalarFieldEnum[]
+}
+
+/**
+ * Version.revisor
+ */
+export type Version$revisorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
 }
 
 /**

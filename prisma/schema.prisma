@@ -1,4 +1,3 @@
-// prisma/schema.prisma
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -8,45 +7,23 @@ datasource db {
   provider = "postgresql"
 }
 
-// ==========================================
-// ENUMS
-// ==========================================
-enum MetodoAutenticacion {
-  local
-  google
-}
-
-enum Rol {
-  musico
-  administrador
-}
-
-enum EstadoVersion {
-  pendiente
-  verificada
-  rechazada
-}
-
-// ==========================================
-// MODELOS DE ENTIDAD
-// ==========================================
-model Usuario {
-  id                  Int                 @id @default(autoincrement())
-  nombre              String              @db.VarChar(120)
-  correo              String?             @db.Text
+model User {
+  id                  Int                 @id(map: "usuarios_pkey") @default(autoincrement())
+  username            String              @db.VarChar(120)
+  email               String?
   metodoAutenticacion MetodoAutenticacion @map("metodo_autenticacion")
-  passwordHash        String?             @map("password_hash") @db.Text
-  googleId            String?             @map("google_id") @db.Text
+  password            String?             @map("password")
+  googleId            String?             @map("google_id")
   rol                 Rol                 @default(musico)
-  fotoPerfilUrl       String?             @map("foto_perfil_url") @db.Text
+  fotoPerfilUrl       String?             @map("foto_perfil_url")
   creadoEn            DateTime            @default(now()) @map("creado_en")
   eliminadoEn         DateTime?           @map("eliminado_en")
 
+  favoritos          Favorito[]
   versionesCreadas   Version[]  @relation("AutorVersion")
   versionesRevisadas Version[]  @relation("RevisorVersion")
-  favoritos          Favorito[]
 
-  @@map("usuarios")
+  @@map("users")
 }
 
 model Cancion {
@@ -67,28 +44,44 @@ model Version {
   autorId           Int           @map("autor_id")
   revisorId         Int?          @map("revisor_id")
   tonoOriginal      String        @map("tono_original") @db.VarChar(10)
-  contenidoChordpro String        @map("contenido_chordpro") @db.Text
+  contenidoChordpro String        @map("contenido_chordpro")
   estado            EstadoVersion @default(pendiente)
   creadoEn          DateTime      @default(now()) @map("creado_en")
   revisadoEn        DateTime?     @map("revisado_en")
   eliminadoEn       DateTime?     @map("eliminado_en")
 
-  cancion   Cancion    @relation(fields: [cancionId], references: [id], onDelete: Cascade)
-  autor     Usuario    @relation("AutorVersion", fields: [autorId], references: [id], onDelete: Restrict)
-  revisor   Usuario?   @relation("RevisorVersion", fields: [revisorId], references: [id], onDelete: SetNull)
   favoritos Favorito[]
+  autor     User    @relation("AutorVersion", fields: [autorId], references: [id], onDelete: Restrict)
+  cancion   Cancion @relation(fields: [cancionId], references: [id], onDelete: Restrict)
+  revisor   User?   @relation("RevisorVersion", fields: [revisorId], references: [id], onDelete: SetNull)
 
   @@map("versiones")
 }
 
 model Favorito {
-  usuarioId Int      @map("usuario_id")
+  userId    Int      @map("user_id")
   versionId Int      @map("version_id")
   creadoEn  DateTime @default(now()) @map("creado_en")
 
-  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  version Version @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  version Version @relation(fields: [versionId], references: [id], onDelete: Restrict)
 
-  @@id([usuarioId, versionId])
+  @@id([userId, versionId])
   @@map("favoritos")
+}
+
+enum MetodoAutenticacion {
+  local
+  google
+}
+
+enum Rol {
+  musico
+  administrador
+}
+
+enum EstadoVersion {
+  pendiente
+  verificada
+  rechazada
 }
