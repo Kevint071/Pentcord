@@ -79,3 +79,39 @@ export async function GET(request: Request) {
     );
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { titulo, artista, contenido_chordpro, userid, tono_original } = body;
+
+    // Validación básica de campos obligatorios
+    if (!titulo || !artista) {
+      return NextResponse.json(
+        {
+          error: "titulo y artista son obligatorios",
+        },
+        { status: 400 },
+      );
+    }
+    const cancion = await prisma.cancion.create({
+      data: { titulo, artista },
+    });
+    return NextResponse.json(
+      { titulo: cancion.titulo, artista: cancion.artista },
+      { status: 201 },
+    );
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return NextResponse.json(
+        { error: "Error de base de datos al crear la canción" },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Error al crear la canción" },
+      { status: 500 },
+    );
+  }
+}

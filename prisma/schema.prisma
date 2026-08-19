@@ -21,17 +21,17 @@ model User {
 
   favoritos          Favorito[]
   versionesCreadas   Version[]  @relation("AutorVersion")
-  versionesRevisadas Version[]  @relation("RevisorVersion")
 
   @@map("users")
 }
 
 model Cancion {
-  id          Int       @id @default(autoincrement())
-  titulo      String    @db.VarChar(200)
-  artista     String    @db.VarChar(200)
-  creadoEn    DateTime  @default(now()) @map("creado_en")
-  eliminadoEn DateTime? @map("eliminado_en")
+  id          Int            @id @default(autoincrement())
+  titulo      String         @db.VarChar(200)
+  artista     String         @db.VarChar(200)
+  estado      Estado         @default(pendiente)
+  creadoEn    DateTime       @default(now()) @map("creado_en")
+  eliminadoEn DateTime?      @map("eliminado_en")
 
   versiones Version[]
 
@@ -42,10 +42,9 @@ model Version {
   id                Int           @id @default(autoincrement())
   cancionId         Int           @map("cancion_id")
   autorId           Int           @map("autor_id")
-  revisorId         Int?          @map("revisor_id")
   tonoOriginal      String        @map("tono_original") @db.VarChar(10)
   contenidoChordpro String        @map("contenido_chordpro")
-  estado            EstadoVersion @default(pendiente)
+  estado            Estado        @default(pendiente)
   creadoEn          DateTime      @default(now()) @map("creado_en")
   revisadoEn        DateTime?     @map("revisado_en")
   eliminadoEn       DateTime?     @map("eliminado_en")
@@ -53,7 +52,6 @@ model Version {
   favoritos Favorito[]
   autor     User    @relation("AutorVersion", fields: [autorId], references: [id], onDelete: Restrict)
   cancion   Cancion @relation(fields: [cancionId], references: [id], onDelete: Restrict)
-  revisor   User?   @relation("RevisorVersion", fields: [revisorId], references: [id], onDelete: SetNull)
 
   @@map("versiones")
 }
@@ -80,7 +78,7 @@ enum Rol {
   administrador
 }
 
-enum EstadoVersion {
+enum Estado {
   pendiente
   verificada
   rechazada
