@@ -30,24 +30,21 @@ export type VersionAvgAggregateOutputType = {
   id: number | null
   cancionId: number | null
   autorId: number | null
-  revisorId: number | null
 }
 
 export type VersionSumAggregateOutputType = {
   id: number | null
   cancionId: number | null
   autorId: number | null
-  revisorId: number | null
 }
 
 export type VersionMinAggregateOutputType = {
   id: number | null
   cancionId: number | null
   autorId: number | null
-  revisorId: number | null
   tonoOriginal: string | null
   contenidoChordpro: string | null
-  estado: $Enums.EstadoVersion | null
+  estado: $Enums.Estado | null
   creadoEn: Date | null
   revisadoEn: Date | null
   eliminadoEn: Date | null
@@ -57,10 +54,9 @@ export type VersionMaxAggregateOutputType = {
   id: number | null
   cancionId: number | null
   autorId: number | null
-  revisorId: number | null
   tonoOriginal: string | null
   contenidoChordpro: string | null
-  estado: $Enums.EstadoVersion | null
+  estado: $Enums.Estado | null
   creadoEn: Date | null
   revisadoEn: Date | null
   eliminadoEn: Date | null
@@ -70,7 +66,6 @@ export type VersionCountAggregateOutputType = {
   id: number
   cancionId: number
   autorId: number
-  revisorId: number
   tonoOriginal: number
   contenidoChordpro: number
   estado: number
@@ -85,21 +80,18 @@ export type VersionAvgAggregateInputType = {
   id?: true
   cancionId?: true
   autorId?: true
-  revisorId?: true
 }
 
 export type VersionSumAggregateInputType = {
   id?: true
   cancionId?: true
   autorId?: true
-  revisorId?: true
 }
 
 export type VersionMinAggregateInputType = {
   id?: true
   cancionId?: true
   autorId?: true
-  revisorId?: true
   tonoOriginal?: true
   contenidoChordpro?: true
   estado?: true
@@ -112,7 +104,6 @@ export type VersionMaxAggregateInputType = {
   id?: true
   cancionId?: true
   autorId?: true
-  revisorId?: true
   tonoOriginal?: true
   contenidoChordpro?: true
   estado?: true
@@ -125,7 +116,6 @@ export type VersionCountAggregateInputType = {
   id?: true
   cancionId?: true
   autorId?: true
-  revisorId?: true
   tonoOriginal?: true
   contenidoChordpro?: true
   estado?: true
@@ -225,10 +215,9 @@ export type VersionGroupByOutputType = {
   id: number
   cancionId: number
   autorId: number
-  revisorId: number | null
   tonoOriginal: string
   contenidoChordpro: string
-  estado: $Enums.EstadoVersion
+  estado: $Enums.Estado
   creadoEn: Date
   revisadoEn: Date | null
   eliminadoEn: Date | null
@@ -261,24 +250,21 @@ export type VersionWhereInput = {
   id?: Prisma.IntFilter<"Version"> | number
   cancionId?: Prisma.IntFilter<"Version"> | number
   autorId?: Prisma.IntFilter<"Version"> | number
-  revisorId?: Prisma.IntNullableFilter<"Version"> | number | null
   tonoOriginal?: Prisma.StringFilter<"Version"> | string
   contenidoChordpro?: Prisma.StringFilter<"Version"> | string
-  estado?: Prisma.EnumEstadoVersionFilter<"Version"> | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFilter<"Version"> | $Enums.Estado
   creadoEn?: Prisma.DateTimeFilter<"Version"> | Date | string
   revisadoEn?: Prisma.DateTimeNullableFilter<"Version"> | Date | string | null
   eliminadoEn?: Prisma.DateTimeNullableFilter<"Version"> | Date | string | null
   favoritos?: Prisma.FavoritoListRelationFilter
   autor?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   cancion?: Prisma.XOR<Prisma.CancionScalarRelationFilter, Prisma.CancionWhereInput>
-  revisor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type VersionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   cancionId?: Prisma.SortOrder
   autorId?: Prisma.SortOrder
-  revisorId?: Prisma.SortOrderInput | Prisma.SortOrder
   tonoOriginal?: Prisma.SortOrder
   contenidoChordpro?: Prisma.SortOrder
   estado?: Prisma.SortOrder
@@ -288,7 +274,6 @@ export type VersionOrderByWithRelationInput = {
   favoritos?: Prisma.FavoritoOrderByRelationAggregateInput
   autor?: Prisma.UserOrderByWithRelationInput
   cancion?: Prisma.CancionOrderByWithRelationInput
-  revisor?: Prisma.UserOrderByWithRelationInput
 }
 
 export type VersionWhereUniqueInput = Prisma.AtLeast<{
@@ -298,24 +283,21 @@ export type VersionWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.VersionWhereInput | Prisma.VersionWhereInput[]
   cancionId?: Prisma.IntFilter<"Version"> | number
   autorId?: Prisma.IntFilter<"Version"> | number
-  revisorId?: Prisma.IntNullableFilter<"Version"> | number | null
   tonoOriginal?: Prisma.StringFilter<"Version"> | string
   contenidoChordpro?: Prisma.StringFilter<"Version"> | string
-  estado?: Prisma.EnumEstadoVersionFilter<"Version"> | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFilter<"Version"> | $Enums.Estado
   creadoEn?: Prisma.DateTimeFilter<"Version"> | Date | string
   revisadoEn?: Prisma.DateTimeNullableFilter<"Version"> | Date | string | null
   eliminadoEn?: Prisma.DateTimeNullableFilter<"Version"> | Date | string | null
   favoritos?: Prisma.FavoritoListRelationFilter
   autor?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   cancion?: Prisma.XOR<Prisma.CancionScalarRelationFilter, Prisma.CancionWhereInput>
-  revisor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
 
 export type VersionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   cancionId?: Prisma.SortOrder
   autorId?: Prisma.SortOrder
-  revisorId?: Prisma.SortOrderInput | Prisma.SortOrder
   tonoOriginal?: Prisma.SortOrder
   contenidoChordpro?: Prisma.SortOrder
   estado?: Prisma.SortOrder
@@ -336,10 +318,9 @@ export type VersionScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"Version"> | number
   cancionId?: Prisma.IntWithAggregatesFilter<"Version"> | number
   autorId?: Prisma.IntWithAggregatesFilter<"Version"> | number
-  revisorId?: Prisma.IntNullableWithAggregatesFilter<"Version"> | number | null
   tonoOriginal?: Prisma.StringWithAggregatesFilter<"Version"> | string
   contenidoChordpro?: Prisma.StringWithAggregatesFilter<"Version"> | string
-  estado?: Prisma.EnumEstadoVersionWithAggregatesFilter<"Version"> | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoWithAggregatesFilter<"Version"> | $Enums.Estado
   creadoEn?: Prisma.DateTimeWithAggregatesFilter<"Version"> | Date | string
   revisadoEn?: Prisma.DateTimeNullableWithAggregatesFilter<"Version"> | Date | string | null
   eliminadoEn?: Prisma.DateTimeNullableWithAggregatesFilter<"Version"> | Date | string | null
@@ -348,24 +329,22 @@ export type VersionScalarWhereWithAggregatesInput = {
 export type VersionCreateInput = {
   tonoOriginal: string
   contenidoChordpro: string
-  estado?: $Enums.EstadoVersion
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
   favoritos?: Prisma.FavoritoCreateNestedManyWithoutVersionInput
   autor: Prisma.UserCreateNestedOneWithoutVersionesCreadasInput
   cancion: Prisma.CancionCreateNestedOneWithoutVersionesInput
-  revisor?: Prisma.UserCreateNestedOneWithoutVersionesRevisadasInput
 }
 
 export type VersionUncheckedCreateInput = {
   id?: number
   cancionId: number
   autorId: number
-  revisorId?: number | null
   tonoOriginal: string
   contenidoChordpro: string
-  estado?: $Enums.EstadoVersion
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
@@ -375,24 +354,22 @@ export type VersionUncheckedCreateInput = {
 export type VersionUpdateInput = {
   tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
   contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   favoritos?: Prisma.FavoritoUpdateManyWithoutVersionNestedInput
   autor?: Prisma.UserUpdateOneRequiredWithoutVersionesCreadasNestedInput
   cancion?: Prisma.CancionUpdateOneRequiredWithoutVersionesNestedInput
-  revisor?: Prisma.UserUpdateOneWithoutVersionesRevisadasNestedInput
 }
 
 export type VersionUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   cancionId?: Prisma.IntFieldUpdateOperationsInput | number
   autorId?: Prisma.IntFieldUpdateOperationsInput | number
-  revisorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
   contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -403,10 +380,9 @@ export type VersionCreateManyInput = {
   id?: number
   cancionId: number
   autorId: number
-  revisorId?: number | null
   tonoOriginal: string
   contenidoChordpro: string
-  estado?: $Enums.EstadoVersion
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
@@ -415,7 +391,7 @@ export type VersionCreateManyInput = {
 export type VersionUpdateManyMutationInput = {
   tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
   contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -425,10 +401,9 @@ export type VersionUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   cancionId?: Prisma.IntFieldUpdateOperationsInput | number
   autorId?: Prisma.IntFieldUpdateOperationsInput | number
-  revisorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
   contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -448,7 +423,6 @@ export type VersionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   cancionId?: Prisma.SortOrder
   autorId?: Prisma.SortOrder
-  revisorId?: Prisma.SortOrder
   tonoOriginal?: Prisma.SortOrder
   contenidoChordpro?: Prisma.SortOrder
   estado?: Prisma.SortOrder
@@ -461,14 +435,12 @@ export type VersionAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   cancionId?: Prisma.SortOrder
   autorId?: Prisma.SortOrder
-  revisorId?: Prisma.SortOrder
 }
 
 export type VersionMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   cancionId?: Prisma.SortOrder
   autorId?: Prisma.SortOrder
-  revisorId?: Prisma.SortOrder
   tonoOriginal?: Prisma.SortOrder
   contenidoChordpro?: Prisma.SortOrder
   estado?: Prisma.SortOrder
@@ -481,7 +453,6 @@ export type VersionMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   cancionId?: Prisma.SortOrder
   autorId?: Prisma.SortOrder
-  revisorId?: Prisma.SortOrder
   tonoOriginal?: Prisma.SortOrder
   contenidoChordpro?: Prisma.SortOrder
   estado?: Prisma.SortOrder
@@ -494,7 +465,6 @@ export type VersionSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   cancionId?: Prisma.SortOrder
   autorId?: Prisma.SortOrder
-  revisorId?: Prisma.SortOrder
 }
 
 export type VersionScalarRelationFilter = {
@@ -509,24 +479,10 @@ export type VersionCreateNestedManyWithoutAutorInput = {
   connect?: Prisma.VersionWhereUniqueInput | Prisma.VersionWhereUniqueInput[]
 }
 
-export type VersionCreateNestedManyWithoutRevisorInput = {
-  create?: Prisma.XOR<Prisma.VersionCreateWithoutRevisorInput, Prisma.VersionUncheckedCreateWithoutRevisorInput> | Prisma.VersionCreateWithoutRevisorInput[] | Prisma.VersionUncheckedCreateWithoutRevisorInput[]
-  connectOrCreate?: Prisma.VersionCreateOrConnectWithoutRevisorInput | Prisma.VersionCreateOrConnectWithoutRevisorInput[]
-  createMany?: Prisma.VersionCreateManyRevisorInputEnvelope
-  connect?: Prisma.VersionWhereUniqueInput | Prisma.VersionWhereUniqueInput[]
-}
-
 export type VersionUncheckedCreateNestedManyWithoutAutorInput = {
   create?: Prisma.XOR<Prisma.VersionCreateWithoutAutorInput, Prisma.VersionUncheckedCreateWithoutAutorInput> | Prisma.VersionCreateWithoutAutorInput[] | Prisma.VersionUncheckedCreateWithoutAutorInput[]
   connectOrCreate?: Prisma.VersionCreateOrConnectWithoutAutorInput | Prisma.VersionCreateOrConnectWithoutAutorInput[]
   createMany?: Prisma.VersionCreateManyAutorInputEnvelope
-  connect?: Prisma.VersionWhereUniqueInput | Prisma.VersionWhereUniqueInput[]
-}
-
-export type VersionUncheckedCreateNestedManyWithoutRevisorInput = {
-  create?: Prisma.XOR<Prisma.VersionCreateWithoutRevisorInput, Prisma.VersionUncheckedCreateWithoutRevisorInput> | Prisma.VersionCreateWithoutRevisorInput[] | Prisma.VersionUncheckedCreateWithoutRevisorInput[]
-  connectOrCreate?: Prisma.VersionCreateOrConnectWithoutRevisorInput | Prisma.VersionCreateOrConnectWithoutRevisorInput[]
-  createMany?: Prisma.VersionCreateManyRevisorInputEnvelope
   connect?: Prisma.VersionWhereUniqueInput | Prisma.VersionWhereUniqueInput[]
 }
 
@@ -544,20 +500,6 @@ export type VersionUpdateManyWithoutAutorNestedInput = {
   deleteMany?: Prisma.VersionScalarWhereInput | Prisma.VersionScalarWhereInput[]
 }
 
-export type VersionUpdateManyWithoutRevisorNestedInput = {
-  create?: Prisma.XOR<Prisma.VersionCreateWithoutRevisorInput, Prisma.VersionUncheckedCreateWithoutRevisorInput> | Prisma.VersionCreateWithoutRevisorInput[] | Prisma.VersionUncheckedCreateWithoutRevisorInput[]
-  connectOrCreate?: Prisma.VersionCreateOrConnectWithoutRevisorInput | Prisma.VersionCreateOrConnectWithoutRevisorInput[]
-  upsert?: Prisma.VersionUpsertWithWhereUniqueWithoutRevisorInput | Prisma.VersionUpsertWithWhereUniqueWithoutRevisorInput[]
-  createMany?: Prisma.VersionCreateManyRevisorInputEnvelope
-  set?: Prisma.VersionWhereUniqueInput | Prisma.VersionWhereUniqueInput[]
-  disconnect?: Prisma.VersionWhereUniqueInput | Prisma.VersionWhereUniqueInput[]
-  delete?: Prisma.VersionWhereUniqueInput | Prisma.VersionWhereUniqueInput[]
-  connect?: Prisma.VersionWhereUniqueInput | Prisma.VersionWhereUniqueInput[]
-  update?: Prisma.VersionUpdateWithWhereUniqueWithoutRevisorInput | Prisma.VersionUpdateWithWhereUniqueWithoutRevisorInput[]
-  updateMany?: Prisma.VersionUpdateManyWithWhereWithoutRevisorInput | Prisma.VersionUpdateManyWithWhereWithoutRevisorInput[]
-  deleteMany?: Prisma.VersionScalarWhereInput | Prisma.VersionScalarWhereInput[]
-}
-
 export type VersionUncheckedUpdateManyWithoutAutorNestedInput = {
   create?: Prisma.XOR<Prisma.VersionCreateWithoutAutorInput, Prisma.VersionUncheckedCreateWithoutAutorInput> | Prisma.VersionCreateWithoutAutorInput[] | Prisma.VersionUncheckedCreateWithoutAutorInput[]
   connectOrCreate?: Prisma.VersionCreateOrConnectWithoutAutorInput | Prisma.VersionCreateOrConnectWithoutAutorInput[]
@@ -569,20 +511,6 @@ export type VersionUncheckedUpdateManyWithoutAutorNestedInput = {
   connect?: Prisma.VersionWhereUniqueInput | Prisma.VersionWhereUniqueInput[]
   update?: Prisma.VersionUpdateWithWhereUniqueWithoutAutorInput | Prisma.VersionUpdateWithWhereUniqueWithoutAutorInput[]
   updateMany?: Prisma.VersionUpdateManyWithWhereWithoutAutorInput | Prisma.VersionUpdateManyWithWhereWithoutAutorInput[]
-  deleteMany?: Prisma.VersionScalarWhereInput | Prisma.VersionScalarWhereInput[]
-}
-
-export type VersionUncheckedUpdateManyWithoutRevisorNestedInput = {
-  create?: Prisma.XOR<Prisma.VersionCreateWithoutRevisorInput, Prisma.VersionUncheckedCreateWithoutRevisorInput> | Prisma.VersionCreateWithoutRevisorInput[] | Prisma.VersionUncheckedCreateWithoutRevisorInput[]
-  connectOrCreate?: Prisma.VersionCreateOrConnectWithoutRevisorInput | Prisma.VersionCreateOrConnectWithoutRevisorInput[]
-  upsert?: Prisma.VersionUpsertWithWhereUniqueWithoutRevisorInput | Prisma.VersionUpsertWithWhereUniqueWithoutRevisorInput[]
-  createMany?: Prisma.VersionCreateManyRevisorInputEnvelope
-  set?: Prisma.VersionWhereUniqueInput | Prisma.VersionWhereUniqueInput[]
-  disconnect?: Prisma.VersionWhereUniqueInput | Prisma.VersionWhereUniqueInput[]
-  delete?: Prisma.VersionWhereUniqueInput | Prisma.VersionWhereUniqueInput[]
-  connect?: Prisma.VersionWhereUniqueInput | Prisma.VersionWhereUniqueInput[]
-  update?: Prisma.VersionUpdateWithWhereUniqueWithoutRevisorInput | Prisma.VersionUpdateWithWhereUniqueWithoutRevisorInput[]
-  updateMany?: Prisma.VersionUpdateManyWithWhereWithoutRevisorInput | Prisma.VersionUpdateManyWithWhereWithoutRevisorInput[]
   deleteMany?: Prisma.VersionScalarWhereInput | Prisma.VersionScalarWhereInput[]
 }
 
@@ -628,18 +556,6 @@ export type VersionUncheckedUpdateManyWithoutCancionNestedInput = {
   deleteMany?: Prisma.VersionScalarWhereInput | Prisma.VersionScalarWhereInput[]
 }
 
-export type EnumEstadoVersionFieldUpdateOperationsInput = {
-  set?: $Enums.EstadoVersion
-}
-
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type VersionCreateNestedOneWithoutFavoritosInput = {
   create?: Prisma.XOR<Prisma.VersionCreateWithoutFavoritosInput, Prisma.VersionUncheckedCreateWithoutFavoritosInput>
   connectOrCreate?: Prisma.VersionCreateOrConnectWithoutFavoritosInput
@@ -657,22 +573,20 @@ export type VersionUpdateOneRequiredWithoutFavoritosNestedInput = {
 export type VersionCreateWithoutAutorInput = {
   tonoOriginal: string
   contenidoChordpro: string
-  estado?: $Enums.EstadoVersion
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
   favoritos?: Prisma.FavoritoCreateNestedManyWithoutVersionInput
   cancion: Prisma.CancionCreateNestedOneWithoutVersionesInput
-  revisor?: Prisma.UserCreateNestedOneWithoutVersionesRevisadasInput
 }
 
 export type VersionUncheckedCreateWithoutAutorInput = {
   id?: number
   cancionId: number
-  revisorId?: number | null
   tonoOriginal: string
   contenidoChordpro: string
-  estado?: $Enums.EstadoVersion
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
@@ -686,41 +600,6 @@ export type VersionCreateOrConnectWithoutAutorInput = {
 
 export type VersionCreateManyAutorInputEnvelope = {
   data: Prisma.VersionCreateManyAutorInput | Prisma.VersionCreateManyAutorInput[]
-  skipDuplicates?: boolean
-}
-
-export type VersionCreateWithoutRevisorInput = {
-  tonoOriginal: string
-  contenidoChordpro: string
-  estado?: $Enums.EstadoVersion
-  creadoEn?: Date | string
-  revisadoEn?: Date | string | null
-  eliminadoEn?: Date | string | null
-  favoritos?: Prisma.FavoritoCreateNestedManyWithoutVersionInput
-  autor: Prisma.UserCreateNestedOneWithoutVersionesCreadasInput
-  cancion: Prisma.CancionCreateNestedOneWithoutVersionesInput
-}
-
-export type VersionUncheckedCreateWithoutRevisorInput = {
-  id?: number
-  cancionId: number
-  autorId: number
-  tonoOriginal: string
-  contenidoChordpro: string
-  estado?: $Enums.EstadoVersion
-  creadoEn?: Date | string
-  revisadoEn?: Date | string | null
-  eliminadoEn?: Date | string | null
-  favoritos?: Prisma.FavoritoUncheckedCreateNestedManyWithoutVersionInput
-}
-
-export type VersionCreateOrConnectWithoutRevisorInput = {
-  where: Prisma.VersionWhereUniqueInput
-  create: Prisma.XOR<Prisma.VersionCreateWithoutRevisorInput, Prisma.VersionUncheckedCreateWithoutRevisorInput>
-}
-
-export type VersionCreateManyRevisorInputEnvelope = {
-  data: Prisma.VersionCreateManyRevisorInput | Prisma.VersionCreateManyRevisorInput[]
   skipDuplicates?: boolean
 }
 
@@ -747,50 +626,31 @@ export type VersionScalarWhereInput = {
   id?: Prisma.IntFilter<"Version"> | number
   cancionId?: Prisma.IntFilter<"Version"> | number
   autorId?: Prisma.IntFilter<"Version"> | number
-  revisorId?: Prisma.IntNullableFilter<"Version"> | number | null
   tonoOriginal?: Prisma.StringFilter<"Version"> | string
   contenidoChordpro?: Prisma.StringFilter<"Version"> | string
-  estado?: Prisma.EnumEstadoVersionFilter<"Version"> | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFilter<"Version"> | $Enums.Estado
   creadoEn?: Prisma.DateTimeFilter<"Version"> | Date | string
   revisadoEn?: Prisma.DateTimeNullableFilter<"Version"> | Date | string | null
   eliminadoEn?: Prisma.DateTimeNullableFilter<"Version"> | Date | string | null
 }
 
-export type VersionUpsertWithWhereUniqueWithoutRevisorInput = {
-  where: Prisma.VersionWhereUniqueInput
-  update: Prisma.XOR<Prisma.VersionUpdateWithoutRevisorInput, Prisma.VersionUncheckedUpdateWithoutRevisorInput>
-  create: Prisma.XOR<Prisma.VersionCreateWithoutRevisorInput, Prisma.VersionUncheckedCreateWithoutRevisorInput>
-}
-
-export type VersionUpdateWithWhereUniqueWithoutRevisorInput = {
-  where: Prisma.VersionWhereUniqueInput
-  data: Prisma.XOR<Prisma.VersionUpdateWithoutRevisorInput, Prisma.VersionUncheckedUpdateWithoutRevisorInput>
-}
-
-export type VersionUpdateManyWithWhereWithoutRevisorInput = {
-  where: Prisma.VersionScalarWhereInput
-  data: Prisma.XOR<Prisma.VersionUpdateManyMutationInput, Prisma.VersionUncheckedUpdateManyWithoutRevisorInput>
-}
-
 export type VersionCreateWithoutCancionInput = {
   tonoOriginal: string
   contenidoChordpro: string
-  estado?: $Enums.EstadoVersion
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
   favoritos?: Prisma.FavoritoCreateNestedManyWithoutVersionInput
   autor: Prisma.UserCreateNestedOneWithoutVersionesCreadasInput
-  revisor?: Prisma.UserCreateNestedOneWithoutVersionesRevisadasInput
 }
 
 export type VersionUncheckedCreateWithoutCancionInput = {
   id?: number
   autorId: number
-  revisorId?: number | null
   tonoOriginal: string
   contenidoChordpro: string
-  estado?: $Enums.EstadoVersion
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
@@ -826,23 +686,21 @@ export type VersionUpdateManyWithWhereWithoutCancionInput = {
 export type VersionCreateWithoutFavoritosInput = {
   tonoOriginal: string
   contenidoChordpro: string
-  estado?: $Enums.EstadoVersion
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
   autor: Prisma.UserCreateNestedOneWithoutVersionesCreadasInput
   cancion: Prisma.CancionCreateNestedOneWithoutVersionesInput
-  revisor?: Prisma.UserCreateNestedOneWithoutVersionesRevisadasInput
 }
 
 export type VersionUncheckedCreateWithoutFavoritosInput = {
   id?: number
   cancionId: number
   autorId: number
-  revisorId?: number | null
   tonoOriginal: string
   contenidoChordpro: string
-  estado?: $Enums.EstadoVersion
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
@@ -867,23 +725,21 @@ export type VersionUpdateToOneWithWhereWithoutFavoritosInput = {
 export type VersionUpdateWithoutFavoritosInput = {
   tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
   contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   autor?: Prisma.UserUpdateOneRequiredWithoutVersionesCreadasNestedInput
   cancion?: Prisma.CancionUpdateOneRequiredWithoutVersionesNestedInput
-  revisor?: Prisma.UserUpdateOneWithoutVersionesRevisadasNestedInput
 }
 
 export type VersionUncheckedUpdateWithoutFavoritosInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   cancionId?: Prisma.IntFieldUpdateOperationsInput | number
   autorId?: Prisma.IntFieldUpdateOperationsInput | number
-  revisorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
   contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -892,22 +748,9 @@ export type VersionUncheckedUpdateWithoutFavoritosInput = {
 export type VersionCreateManyAutorInput = {
   id?: number
   cancionId: number
-  revisorId?: number | null
   tonoOriginal: string
   contenidoChordpro: string
-  estado?: $Enums.EstadoVersion
-  creadoEn?: Date | string
-  revisadoEn?: Date | string | null
-  eliminadoEn?: Date | string | null
-}
-
-export type VersionCreateManyRevisorInput = {
-  id?: number
-  cancionId: number
-  autorId: number
-  tonoOriginal: string
-  contenidoChordpro: string
-  estado?: $Enums.EstadoVersion
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
@@ -916,22 +759,20 @@ export type VersionCreateManyRevisorInput = {
 export type VersionUpdateWithoutAutorInput = {
   tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
   contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   favoritos?: Prisma.FavoritoUpdateManyWithoutVersionNestedInput
   cancion?: Prisma.CancionUpdateOneRequiredWithoutVersionesNestedInput
-  revisor?: Prisma.UserUpdateOneWithoutVersionesRevisadasNestedInput
 }
 
 export type VersionUncheckedUpdateWithoutAutorInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   cancionId?: Prisma.IntFieldUpdateOperationsInput | number
-  revisorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
   contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -941,47 +782,9 @@ export type VersionUncheckedUpdateWithoutAutorInput = {
 export type VersionUncheckedUpdateManyWithoutAutorInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   cancionId?: Prisma.IntFieldUpdateOperationsInput | number
-  revisorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
   contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
-  creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-}
-
-export type VersionUpdateWithoutRevisorInput = {
-  tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
-  contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
-  creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  favoritos?: Prisma.FavoritoUpdateManyWithoutVersionNestedInput
-  autor?: Prisma.UserUpdateOneRequiredWithoutVersionesCreadasNestedInput
-  cancion?: Prisma.CancionUpdateOneRequiredWithoutVersionesNestedInput
-}
-
-export type VersionUncheckedUpdateWithoutRevisorInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  cancionId?: Prisma.IntFieldUpdateOperationsInput | number
-  autorId?: Prisma.IntFieldUpdateOperationsInput | number
-  tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
-  contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
-  creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  favoritos?: Prisma.FavoritoUncheckedUpdateManyWithoutVersionNestedInput
-}
-
-export type VersionUncheckedUpdateManyWithoutRevisorInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  cancionId?: Prisma.IntFieldUpdateOperationsInput | number
-  autorId?: Prisma.IntFieldUpdateOperationsInput | number
-  tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
-  contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -990,10 +793,9 @@ export type VersionUncheckedUpdateManyWithoutRevisorInput = {
 export type VersionCreateManyCancionInput = {
   id?: number
   autorId: number
-  revisorId?: number | null
   tonoOriginal: string
   contenidoChordpro: string
-  estado?: $Enums.EstadoVersion
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   revisadoEn?: Date | string | null
   eliminadoEn?: Date | string | null
@@ -1002,22 +804,20 @@ export type VersionCreateManyCancionInput = {
 export type VersionUpdateWithoutCancionInput = {
   tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
   contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   favoritos?: Prisma.FavoritoUpdateManyWithoutVersionNestedInput
   autor?: Prisma.UserUpdateOneRequiredWithoutVersionesCreadasNestedInput
-  revisor?: Prisma.UserUpdateOneWithoutVersionesRevisadasNestedInput
 }
 
 export type VersionUncheckedUpdateWithoutCancionInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   autorId?: Prisma.IntFieldUpdateOperationsInput | number
-  revisorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
   contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1027,10 +827,9 @@ export type VersionUncheckedUpdateWithoutCancionInput = {
 export type VersionUncheckedUpdateManyWithoutCancionInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   autorId?: Prisma.IntFieldUpdateOperationsInput | number
-  revisorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   tonoOriginal?: Prisma.StringFieldUpdateOperationsInput | string
   contenidoChordpro?: Prisma.StringFieldUpdateOperationsInput | string
-  estado?: Prisma.EnumEstadoVersionFieldUpdateOperationsInput | $Enums.EstadoVersion
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   revisadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1071,7 +870,6 @@ export type VersionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   id?: boolean
   cancionId?: boolean
   autorId?: boolean
-  revisorId?: boolean
   tonoOriginal?: boolean
   contenidoChordpro?: boolean
   estado?: boolean
@@ -1081,7 +879,6 @@ export type VersionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   favoritos?: boolean | Prisma.Version$favoritosArgs<ExtArgs>
   autor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   cancion?: boolean | Prisma.CancionDefaultArgs<ExtArgs>
-  revisor?: boolean | Prisma.Version$revisorArgs<ExtArgs>
   _count?: boolean | Prisma.VersionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["version"]>
 
@@ -1089,7 +886,6 @@ export type VersionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   id?: boolean
   cancionId?: boolean
   autorId?: boolean
-  revisorId?: boolean
   tonoOriginal?: boolean
   contenidoChordpro?: boolean
   estado?: boolean
@@ -1098,14 +894,12 @@ export type VersionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   eliminadoEn?: boolean
   autor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   cancion?: boolean | Prisma.CancionDefaultArgs<ExtArgs>
-  revisor?: boolean | Prisma.Version$revisorArgs<ExtArgs>
 }, ExtArgs["result"]["version"]>
 
 export type VersionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   cancionId?: boolean
   autorId?: boolean
-  revisorId?: boolean
   tonoOriginal?: boolean
   contenidoChordpro?: boolean
   estado?: boolean
@@ -1114,14 +908,12 @@ export type VersionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   eliminadoEn?: boolean
   autor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   cancion?: boolean | Prisma.CancionDefaultArgs<ExtArgs>
-  revisor?: boolean | Prisma.Version$revisorArgs<ExtArgs>
 }, ExtArgs["result"]["version"]>
 
 export type VersionSelectScalar = {
   id?: boolean
   cancionId?: boolean
   autorId?: boolean
-  revisorId?: boolean
   tonoOriginal?: boolean
   contenidoChordpro?: boolean
   estado?: boolean
@@ -1130,23 +922,20 @@ export type VersionSelectScalar = {
   eliminadoEn?: boolean
 }
 
-export type VersionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "cancionId" | "autorId" | "revisorId" | "tonoOriginal" | "contenidoChordpro" | "estado" | "creadoEn" | "revisadoEn" | "eliminadoEn", ExtArgs["result"]["version"]>
+export type VersionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "cancionId" | "autorId" | "tonoOriginal" | "contenidoChordpro" | "estado" | "creadoEn" | "revisadoEn" | "eliminadoEn", ExtArgs["result"]["version"]>
 export type VersionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   favoritos?: boolean | Prisma.Version$favoritosArgs<ExtArgs>
   autor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   cancion?: boolean | Prisma.CancionDefaultArgs<ExtArgs>
-  revisor?: boolean | Prisma.Version$revisorArgs<ExtArgs>
   _count?: boolean | Prisma.VersionCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type VersionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   autor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   cancion?: boolean | Prisma.CancionDefaultArgs<ExtArgs>
-  revisor?: boolean | Prisma.Version$revisorArgs<ExtArgs>
 }
 export type VersionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   autor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   cancion?: boolean | Prisma.CancionDefaultArgs<ExtArgs>
-  revisor?: boolean | Prisma.Version$revisorArgs<ExtArgs>
 }
 
 export type $VersionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1155,16 +944,14 @@ export type $VersionPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     favoritos: Prisma.$FavoritoPayload<ExtArgs>[]
     autor: Prisma.$UserPayload<ExtArgs>
     cancion: Prisma.$CancionPayload<ExtArgs>
-    revisor: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     cancionId: number
     autorId: number
-    revisorId: number | null
     tonoOriginal: string
     contenidoChordpro: string
-    estado: $Enums.EstadoVersion
+    estado: $Enums.Estado
     creadoEn: Date
     revisadoEn: Date | null
     eliminadoEn: Date | null
@@ -1565,7 +1352,6 @@ export interface Prisma__VersionClient<T, Null = never, ExtArgs extends runtime.
   favoritos<T extends Prisma.Version$favoritosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Version$favoritosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FavoritoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   autor<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   cancion<T extends Prisma.CancionDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CancionDefaultArgs<ExtArgs>>): Prisma.Prisma__CancionClient<runtime.Types.Result.GetResult<Prisma.$CancionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  revisor<T extends Prisma.Version$revisorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Version$revisorArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1598,10 +1384,9 @@ export interface VersionFieldRefs {
   readonly id: Prisma.FieldRef<"Version", 'Int'>
   readonly cancionId: Prisma.FieldRef<"Version", 'Int'>
   readonly autorId: Prisma.FieldRef<"Version", 'Int'>
-  readonly revisorId: Prisma.FieldRef<"Version", 'Int'>
   readonly tonoOriginal: Prisma.FieldRef<"Version", 'String'>
   readonly contenidoChordpro: Prisma.FieldRef<"Version", 'String'>
-  readonly estado: Prisma.FieldRef<"Version", 'EstadoVersion'>
+  readonly estado: Prisma.FieldRef<"Version", 'Estado'>
   readonly creadoEn: Prisma.FieldRef<"Version", 'DateTime'>
   readonly revisadoEn: Prisma.FieldRef<"Version", 'DateTime'>
   readonly eliminadoEn: Prisma.FieldRef<"Version", 'DateTime'>
@@ -2027,25 +1812,6 @@ export type Version$favoritosArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.FavoritoScalarFieldEnum | Prisma.FavoritoScalarFieldEnum[]
-}
-
-/**
- * Version.revisor
- */
-export type Version$revisorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the User
-   */
-  select?: Prisma.UserSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the User
-   */
-  omit?: Prisma.UserOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.UserInclude<ExtArgs> | null
-  where?: Prisma.UserWhereInput
 }
 
 /**

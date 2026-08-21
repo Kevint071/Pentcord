@@ -775,6 +775,7 @@ export const CancionScalarFieldEnum = {
   id: 'id',
   titulo: 'titulo',
   artista: 'artista',
+  estado: 'estado',
   creadoEn: 'creadoEn',
   eliminadoEn: 'eliminadoEn'
 } as const
@@ -786,7 +787,6 @@ export const VersionScalarFieldEnum = {
   id: 'id',
   cancionId: 'cancionId',
   autorId: 'autorId',
-  revisorId: 'revisorId',
   tonoOriginal: 'tonoOriginal',
   contenidoChordpro: 'contenidoChordpro',
   estado: 'estado',
@@ -908,16 +908,16 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
- * Reference to a field of type 'EstadoVersion'
+ * Reference to a field of type 'Estado'
  */
-export type EnumEstadoVersionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EstadoVersion'>
+export type EnumEstadoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Estado'>
     
 
 
 /**
- * Reference to a field of type 'EstadoVersion[]'
+ * Reference to a field of type 'Estado[]'
  */
-export type ListEnumEstadoVersionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EstadoVersion[]'>
+export type ListEnumEstadoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Estado[]'>
     
 
 

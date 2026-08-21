@@ -258,7 +258,6 @@ export type UserWhereInput = {
   eliminadoEn?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   favoritos?: Prisma.FavoritoListRelationFilter
   versionesCreadas?: Prisma.VersionListRelationFilter
-  versionesRevisadas?: Prisma.VersionListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -274,7 +273,6 @@ export type UserOrderByWithRelationInput = {
   eliminadoEn?: Prisma.SortOrderInput | Prisma.SortOrder
   favoritos?: Prisma.FavoritoOrderByRelationAggregateInput
   versionesCreadas?: Prisma.VersionOrderByRelationAggregateInput
-  versionesRevisadas?: Prisma.VersionOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -293,7 +291,6 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   eliminadoEn?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   favoritos?: Prisma.FavoritoListRelationFilter
   versionesCreadas?: Prisma.VersionListRelationFilter
-  versionesRevisadas?: Prisma.VersionListRelationFilter
 }, "id">
 
 export type UserOrderByWithAggregationInput = {
@@ -342,7 +339,6 @@ export type UserCreateInput = {
   eliminadoEn?: Date | string | null
   favoritos?: Prisma.FavoritoCreateNestedManyWithoutUserInput
   versionesCreadas?: Prisma.VersionCreateNestedManyWithoutAutorInput
-  versionesRevisadas?: Prisma.VersionCreateNestedManyWithoutRevisorInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -358,7 +354,6 @@ export type UserUncheckedCreateInput = {
   eliminadoEn?: Date | string | null
   favoritos?: Prisma.FavoritoUncheckedCreateNestedManyWithoutUserInput
   versionesCreadas?: Prisma.VersionUncheckedCreateNestedManyWithoutAutorInput
-  versionesRevisadas?: Prisma.VersionUncheckedCreateNestedManyWithoutRevisorInput
 }
 
 export type UserUpdateInput = {
@@ -373,7 +368,6 @@ export type UserUpdateInput = {
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   favoritos?: Prisma.FavoritoUpdateManyWithoutUserNestedInput
   versionesCreadas?: Prisma.VersionUpdateManyWithoutAutorNestedInput
-  versionesRevisadas?: Prisma.VersionUpdateManyWithoutRevisorNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -389,7 +383,6 @@ export type UserUncheckedUpdateInput = {
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   favoritos?: Prisma.FavoritoUncheckedUpdateManyWithoutUserNestedInput
   versionesCreadas?: Prisma.VersionUncheckedUpdateManyWithoutAutorNestedInput
-  versionesRevisadas?: Prisma.VersionUncheckedUpdateManyWithoutRevisorNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -482,11 +475,6 @@ export type UserScalarRelationFilter = {
   isNot?: Prisma.UserWhereInput
 }
 
-export type UserNullableScalarRelationFilter = {
-  is?: Prisma.UserWhereInput | null
-  isNot?: Prisma.UserWhereInput | null
-}
-
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
@@ -525,28 +513,12 @@ export type UserCreateNestedOneWithoutVersionesCreadasInput = {
   connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserCreateNestedOneWithoutVersionesRevisadasInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutVersionesRevisadasInput, Prisma.UserUncheckedCreateWithoutVersionesRevisadasInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutVersionesRevisadasInput
-  connect?: Prisma.UserWhereUniqueInput
-}
-
 export type UserUpdateOneRequiredWithoutVersionesCreadasNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutVersionesCreadasInput, Prisma.UserUncheckedCreateWithoutVersionesCreadasInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutVersionesCreadasInput
   upsert?: Prisma.UserUpsertWithoutVersionesCreadasInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutVersionesCreadasInput, Prisma.UserUpdateWithoutVersionesCreadasInput>, Prisma.UserUncheckedUpdateWithoutVersionesCreadasInput>
-}
-
-export type UserUpdateOneWithoutVersionesRevisadasNestedInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutVersionesRevisadasInput, Prisma.UserUncheckedCreateWithoutVersionesRevisadasInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutVersionesRevisadasInput
-  upsert?: Prisma.UserUpsertWithoutVersionesRevisadasInput
-  disconnect?: Prisma.UserWhereInput | boolean
-  delete?: Prisma.UserWhereInput | boolean
-  connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutVersionesRevisadasInput, Prisma.UserUpdateWithoutVersionesRevisadasInput>, Prisma.UserUncheckedUpdateWithoutVersionesRevisadasInput>
 }
 
 export type UserCreateNestedOneWithoutFavoritosInput = {
@@ -574,7 +546,6 @@ export type UserCreateWithoutVersionesCreadasInput = {
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
   favoritos?: Prisma.FavoritoCreateNestedManyWithoutUserInput
-  versionesRevisadas?: Prisma.VersionCreateNestedManyWithoutRevisorInput
 }
 
 export type UserUncheckedCreateWithoutVersionesCreadasInput = {
@@ -589,46 +560,11 @@ export type UserUncheckedCreateWithoutVersionesCreadasInput = {
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
   favoritos?: Prisma.FavoritoUncheckedCreateNestedManyWithoutUserInput
-  versionesRevisadas?: Prisma.VersionUncheckedCreateNestedManyWithoutRevisorInput
 }
 
 export type UserCreateOrConnectWithoutVersionesCreadasInput = {
   where: Prisma.UserWhereUniqueInput
   create: Prisma.XOR<Prisma.UserCreateWithoutVersionesCreadasInput, Prisma.UserUncheckedCreateWithoutVersionesCreadasInput>
-}
-
-export type UserCreateWithoutVersionesRevisadasInput = {
-  username: string
-  email?: string | null
-  metodoAutenticacion: $Enums.MetodoAutenticacion
-  password?: string | null
-  googleId?: string | null
-  rol?: $Enums.Rol
-  fotoPerfilUrl?: string | null
-  creadoEn?: Date | string
-  eliminadoEn?: Date | string | null
-  favoritos?: Prisma.FavoritoCreateNestedManyWithoutUserInput
-  versionesCreadas?: Prisma.VersionCreateNestedManyWithoutAutorInput
-}
-
-export type UserUncheckedCreateWithoutVersionesRevisadasInput = {
-  id?: number
-  username: string
-  email?: string | null
-  metodoAutenticacion: $Enums.MetodoAutenticacion
-  password?: string | null
-  googleId?: string | null
-  rol?: $Enums.Rol
-  fotoPerfilUrl?: string | null
-  creadoEn?: Date | string
-  eliminadoEn?: Date | string | null
-  favoritos?: Prisma.FavoritoUncheckedCreateNestedManyWithoutUserInput
-  versionesCreadas?: Prisma.VersionUncheckedCreateNestedManyWithoutAutorInput
-}
-
-export type UserCreateOrConnectWithoutVersionesRevisadasInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutVersionesRevisadasInput, Prisma.UserUncheckedCreateWithoutVersionesRevisadasInput>
 }
 
 export type UserUpsertWithoutVersionesCreadasInput = {
@@ -653,7 +589,6 @@ export type UserUpdateWithoutVersionesCreadasInput = {
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   favoritos?: Prisma.FavoritoUpdateManyWithoutUserNestedInput
-  versionesRevisadas?: Prisma.VersionUpdateManyWithoutRevisorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutVersionesCreadasInput = {
@@ -668,47 +603,6 @@ export type UserUncheckedUpdateWithoutVersionesCreadasInput = {
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   favoritos?: Prisma.FavoritoUncheckedUpdateManyWithoutUserNestedInput
-  versionesRevisadas?: Prisma.VersionUncheckedUpdateManyWithoutRevisorNestedInput
-}
-
-export type UserUpsertWithoutVersionesRevisadasInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutVersionesRevisadasInput, Prisma.UserUncheckedUpdateWithoutVersionesRevisadasInput>
-  create: Prisma.XOR<Prisma.UserCreateWithoutVersionesRevisadasInput, Prisma.UserUncheckedCreateWithoutVersionesRevisadasInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutVersionesRevisadasInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutVersionesRevisadasInput, Prisma.UserUncheckedUpdateWithoutVersionesRevisadasInput>
-}
-
-export type UserUpdateWithoutVersionesRevisadasInput = {
-  username?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  metodoAutenticacion?: Prisma.EnumMetodoAutenticacionFieldUpdateOperationsInput | $Enums.MetodoAutenticacion
-  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
-  fotoPerfilUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  favoritos?: Prisma.FavoritoUpdateManyWithoutUserNestedInput
-  versionesCreadas?: Prisma.VersionUpdateManyWithoutAutorNestedInput
-}
-
-export type UserUncheckedUpdateWithoutVersionesRevisadasInput = {
-  id?: Prisma.IntFieldUpdateOperationsInput | number
-  username?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  metodoAutenticacion?: Prisma.EnumMetodoAutenticacionFieldUpdateOperationsInput | $Enums.MetodoAutenticacion
-  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
-  fotoPerfilUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  favoritos?: Prisma.FavoritoUncheckedUpdateManyWithoutUserNestedInput
-  versionesCreadas?: Prisma.VersionUncheckedUpdateManyWithoutAutorNestedInput
 }
 
 export type UserCreateWithoutFavoritosInput = {
@@ -722,7 +616,6 @@ export type UserCreateWithoutFavoritosInput = {
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
   versionesCreadas?: Prisma.VersionCreateNestedManyWithoutAutorInput
-  versionesRevisadas?: Prisma.VersionCreateNestedManyWithoutRevisorInput
 }
 
 export type UserUncheckedCreateWithoutFavoritosInput = {
@@ -737,7 +630,6 @@ export type UserUncheckedCreateWithoutFavoritosInput = {
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
   versionesCreadas?: Prisma.VersionUncheckedCreateNestedManyWithoutAutorInput
-  versionesRevisadas?: Prisma.VersionUncheckedCreateNestedManyWithoutRevisorInput
 }
 
 export type UserCreateOrConnectWithoutFavoritosInput = {
@@ -767,7 +659,6 @@ export type UserUpdateWithoutFavoritosInput = {
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   versionesCreadas?: Prisma.VersionUpdateManyWithoutAutorNestedInput
-  versionesRevisadas?: Prisma.VersionUpdateManyWithoutRevisorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFavoritosInput = {
@@ -782,7 +673,6 @@ export type UserUncheckedUpdateWithoutFavoritosInput = {
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   versionesCreadas?: Prisma.VersionUncheckedUpdateManyWithoutAutorNestedInput
-  versionesRevisadas?: Prisma.VersionUncheckedUpdateManyWithoutRevisorNestedInput
 }
 
 
@@ -793,13 +683,11 @@ export type UserUncheckedUpdateWithoutFavoritosInput = {
 export type UserCountOutputType = {
   favoritos: number
   versionesCreadas: number
-  versionesRevisadas: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   favoritos?: boolean | UserCountOutputTypeCountFavoritosArgs
   versionesCreadas?: boolean | UserCountOutputTypeCountVersionesCreadasArgs
-  versionesRevisadas?: boolean | UserCountOutputTypeCountVersionesRevisadasArgs
 }
 
 /**
@@ -826,13 +714,6 @@ export type UserCountOutputTypeCountVersionesCreadasArgs<ExtArgs extends runtime
   where?: Prisma.VersionWhereInput
 }
 
-/**
- * UserCountOutputType without action
- */
-export type UserCountOutputTypeCountVersionesRevisadasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.VersionWhereInput
-}
-
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -847,7 +728,6 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   eliminadoEn?: boolean
   favoritos?: boolean | Prisma.User$favoritosArgs<ExtArgs>
   versionesCreadas?: boolean | Prisma.User$versionesCreadasArgs<ExtArgs>
-  versionesRevisadas?: boolean | Prisma.User$versionesRevisadasArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -894,7 +774,6 @@ export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = run
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   favoritos?: boolean | Prisma.User$favoritosArgs<ExtArgs>
   versionesCreadas?: boolean | Prisma.User$versionesCreadasArgs<ExtArgs>
-  versionesRevisadas?: boolean | Prisma.User$versionesRevisadasArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -905,7 +784,6 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     favoritos: Prisma.$FavoritoPayload<ExtArgs>[]
     versionesCreadas: Prisma.$VersionPayload<ExtArgs>[]
-    versionesRevisadas: Prisma.$VersionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1314,7 +1192,6 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   favoritos<T extends Prisma.User$favoritosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$favoritosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FavoritoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   versionesCreadas<T extends Prisma.User$versionesCreadasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$versionesCreadasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  versionesRevisadas<T extends Prisma.User$versionesRevisadasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$versionesRevisadasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1774,30 +1651,6 @@ export type User$favoritosArgs<ExtArgs extends runtime.Types.Extensions.Internal
  * User.versionesCreadas
  */
 export type User$versionesCreadasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Version
-   */
-  select?: Prisma.VersionSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Version
-   */
-  omit?: Prisma.VersionOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.VersionInclude<ExtArgs> | null
-  where?: Prisma.VersionWhereInput
-  orderBy?: Prisma.VersionOrderByWithRelationInput | Prisma.VersionOrderByWithRelationInput[]
-  cursor?: Prisma.VersionWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.VersionScalarFieldEnum | Prisma.VersionScalarFieldEnum[]
-}
-
-/**
- * User.versionesRevisadas
- */
-export type User$versionesRevisadasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the Version
    */

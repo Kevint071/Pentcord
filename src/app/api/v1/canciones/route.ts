@@ -88,17 +88,60 @@ export async function POST(request: Request) {
     // Validación básica de campos obligatorios
     if (!titulo || !artista) {
       return NextResponse.json(
-        {
-          error: "titulo y artista son obligatorios",
-        },
+        { error: "titulo y artista son obligatorios" },
         { status: 400 },
       );
     }
+
+    const userdb = await prisma.user.findUnique({
+      where: { id: Number(userid) },
+    });
+
+    if (!userdb) {
+      return NextResponse.json(
+        { error: "El usuario no existe" },
+        { status: 404 },
+      );
+    }
+
     const cancion = await prisma.cancion.create({
       data: { titulo, artista },
+      select: { id: true, titulo: true, artista: true },
     });
+
+    const id = cancion.id;
+
+    const createVersionResponse = await fetch(
+      `http://localhost:3000/api/v1/canciones/${cancion.id}/versiones`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          contenido_chordpro,
+          userid,
+          tono_original,
+        }),
+      },
+    );
+
+    if (!createVersionResponse.ok) {
+      const errorData = await createVersionResponse.json();
+      return NextResponse.json(
+        { error: errorData.error || "Error al crear la versión" },
+        { status: createVersionResponse.status },
+      );
+    }
+
+    const { data: version } = await createVersionResponse.json();
+
     return NextResponse.json(
-      { titulo: cancion.titulo, artista: cancion.artista },
+      {
+        id: cancion.id,
+        titulo: cancion.titulo,
+        artista: cancion.artista,
+        version,
+      },
       { status: 201 },
     );
   } catch (error) {

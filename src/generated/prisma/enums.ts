@@ -25,10 +25,10 @@ export const Rol = {
 export type Rol = (typeof Rol)[keyof typeof Rol]
 
 
-export const EstadoVersion = {
+export const Estado = {
   pendiente: 'pendiente',
   verificada: 'verificada',
   rechazada: 'rechazada'
 } as const
 
-export type EstadoVersion = (typeof EstadoVersion)[keyof typeof EstadoVersion]
+export type Estado = (typeof Estado)[keyof typeof Estado]

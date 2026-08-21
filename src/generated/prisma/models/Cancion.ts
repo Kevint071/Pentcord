@@ -38,6 +38,7 @@ export type CancionMinAggregateOutputType = {
   id: number | null
   titulo: string | null
   artista: string | null
+  estado: $Enums.Estado | null
   creadoEn: Date | null
   eliminadoEn: Date | null
 }
@@ -46,6 +47,7 @@ export type CancionMaxAggregateOutputType = {
   id: number | null
   titulo: string | null
   artista: string | null
+  estado: $Enums.Estado | null
   creadoEn: Date | null
   eliminadoEn: Date | null
 }
@@ -54,6 +56,7 @@ export type CancionCountAggregateOutputType = {
   id: number
   titulo: number
   artista: number
+  estado: number
   creadoEn: number
   eliminadoEn: number
   _all: number
@@ -72,6 +75,7 @@ export type CancionMinAggregateInputType = {
   id?: true
   titulo?: true
   artista?: true
+  estado?: true
   creadoEn?: true
   eliminadoEn?: true
 }
@@ -80,6 +84,7 @@ export type CancionMaxAggregateInputType = {
   id?: true
   titulo?: true
   artista?: true
+  estado?: true
   creadoEn?: true
   eliminadoEn?: true
 }
@@ -88,6 +93,7 @@ export type CancionCountAggregateInputType = {
   id?: true
   titulo?: true
   artista?: true
+  estado?: true
   creadoEn?: true
   eliminadoEn?: true
   _all?: true
@@ -183,6 +189,7 @@ export type CancionGroupByOutputType = {
   id: number
   titulo: string
   artista: string
+  estado: $Enums.Estado
   creadoEn: Date
   eliminadoEn: Date | null
   _count: CancionCountAggregateOutputType | null
@@ -214,6 +221,7 @@ export type CancionWhereInput = {
   id?: Prisma.IntFilter<"Cancion"> | number
   titulo?: Prisma.StringFilter<"Cancion"> | string
   artista?: Prisma.StringFilter<"Cancion"> | string
+  estado?: Prisma.EnumEstadoFilter<"Cancion"> | $Enums.Estado
   creadoEn?: Prisma.DateTimeFilter<"Cancion"> | Date | string
   eliminadoEn?: Prisma.DateTimeNullableFilter<"Cancion"> | Date | string | null
   versiones?: Prisma.VersionListRelationFilter
@@ -223,6 +231,7 @@ export type CancionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   titulo?: Prisma.SortOrder
   artista?: Prisma.SortOrder
+  estado?: Prisma.SortOrder
   creadoEn?: Prisma.SortOrder
   eliminadoEn?: Prisma.SortOrderInput | Prisma.SortOrder
   versiones?: Prisma.VersionOrderByRelationAggregateInput
@@ -235,6 +244,7 @@ export type CancionWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.CancionWhereInput | Prisma.CancionWhereInput[]
   titulo?: Prisma.StringFilter<"Cancion"> | string
   artista?: Prisma.StringFilter<"Cancion"> | string
+  estado?: Prisma.EnumEstadoFilter<"Cancion"> | $Enums.Estado
   creadoEn?: Prisma.DateTimeFilter<"Cancion"> | Date | string
   eliminadoEn?: Prisma.DateTimeNullableFilter<"Cancion"> | Date | string | null
   versiones?: Prisma.VersionListRelationFilter
@@ -244,6 +254,7 @@ export type CancionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   titulo?: Prisma.SortOrder
   artista?: Prisma.SortOrder
+  estado?: Prisma.SortOrder
   creadoEn?: Prisma.SortOrder
   eliminadoEn?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.CancionCountOrderByAggregateInput
@@ -260,6 +271,7 @@ export type CancionScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"Cancion"> | number
   titulo?: Prisma.StringWithAggregatesFilter<"Cancion"> | string
   artista?: Prisma.StringWithAggregatesFilter<"Cancion"> | string
+  estado?: Prisma.EnumEstadoWithAggregatesFilter<"Cancion"> | $Enums.Estado
   creadoEn?: Prisma.DateTimeWithAggregatesFilter<"Cancion"> | Date | string
   eliminadoEn?: Prisma.DateTimeNullableWithAggregatesFilter<"Cancion"> | Date | string | null
 }
@@ -267,6 +279,7 @@ export type CancionScalarWhereWithAggregatesInput = {
 export type CancionCreateInput = {
   titulo: string
   artista: string
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
   versiones?: Prisma.VersionCreateNestedManyWithoutCancionInput
@@ -276,6 +289,7 @@ export type CancionUncheckedCreateInput = {
   id?: number
   titulo: string
   artista: string
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
   versiones?: Prisma.VersionUncheckedCreateNestedManyWithoutCancionInput
@@ -284,6 +298,7 @@ export type CancionUncheckedCreateInput = {
 export type CancionUpdateInput = {
   titulo?: Prisma.StringFieldUpdateOperationsInput | string
   artista?: Prisma.StringFieldUpdateOperationsInput | string
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   versiones?: Prisma.VersionUpdateManyWithoutCancionNestedInput
@@ -293,6 +308,7 @@ export type CancionUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   titulo?: Prisma.StringFieldUpdateOperationsInput | string
   artista?: Prisma.StringFieldUpdateOperationsInput | string
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   versiones?: Prisma.VersionUncheckedUpdateManyWithoutCancionNestedInput
@@ -302,6 +318,7 @@ export type CancionCreateManyInput = {
   id?: number
   titulo: string
   artista: string
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
 }
@@ -309,6 +326,7 @@ export type CancionCreateManyInput = {
 export type CancionUpdateManyMutationInput = {
   titulo?: Prisma.StringFieldUpdateOperationsInput | string
   artista?: Prisma.StringFieldUpdateOperationsInput | string
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -317,6 +335,7 @@ export type CancionUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   titulo?: Prisma.StringFieldUpdateOperationsInput | string
   artista?: Prisma.StringFieldUpdateOperationsInput | string
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -325,6 +344,7 @@ export type CancionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   titulo?: Prisma.SortOrder
   artista?: Prisma.SortOrder
+  estado?: Prisma.SortOrder
   creadoEn?: Prisma.SortOrder
   eliminadoEn?: Prisma.SortOrder
 }
@@ -337,6 +357,7 @@ export type CancionMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   titulo?: Prisma.SortOrder
   artista?: Prisma.SortOrder
+  estado?: Prisma.SortOrder
   creadoEn?: Prisma.SortOrder
   eliminadoEn?: Prisma.SortOrder
 }
@@ -345,6 +366,7 @@ export type CancionMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   titulo?: Prisma.SortOrder
   artista?: Prisma.SortOrder
+  estado?: Prisma.SortOrder
   creadoEn?: Prisma.SortOrder
   eliminadoEn?: Prisma.SortOrder
 }
@@ -356,6 +378,10 @@ export type CancionSumOrderByAggregateInput = {
 export type CancionScalarRelationFilter = {
   is?: Prisma.CancionWhereInput
   isNot?: Prisma.CancionWhereInput
+}
+
+export type EnumEstadoFieldUpdateOperationsInput = {
+  set?: $Enums.Estado
 }
 
 export type CancionCreateNestedOneWithoutVersionesInput = {
@@ -375,6 +401,7 @@ export type CancionUpdateOneRequiredWithoutVersionesNestedInput = {
 export type CancionCreateWithoutVersionesInput = {
   titulo: string
   artista: string
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
 }
@@ -383,6 +410,7 @@ export type CancionUncheckedCreateWithoutVersionesInput = {
   id?: number
   titulo: string
   artista: string
+  estado?: $Enums.Estado
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
 }
@@ -406,6 +434,7 @@ export type CancionUpdateToOneWithWhereWithoutVersionesInput = {
 export type CancionUpdateWithoutVersionesInput = {
   titulo?: Prisma.StringFieldUpdateOperationsInput | string
   artista?: Prisma.StringFieldUpdateOperationsInput | string
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -414,6 +443,7 @@ export type CancionUncheckedUpdateWithoutVersionesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   titulo?: Prisma.StringFieldUpdateOperationsInput | string
   artista?: Prisma.StringFieldUpdateOperationsInput | string
+  estado?: Prisma.EnumEstadoFieldUpdateOperationsInput | $Enums.Estado
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -453,6 +483,7 @@ export type CancionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   id?: boolean
   titulo?: boolean
   artista?: boolean
+  estado?: boolean
   creadoEn?: boolean
   eliminadoEn?: boolean
   versiones?: boolean | Prisma.Cancion$versionesArgs<ExtArgs>
@@ -463,6 +494,7 @@ export type CancionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   id?: boolean
   titulo?: boolean
   artista?: boolean
+  estado?: boolean
   creadoEn?: boolean
   eliminadoEn?: boolean
 }, ExtArgs["result"]["cancion"]>
@@ -471,6 +503,7 @@ export type CancionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   id?: boolean
   titulo?: boolean
   artista?: boolean
+  estado?: boolean
   creadoEn?: boolean
   eliminadoEn?: boolean
 }, ExtArgs["result"]["cancion"]>
@@ -479,11 +512,12 @@ export type CancionSelectScalar = {
   id?: boolean
   titulo?: boolean
   artista?: boolean
+  estado?: boolean
   creadoEn?: boolean
   eliminadoEn?: boolean
 }
 
-export type CancionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "titulo" | "artista" | "creadoEn" | "eliminadoEn", ExtArgs["result"]["cancion"]>
+export type CancionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "titulo" | "artista" | "estado" | "creadoEn" | "eliminadoEn", ExtArgs["result"]["cancion"]>
 export type CancionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   versiones?: boolean | Prisma.Cancion$versionesArgs<ExtArgs>
   _count?: boolean | Prisma.CancionCountOutputTypeDefaultArgs<ExtArgs>
@@ -500,6 +534,7 @@ export type $CancionPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     id: number
     titulo: string
     artista: string
+    estado: $Enums.Estado
     creadoEn: Date
     eliminadoEn: Date | null
   }, ExtArgs["result"]["cancion"]>
@@ -929,6 +964,7 @@ export interface CancionFieldRefs {
   readonly id: Prisma.FieldRef<"Cancion", 'Int'>
   readonly titulo: Prisma.FieldRef<"Cancion", 'String'>
   readonly artista: Prisma.FieldRef<"Cancion", 'String'>
+  readonly estado: Prisma.FieldRef<"Cancion", 'Estado'>
   readonly creadoEn: Prisma.FieldRef<"Cancion", 'DateTime'>
   readonly eliminadoEn: Prisma.FieldRef<"Cancion", 'DateTime'>
 }

@@ -93,6 +93,7 @@ export const CancionScalarFieldEnum = {
   id: 'id',
   titulo: 'titulo',
   artista: 'artista',
+  estado: 'estado',
   creadoEn: 'creadoEn',
   eliminadoEn: 'eliminadoEn'
 } as const
@@ -104,7 +105,6 @@ export const VersionScalarFieldEnum = {
   id: 'id',
   cancionId: 'cancionId',
   autorId: 'autorId',
-  revisorId: 'revisorId',
   tonoOriginal: 'tonoOriginal',
   contenidoChordpro: 'contenidoChordpro',
   estado: 'estado',
