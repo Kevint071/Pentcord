@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 export async function POST(request: Request) {
   try {
@@ -44,14 +45,45 @@ export async function POST(request: Request) {
         id: true,
         email: true,
         username: true,
-        // OJO: nunca incluyas "password" en el select de respuesta
       },
     });
 
-    return NextResponse.json(
+    // Generar access token y refresh token, ambos HS256
+    const accessToken = jwt.sign(
+      { id: newUser.id, email: newUser.email },
+      process.env.JWT_SECRET as string,
+      { algorithm: "HS256", expiresIn: "15m" },
+    );
+
+    // const refreshToken = jwt.sign(
+    //   { id: newUser.id },
+    //   process.env.JWT_REFRESH_SECRET as string,
+    //   { algorithm: "HS256", expiresIn: "7d" },
+    // );
+
+    const response = NextResponse.json(
       { message: "Usuario registrado con éxito", user: newUser },
       { status: 201 },
     );
+
+    // Guardar tokens en cookies httpOnly
+    response.cookies.set("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      maxAge: 60 * 15, // 15 minutos
+    });
+
+    // response.cookies.set("refreshToken", refreshToken, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "strict",
+    //   path: "/",
+    //   maxAge: 60 * 60 * 24 * 7, // 7 días
+    // });
+
+    return response;
   } catch (error) {
     console.error("Error en el registro:", error);
     return NextResponse.json(
