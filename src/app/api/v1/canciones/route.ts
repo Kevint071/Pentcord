@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
-import { getUserIdFromToken } from "@/lib/getUserIdFromToken";
+import { getUserFromToken } from "@/lib/getUserFromToken";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -84,7 +84,14 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const userid = getUserIdFromToken(request);
+    const { userId, userdb, error } = await getUserFromToken(request);
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
+    }
     const { titulo, artista, contenido_chordpro, tono_original } = body;
 
     // Validación básica de campos obligatorios
@@ -92,17 +99,6 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "titulo y artista son obligatorios" },
         { status: 400 },
-      );
-    }
-
-    const userdb = await prisma.user.findUnique({
-      where: { id: Number(userid) },
-    });
-
-    if (!userdb) {
-      return NextResponse.json(
-        { error: "El usuario no existe" },
-        { status: 404 },
       );
     }
 
@@ -121,7 +117,7 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           id,
           contenido_chordpro,
-          userid,
+          userId,
           tono_original,
         }),
       },

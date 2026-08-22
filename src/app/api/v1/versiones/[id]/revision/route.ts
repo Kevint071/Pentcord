@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
-import { getUserIdFromToken } from "@/lib/getUserIdFromToken";
+import { getUserFromToken } from "@/lib/getUserFromToken";
 
 const ESTADOS_VALIDOS = ["verificada", "rechazada"];
 
@@ -10,8 +10,14 @@ export async function PATCH(request: Request) {
     // 1. Leer el estado desde el JSON del body
     const body = await request.json();
     const { estado } = body;
-    const userId = getUserIdFromToken(request) || undefined;
+    const { userId, userdb, error } = await getUserFromToken(request);
 
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
+    }
     // 2. Extraer el versionId desde los segmentos de la URL
     const url = new URL(request.url);
     const segments = url.pathname.split("/").filter(Boolean);

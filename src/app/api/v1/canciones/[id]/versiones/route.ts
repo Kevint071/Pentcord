@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
-import { getUserIdFromToken } from "@/lib/getUserIdFromToken";
+import { getUserFromToken } from "@/lib/getUserFromToken";
 
 export async function POST(
   request: Request,
@@ -45,10 +45,17 @@ export async function POST(
 
   try {
     const body = await request.json();
-    const userid = getUserIdFromToken(request);
+    const { userId, userdb, error } = await getUserFromToken(request);
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
+    }
     const { contenido_chordpro, tono_original } = body;
 
-    if (!contenido_chordpro || !userid || !tono_original) {
+    if (!contenido_chordpro || !userId || !tono_original) {
       return NextResponse.json(
         {
           error: "contenido_chordpro, userid y tono_original son obligatorios",
@@ -56,22 +63,10 @@ export async function POST(
         { status: 400 },
       );
     }
-
-    const userdb = await prisma.user.findUnique({
-      where: { id: Number(userid) },
-    });
-
-    if (!userdb) {
-      return NextResponse.json(
-        { error: "El usuario no existe" },
-        { status: 404 },
-      );
-    }
-
     const version = await prisma.version.create({
       data: {
         cancionId,
-        autorId: Number(userid),
+        autorId: Number(userId),
         tonoOriginal: tono_original,
         contenidoChordpro: contenido_chordpro,
       },

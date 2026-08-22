@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserIdFromToken } from "@/lib/getUserIdFromToken";
+import { getUserFromToken } from "@/lib/getUserFromToken";
 
 export async function GET(
   request: Request,
@@ -50,11 +50,13 @@ export async function PATCH(
       );
     }
 
-    // 1. Verificar el token y obtener el userId
-    const userId = getUserIdFromToken(request);
+    const { userId, userdb, error } = await getUserFromToken(request);
 
-    if (!userId) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
     }
 
     // 2. Buscar la version
@@ -116,26 +118,16 @@ export async function DELETE(
       );
     }
 
-    // 1. Verificar el token y obtener el userId
-    const userId = getUserIdFromToken(request);
+    const { userId, userdb, error } = await getUserFromToken(request);
 
-    if (!userId) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    }
-
-    // 2. Verificar que el usuario sea administrador
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
+    if (error) {
       return NextResponse.json(
-        { error: "Usuario no encontrado" },
-        { status: 404 },
+        { error: error.message },
+        { status: error.status },
       );
     }
 
-    if (user.rol !== "administrador") {
+    if (userdb.rol !== "administrador") {
       return NextResponse.json(
         { error: "No tienes permisos para realizar esta acción" },
         { status: 403 },

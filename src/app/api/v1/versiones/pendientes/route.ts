@@ -1,26 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserIdFromToken } from "@/lib/getUserIdFromToken";
+import { getUserFromToken } from "@/lib/getUserFromToken";
 
 export async function GET(request: Request) {
   try {
-    const userId = getUserIdFromToken(request);
+    const { userId, userdb, error } = await getUserFromToken(request);
 
-    if (!userId) {
-      return NextResponse.json({
-        message: "Usuario no proporcionado",
-        error: 401,
-      });
-    }
-    const userdb = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { rol: true },
-    });
-
-    if (!userdb) {
+    if (error) {
       return NextResponse.json(
-        { error: "Usuario no encontrado" },
-        { status: 404 },
+        { error: error.message },
+        { status: error.status },
       );
     }
 
