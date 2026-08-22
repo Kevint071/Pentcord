@@ -4,7 +4,7 @@ import { getUserFromToken } from "@/lib/getUserFromToken";
 
 export async function GET(request: Request) {
   try {
-    const { userId, userdb, error } = await getUserFromToken(request);
+    const { userId, error } = await getUserFromToken(request);
 
     if (error) {
       return NextResponse.json(

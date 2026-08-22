@@ -12,7 +12,7 @@ export async function getUserFromToken(
   const cookieHeader = request.headers.get("cookie");
   const token = cookieHeader
     ?.split("; ")
-    .find((c) => c.startsWith("accessToken="))
+    .find((c) => c.startsWith("accesstoken="))
     ?.split("=")[1];
 
   if (!token) {
