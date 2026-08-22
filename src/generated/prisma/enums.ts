@@ -28,6 +28,8 @@ export type Rol = (typeof Rol)[keyof typeof Rol]
 export const Estado = {
   pendiente: 'pendiente',
   verificada: 'verificada',
+  pendienteEliminacion: 'pendienteEliminacion',
+  eliminada: 'eliminada',
   rechazada: 'rechazada'
 } as const
 

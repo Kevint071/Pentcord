@@ -81,5 +81,7 @@ enum Rol {
 enum Estado {
   pendiente
   verificada
+  pendienteEliminacion
+  eliminada
   rechazada
 }

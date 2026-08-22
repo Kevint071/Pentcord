@@ -1,36 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
+import { getUserIdFromToken } from "@/lib/getUserIdFromToken";
 
 const ESTADOS_VALIDOS = ["verificada", "rechazada"];
 
 export async function PATCH(request: Request) {
   try {
-    // 1. Obtener el token desde la cookie
-    const cookieHeader = request.headers.get("cookie");
-    const token = cookieHeader
-      ?.split("; ")
-      .find((c) => c.startsWith("accessToken="))
-      ?.split("=")[1];
-
-    if (!token) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    }
-
-    // 2. Verificar el token y extraer el id del usuario
-    let payload: jwt.JwtPayload & { id: number };
-    try {
-      payload = jwt.verify(token, process.env.JWT_SECRET as string, {
-        algorithms: ["HS256"],
-      }) as jwt.JwtPayload & { id: number };
-    } catch {
-      return NextResponse.json(
-        { error: "Token inválido o expirado" },
-        { status: 401 },
-      );
-    }
-
-    const userId = payload.id;
+    const userId = getUserIdFromToken(request) || undefined;
 
     // 1. Leer el estado desde el JSON del body
     const body = await request.json();
