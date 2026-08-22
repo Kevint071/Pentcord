@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
+import { getUserIdFromToken } from "@/lib/getUserIdFromToken";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -83,7 +84,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { titulo, artista, contenido_chordpro, userid, tono_original } = body;
+    const userid = getUserIdFromToken(request);
+    const { titulo, artista, contenido_chordpro, tono_original } = body;
 
     // Validación básica de campos obligatorios
     if (!titulo || !artista) {

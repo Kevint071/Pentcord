@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import { NextResponse } from "next/server";
 
 export function getUserIdFromToken(request: Request): number | undefined {
   const cookieHeader = request.headers.get("cookie");

@@ -162,6 +162,7 @@ export async function DELETE(
       where: { id: versionId },
       data: {
         estado: "eliminada",
+        eliminadoEn: new Date(),
       },
     });
 

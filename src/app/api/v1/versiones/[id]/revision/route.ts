@@ -7,11 +7,10 @@ const ESTADOS_VALIDOS = ["verificada", "rechazada"];
 
 export async function PATCH(request: Request) {
   try {
-    const userId = getUserIdFromToken(request) || undefined;
-
     // 1. Leer el estado desde el JSON del body
     const body = await request.json();
     const { estado } = body;
+    const userId = getUserIdFromToken(request) || undefined;
 
     // 2. Extraer el versionId desde los segmentos de la URL
     const url = new URL(request.url);

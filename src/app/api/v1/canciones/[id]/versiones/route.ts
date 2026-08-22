@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
+import { getUserIdFromToken } from "@/lib/getUserIdFromToken";
 
 export async function POST(
   request: Request,
@@ -44,7 +45,8 @@ export async function POST(
 
   try {
     const body = await request.json();
-    const { contenido_chordpro, userid, tono_original } = body;
+    const userid = getUserIdFromToken(request);
+    const { contenido_chordpro, tono_original } = body;
 
     if (!contenido_chordpro || !userid || !tono_original) {
       return NextResponse.json(

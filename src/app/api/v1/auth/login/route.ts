@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     }
 
     // Generar access token y refresh token, ambos HS256
-    const accessToken = jwt.sign(
+    const accesstoken = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET as string,
       { algorithm: "HS256", expiresIn: "15m" },
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     );
 
     // Guardar tokens en cookies httpOnly
-    response.cookies.set("accessToken", accessToken, {
+    response.cookies.set("accesstoken", accesstoken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
