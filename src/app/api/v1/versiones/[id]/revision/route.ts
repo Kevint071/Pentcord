@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
 import { getUserFromToken } from "@/lib/getUserFromToken";
 
 const ESTADOS_VALIDOS = ["verificada", "rechazada"];
