@@ -36,7 +36,9 @@ export async function getUserFromToken(
     };
   }
 
-  const userdb = await prisma.user.findUnique({ where: { id: payload.id } });
+  const userdb = await prisma.user.findUnique({
+    where: { id: payload.id, eliminadoEn: null },
+  });
 
   if (!userdb) {
     return {

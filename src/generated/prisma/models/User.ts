@@ -277,11 +277,11 @@ export type UserOrderByWithRelationInput = {
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  username?: string
+  email?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
-  username?: Prisma.StringFilter<"User"> | string
-  email?: Prisma.StringNullableFilter<"User"> | string | null
   metodoAutenticacion?: Prisma.EnumMetodoAutenticacionFilter<"User"> | $Enums.MetodoAutenticacion
   password?: Prisma.StringNullableFilter<"User"> | string | null
   googleId?: Prisma.StringNullableFilter<"User"> | string | null
@@ -291,7 +291,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   eliminadoEn?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   favoritos?: Prisma.FavoritoListRelationFilter
   versionesCreadas?: Prisma.VersionListRelationFilter
-}, "id">
+}, "id" | "username" | "email">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder

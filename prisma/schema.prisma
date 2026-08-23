@@ -9,8 +9,8 @@ datasource db {
 
 model User {
   id                  Int                 @id(map: "usuarios_pkey") @default(autoincrement())
-  username            String              @db.VarChar(120)
-  email               String?
+  username            String              @unique @db.VarChar(120)
+  email               String?             @unique
   metodoAutenticacion MetodoAutenticacion @map("metodo_autenticacion")
   password            String?             @map("password")
   googleId            String?             @map("google_id")
