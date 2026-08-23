@@ -1,5 +1,19 @@
 # PentCord
 
+## 📊 Estado general de implementación
+
+*Última actualización: 2026-08-22, en base a una auditoría del código real en `c:\dev\pentcord`.*
+
+Leyenda usada en todo el documento: **✅ Implementado** · **🚧 Parcial / difiere del diseño original** · **⏳ Planeado, no implementado**.
+
+- **Backend/API:** 🚧 avanzado — auth local (registro/login con JWT en cookie), CRUD de canciones y versiones, sistema de revisión (aprobar/rechazar), favoritos y foto de perfil (Cloudinary) están construidos y funcionando, pero varios nombres de campos/rutas y reglas de negocio ya se desviaron del diseño original (detallado sección por sección más abajo).
+- **Módulo de dominio musical (parser ChordPro, transposición, conversión a grados Nashville, renderizador):** ⏳ **no existe ninguna línea de código todavía**, pese a ser la Prioridad #1 declarada en Fase 0. `contenido_chordpro` hoy es un texto plano que se guarda y devuelve tal cual, sin parsear.
+- **Frontend/UI:** ⏳ **no existe** — `src/app/page.tsx` está vacío, no hay páginas de login, buscador, detalle de canción/versión, aportar, perfil ni panel de admin, y no hay carpeta `components/`.
+- **Login con Google:** ⏳ solo existen los campos de datos (`metodoAutenticacion: google`, `googleId`); no hay endpoint ni lógica OAuth.
+- **Refresh token:** ⏳ el código existe pero está comentado; no se emite ni se usa.
+- **Testing:** ⏳ no existe ninguna infraestructura de pruebas (sin Jest/Vitest/Playwright, sin carpeta `tests/`).
+- **Arquitectura en capas (`domain/application/infrastructure`):** ⏳ no implementada — hoy toda la lógica vive directamente en los `route.ts` de `src/app/api/v1/...`, que llaman a Prisma inline; lo más parecido a "infraestructura" es `src/lib/` (prisma.ts, cloudinary.ts, getUserFromToken.ts).
+
 # 🏁 Fase 0 · Visión, Restricciones y Definición del Éxito
 
 ## 1️⃣ Visión del proyecto
@@ -114,16 +128,16 @@ para que músicos puedan transportarlas al tono que necesiten de manera rápida 
 
 ## 3️⃣ MVP — funcionalidades (5–8)
 
-- Iniciar sesión (cuenta local o con Google).
-- Buscar y ver canciones (letra + acordes).
-- Ver las distintas versiones de una misma canción.
-- Transportar (transponer) los acordes de una canción a cualquier tono.
-- Convertir acordes a grados y de grados a acordes.
-- Guardar canciones como favoritas/frecuentes.
-- Agregar una canción o una versión nueva al catálogo.
-- Revisar (aprobar/rechazar) versiones pendientes.
-- Subir o editar foto de perfil.
-- Eliminar versión propia o cuenta propia (con retención de favoritos/versiones verificadas).
+- 🚧 Iniciar sesión (cuenta local o con Google) — local funciona (registro/login con JWT); Google **no** implementado.
+- ⏳ Buscar y ver canciones (letra + acordes) — el endpoint de búsqueda existe (`GET /api/v1/canciones`), pero no hay UI ni renderizado de letra+acordes (no existe el módulo de dominio que interpreta el ChordPro).
+- 🚧 Ver las distintas versiones de una misma canción — el dato existe y se puede listar vía API; sin UI.
+- ⏳ Transportar (transponer) los acordes de una canción a cualquier tono — no implementado, no existe el módulo de dominio.
+- ⏳ Convertir acordes a grados y de grados a acordes — no implementado, no existe el módulo de dominio.
+- ✅ Guardar canciones como favoritas/frecuentes — API completa (GET/POST/DELETE), idempotente; sin UI.
+- 🚧 Agregar una canción o una versión nueva al catálogo — API funcional, pero sin vista previa en tiempo real (no hay módulo de dominio para renderizar) ni UI.
+- ✅ Revisar (aprobar/rechazar) versiones pendientes — API funcional, restringida a rol administrador; sin UI.
+- ✅ Subir o editar foto de perfil — API funcional con Cloudinary.
+- 🚧 Eliminar versión propia o cuenta propia (con retención de favoritos/versiones verificadas) — cuenta propia: implementado. Versión propia: implementado pero con un flujo distinto al diseño original (ver Fase 2, HU-13 y RN-019).
 
 ## 4️⃣ Fuera del MVP (futuras versiones)
 
@@ -152,7 +166,7 @@ para que músicos puedan transportarlas al tono que necesiten de manera rápida 
 
 | Riesgo | Impacto | Mitigación |
 | --- | --- | --- |
-| La lógica de transporte/conversión a grados es más compleja de lo previsto (casos especiales: acordes con bajo, sus, add9, etc.) | Alto | Construir y validar esa lógica primero, con una suite de casos de prueba reales, antes de tocar la UI. |
+| La lógica de transporte/conversión a grados es más compleja de lo previsto (casos especiales: acordes con bajo, sus, add9, etc.) | Alto | Construir y validar esa lógica primero, con una suite de casos de prueba reales, antes de tocar la UI. 🚧 **Nota (2026-08-22):** la mitigación ("construir esa lógica primero") no se siguió en la práctica — se construyó primero auth + CRUD de datos, y el módulo de transporte/grados sigue sin empezar (ver Fase 8 §4). El riesgo en sí no se ha materializado todavía porque el código simplemente no ha llegado ahí. |
 | Cargar canciones a mano es tedioso y puede desincentivar mantener el catálogo | Medio | Definir un formato de texto simple y estándar para pegar letra+acordes, en vez de un formulario campo por campo. |
 | Como único administrador, revisar cada aporte puede volverse un cuello de botella | Medio | Mantener el criterio de aprobación simple y rápido (validez de ChordPro + no duplicado evidente), sin proceso burocrático |
 | Dependencia de Neon (plan gratuito) para persistencia | Bajo | Revisar límites del plan gratuito antes de escalar el catálogo; documentar la limitación. |
@@ -193,22 +207,33 @@ para que músicos puedan transportarlas al tono que necesiten de manera rápida 
 
 ## 1️⃣ Historias de usuario
 
-| ID | Historia |
-| --- | --- |
-| HU-01 | Como **músico**, quiero **iniciar sesión con cuenta local o con Google**, para **guardar favoritas y aportar canciones bajo mi identidad**. |
-| HU-02 | Como **músico**, quiero **buscar canciones por título/artista**, para **encontrar rápidamente la que necesito antes de un ensayo**. |
-| HU-03 | Como **músico**, quiero **ver las distintas versiones de una canción**, para **elegir la que corresponde exactamente a lo que voy a tocar**. |
-| HU-04 | Como **músico**, quiero **ver la letra y acordes de una versión específica**, para **seguir la canción mientras toco**. |
-| HU-05 | Como **músico**, quiero **transportar los acordes de una versión a cualquier tono**, para **tocarla en el tono que me conviene sin recalcular a mano**. |
-| HU-06 | Como **músico**, quiero **convertir los acordes de una versión a grados (Nashville) y viceversa**, para **comunicarme con otros músicos usando números en vez de notas**. |
-| HU-07 | Como **músico**, quiero **guardar una canción como favorita**, para **encontrarla rápido la próxima vez sin buscarla de nuevo**. |
-| HU-08 | Como **músico**, quiero **agregar una canción nueva al catálogo (con su primera versión)**, para **que esté disponible para mí y para otros músicos**. |
-| HU-09 | Como **músico**, quiero **agregar una versión nueva a una canción que ya existe**, para **registrar una variante distinta de letra/acordes que no está en el catálogo**. |
-| HU-10 | Como **músico que está aportando contenido**, quiero **ver una vista previa en tiempo real de cómo quedará renderizada mi canción mientras escribo el ChordPro**, para **confirmar que se ve bien antes de subirla, sin tener que guardar primero para revisar**. |
-| HU-11 | Como administrador, quiero revisar las versiones pendientes para aprobarlas o rechazarlas, para mantener la calidad del catálogo público. |
-| HU-12 | Como **músico**, quiero **subir o cambiar mi foto de perfil**, para **personalizar mi cuenta**. |
-| HU-13 | Como **usuario autenticado**, quiero **eliminar una versión propia**, para **quitarla del catálogo si ya no la considero válida**. |
-| HU-14 | Como **usuario autenticado**, quiero **eliminar mi cuenta**, para **dejar de usar el sistema, sabiendo que mi contenido verificado se conserva por si quiero restablecerla**. |
+| ID | Historia | Estado |
+| --- | --- | --- |
+| HU-01 | Como **músico**, quiero **iniciar sesión con cuenta local o con Google**, para **guardar favoritas y aportar canciones bajo mi identidad**. | 🚧 Local ✅ / Google ⏳ |
+| HU-02 | Como **músico**, quiero **buscar canciones por título/artista**, para **encontrar rápidamente la que necesito antes de un ensayo**. | 🚧 API sí, UI no |
+| HU-03 | Como **músico**, quiero **ver las distintas versiones de una canción**, para **elegir la que corresponde exactamente a lo que voy a tocar**. | 🚧 API sí, UI no |
+| HU-04 | Como **músico**, quiero **ver la letra y acordes de una versión específica**, para **seguir la canción mientras toco**. | ⏳ Sin renderizador |
+| HU-05 | Como **músico**, quiero **transportar los acordes de una versión a cualquier tono**, para **tocarla en el tono que me conviene sin recalcular a mano**. | ⏳ No implementado |
+| HU-06 | Como **músico**, quiero **convertir los acordes de una versión a grados (Nashville) y viceversa**, para **comunicarme con otros músicos usando números en vez de notas**. | ⏳ No implementado |
+| HU-07 | Como **músico**, quiero **guardar una canción como favorita**, para **encontrarla rápido la próxima vez sin buscarla de nuevo**. | ✅ API completa |
+| HU-08 | Como **músico**, quiero **agregar una canción nueva al catálogo (con su primera versión)**, para **que esté disponible para mí y para otros músicos**. | 🚧 API sí, UI no |
+| HU-09 | Como **músico**, quiero **agregar una versión nueva a una canción que ya existe**, para **registrar una variante distinta de letra/acordes que no está en el catálogo**. | 🚧 API sí, UI no |
+| HU-10 | Como **músico que está aportando contenido**, quiero **ver una vista previa en tiempo real de cómo quedará renderizada mi canción mientras escribo el ChordPro**, para **confirmar que se ve bien antes de subirla, sin tener que guardar primero para revisar**. | ⏳ No implementado |
+| HU-11 | Como administrador, quiero revisar las versiones pendientes para aprobarlas o rechazarlas, para mantener la calidad del catálogo público. | 🚧 API sí, UI no |
+| HU-12 | Como **músico**, quiero **subir o cambiar mi foto de perfil**, para **personalizar mi cuenta**. | ✅ API con Cloudinary |
+| HU-13 | Como **usuario autenticado**, quiero **eliminar una versión propia**, para **quitarla del catálogo si ya no la considero válida**. | 🚧 Flujo distinto (ver nota) |
+| HU-14 | Como **usuario autenticado**, quiero **eliminar mi cuenta**, para **dejar de usar el sistema, sabiendo que mi contenido verificado se conserva por si quiero restablecerla**. | ✅ Implementado |
+
+**Notas de implementación por historia** *(detalle de la columna Estado):*
+
+- **HU-01:** local implementado (`POST /api/v1/auth/register`, `POST /api/v1/auth/login`); Google no implementado.
+- **HU-02 / HU-03 / HU-08 / HU-09 / HU-11 / HU-12:** el endpoint de API existe y funciona; no hay ninguna pantalla que lo consuma todavía.
+- **HU-04:** la API devuelve el ChordPro crudo, pero no hay renderizador (RN-009b no implementada) ni UI.
+- **HU-08:** además, no valida sintaxis real de ChordPro (se guarda el texto tal cual).
+- **HU-05 / HU-06 / HU-10:** dependen del módulo de dominio musical, que no existe.
+- **HU-11:** implementado vía `GET /api/v1/versiones/pendientes` y `PATCH /api/v1/versiones/{id}/revision`; ya no se registra qué administrador revisó (ver nota sobre `revisor_id` en Fase 3/4).
+- **HU-13:** implementado con un flujo de dos pasos distinto al diseño original: el autor solicita la eliminación (`PATCH /api/v1/versiones/{id}` → estado `pendienteEliminacion`) y un administrador la confirma (`DELETE /api/v1/versiones/{id}`). No confirmado aún como diseño definitivo — el DELETE directo por el propio dueño sigue siendo una alternativa abierta.
+- **HU-14:** implementado vía `DELETE /api/v1/usuarios` (la ruta real no lleva `/me`).
 
 ---
 
@@ -244,45 +269,47 @@ para que músicos puedan transportarlas al tono que necesiten de manera rápida 
 
 ## 3️⃣ Reglas de negocio
 
-**RN-001:** Toda versión pertenece exactamente a una canción base (relación padre-hijo).
+**RN-001:** ✅ Toda versión pertenece exactamente a una canción base (relación padre-hijo). *(FK `cancion_id` obligatoria en `Version`)*
 
-**RN-002:** Toda versión tiene un tono original fijo, asignado al momento de crearse; este tono no cambia después.
+**RN-002:** ✅ Toda versión tiene un tono original fijo, asignado al momento de crearse; este tono no cambia después. *(campo `tono_original`, sin endpoint que lo edite)*
 
-**RN-003:** Transportar o convertir a grados genera una vista distinta, pero nunca modifica el tono original ni la letra+acordes almacenados.
+**RN-003:** ⏳ Transportar o convertir a grados genera una vista distinta, pero nunca modifica el tono original ni la letra+acordes almacenados. *(no aplica todavía: no existe transposición ni conversión a grados)*
 
-**RN-004:** La conversión acorde↔grado siempre es relativa al tono activo en pantalla (original o transportado), nunca a un tono fijo global.
+**RN-004:** ⏳ La conversión acorde↔grado siempre es relativa al tono activo en pantalla (original o transportado), nunca a un tono fijo global. *(no implementado)*
 
-**RN-005:** Los tipos de acorde soportados en el MVP son: mayor, menor, séptima (dominante, mayor, menor) y suspendido (sus2/sus4). Un acorde fuera de estos tipos se marca como "no reconocido" en vez de fallar silenciosamente.
+**RN-005:** ⏳ Los tipos de acorde soportados en el MVP son: mayor, menor, séptima (dominante, mayor, menor) y suspendido (sus2/sus4). Un acorde fuera de estos tipos se marca como "no reconocido" en vez de fallar silenciosamente. *(no implementado: no hay parser de ChordPro ni validación de acordes)*
 
-**RN-006:** Una canción/versión solo puede aparecer una vez en la lista de favoritas de un mismo usuario (guardar una ya guardada es una operación idempotente, no crea duplicados).
+**RN-006:** ✅ Una canción/versión solo puede aparecer una vez en la lista de favoritas de un mismo usuario (guardar una ya guardada es una operación idempotente, no crea duplicados). *(PK compuesta `(user_id, version_id)` en `Favorito`, y `POST /favoritos` responde 200 sin duplicar si ya existe)*
 
-**RN-007:** El correo de una cuenta local debe ser único en el sistema.
+**RN-007:** 🚧 El correo de una cuenta local debe ser único en el sistema. *(se valida en código en `POST /api/v1/auth/register`, pero el campo `email` no tiene restricción `@unique`/`UNIQUE` a nivel de base de datos — riesgo de condición de carrera con registros simultáneos)*
 
-**RN-008:** Buscar y ver canciones/versiones no requiere autenticación. Guardar favoritas y aportar contenido (canción o versión nueva) sí requieren sesión iniciada.
+**RN-008:** ✅ Buscar y ver canciones/versiones no requiere autenticación. Guardar favoritas y aportar contenido (canción o versión nueva) sí requieren sesión iniciada. *(`GET /canciones`, `GET /canciones/{id}`, `GET /versiones/{id}` son públicos; `POST /canciones`, `POST /canciones/{id}/versiones`, `POST /favoritos` exigen JWT)*
 
-**RN-009:** La letra+acordes se almacena siempre en formato ChordPro: el acorde va entre corchetes inmediatamente antes de la sílaba donde se toca (ej. `[C]Cuando salga el [G]sol`). Cualquier texto entre corchetes que no corresponda a un acorde válido de los tipos soportados (RN-005) se considera un error de formato al momento de guardar.
+**RN-009:** 🚧 La letra+acordes se almacena siempre en formato ChordPro: el acorde va entre corchetes inmediatamente antes de la sílaba donde se toca (ej. `[C]Cuando salga el [G]sol`). Cualquier texto entre corchetes que no corresponda a un acorde válido de los tipos soportados (RN-005) se considera un error de formato al momento de guardar. *(el campo se guarda y se exige que no esté vacío, pero **no se valida sintaxis ChordPro ni tipos de acorde** — cualquier texto se acepta)*
 
-**RN-009b:** La visualización nunca muestra el ChordPro crudo al usuario final; siempre se renderiza como línea de acordes encima de la letra. El renderizado es una vista derivada, se recalcula en cada consulta y no se almacena.
+**RN-009b:** ⏳ La visualización nunca muestra el ChordPro crudo al usuario final; siempre se renderiza como línea de acordes encima de la letra. El renderizado es una vista derivada, se recalcula en cada consulta y no se almacena. *(no implementado: no hay renderizador; la API devuelve el ChordPro crudo tal cual se guardó)*
 
-**RN-010:** El título de la canción base no necesita ser único (pueden existir canciones con el mismo título de artistas distintos), pero la combinación título+artista sí debería evitar duplicados exactos accidentales (advertencia, no bloqueo, ya que no hay moderación).
+**RN-010:** 🚧 El título de la canción base no necesita ser único (pueden existir canciones con el mismo título de artistas distintos), pero la combinación título+artista sí debería evitar duplicados exactos accidentales (advertencia, no bloqueo, ya que no hay moderación). *(no hay duplicación en BD, correcto; pero `POST /canciones` tampoco emite ninguna advertencia de posible duplicado — solo `GET /canciones` devuelve `autoresSugeridos`, una función de autocompletado no documentada originalmente, útil para prevenir duplicados desde la UI cuando exista)*
 
-**RN-011:** Todo formulario de aportar canción/versión debe mostrar una vista previa renderizada del ChordPro que el usuario está escribiendo, actualizada en tiempo real (sin necesidad de guardar ni de un botón "previsualizar" aparte).
+**RN-011:** ⏳ Todo formulario de aportar canción/versión debe mostrar una vista previa renderizada del ChordPro que el usuario está escribiendo, actualizada en tiempo real (sin necesidad de guardar ni de un botón "previsualizar" aparte). *(no implementado: no hay UI ni renderizador)*
 
-**RN-012:** La ubicación de la vista previa se adapta al ancho de pantalla: al lado del textarea si hay espacio horizontal suficiente, debajo del textarea si la pantalla es angosta (móvil). Es una decisión de layout responsivo, no cambia el comportamiento de fondo.
+**RN-012:** ⏳ La ubicación de la vista previa se adapta al ancho de pantalla: al lado del textarea si hay espacio horizontal suficiente, debajo del textarea si la pantalla es angosta (móvil). Es una decisión de layout responsivo, no cambia el comportamiento de fondo. *(no implementado, depende de RN-011)*
 
-**RN-013:** Si el texto en edición tiene un error de sintaxis (formato ChordPro inválido o acorde no reconocido según RN-005), la vista previa debe señalar el error en el punto donde ocurre en vez de romperse, mostrar contenido vacío o quedar congelada con la última versión válida.
+**RN-013:** ⏳ Si el texto en edición tiene un error de sintaxis (formato ChordPro inválido o acorde no reconocido según RN-005), la vista previa debe señalar el error en el punto donde ocurre en vez de romperse, mostrar contenido vacío o quedar congelada con la última versión válida. *(no implementado, depende de RN-005/RN-011)*
 
-**RN-014:** Toda versión aportada por un músico nace en estado Pendiente de revisión; una versión aportada por un administrador nace directamente Verificada.
+**RN-014:** ✅ Toda versión aportada por un músico nace en estado Pendiente de revisión; una versión aportada por un administrador nace directamente Verificada. *(default `pendiente` en el schema; no se encontró lógica que ponga `verificada` automáticamente si el autor es administrador — **verificar/implementar**, ver nota técnica)*
 
-**RN-015:** Solo las versiones en estado Verificada son visibles en el catálogo público; las Pendientes y Rechazadas solo son visibles para su autor.
+**RN-015:** 🚧 Solo las versiones en estado Verificada son visibles en el catálogo público; las Pendientes y Rechazadas solo son visibles para su autor. *(**no enforced todavía**: `GET /api/v1/canciones/{id}` devuelve todas las versiones no eliminadas sin filtrar por `estado` ni por autor, y `GET /api/v1/versiones/{id}` tampoco filtra por `estado` — cualquiera puede ver una versión Pendiente o Rechazada conociendo su id)*
 
-**RN-016:** Solo un usuario con rol administrador puede aprobar o rechazar una versión Pendiente.
+**RN-016:** ✅ Solo un usuario con rol administrador puede aprobar o rechazar una versión Pendiente. *(`PATCH /api/v1/versiones/{id}/revision` valida `rol === "administrador"`, responde 403 si no)*
 
-**RN-017:** Una versión Rechazada no puede volver a Pendiente ni ser editada en el MVP (si el músico quiere corregirla, debe crear una versión nueva).
+**RN-017:** 🚧 Una versión Rechazada no puede volver a Pendiente ni ser editada en el MVP (si el músico quiere corregirla, debe crear una versión nueva). *(no hay endpoint de edición de versión, así que de hecho se cumple; pero tampoco hay una validación explícita que impida re-transicionar el estado si se llamara `/revision` sobre una ya revisada — revisar si `PATCH /revision` valida que el estado actual sea `pendiente` antes de cambiarlo)*
 
-**RN-018:** Eliminar una cuenta es un borrado lógico (`eliminado_en`) que solo revoca el acceso del usuario. Sus versiones en estado Verificada y sus Favoritos NO se eliminan ni se desvinculan; permanecen visibles/funcionales en el catálogo y quedan disponibles para restablecer la cuenta.
+**RN-018:** ✅ Eliminar una cuenta es un borrado lógico (`eliminado_en`) que solo revoca el acceso del usuario. Sus versiones en estado Verificada y sus Favoritos NO se eliminan ni se desvinculan; permanecen visibles/funcionales en el catálogo y quedan disponibles para restablecer la cuenta. *(`DELETE /api/v1/usuarios` — nota: la ruta real no incluye `/me`)*
 
-**RN-019:** Eliminar una versión propia es un borrado lógico independiente del estado en que se encuentre (Pendiente, Verificada o Rechazada). Si la versión estaba Verificada, deja de ser visible en el catálogo público y en las listas de favoritos de otros usuarios que la hubieran marcado (sin notificarles).
+**RN-019:** 🚧 Eliminar una versión propia es un borrado lógico independiente del estado en que se encuentre (Pendiente, Verificada o Rechazada). Si la versión estaba Verificada, deja de ser visible en el catálogo público y en las listas de favoritos de otros usuarios que la hubieran marcado (sin notificarles). *(implementado, pero **no como un borrado directo por el dueño**: hoy es un flujo de dos pasos — el autor solicita la eliminación vía `PATCH /api/v1/versiones/{id}` (pasa a estado `pendienteEliminacion`) y un administrador la confirma vía `DELETE /api/v1/versiones/{id}` (pasa a `eliminada` + `eliminado_en`). Este es el comportamiento actual del código, pendiente de confirmar si es el diseño definitivo o si se simplifica a un DELETE directo del dueño como se pensó originalmente — ver también RN-019b.)*
+
+**RN-019b:** 🚧 *(regla nueva, agregada para documentar el comportamiento real, no confirmada como definitiva)* El ciclo de vida de una versión incluye dos estados adicionales no contemplados en el diseño original: `pendienteEliminacion` (el autor solicitó eliminarla, esperando confirmación de un administrador) y `eliminada` (un administrador confirmó la eliminación). Mientras una versión está en `pendienteEliminacion`, sigue existiendo en la base de datos con su `estado` anterior sobrescrito — no se documentó aún qué debe verse en el catálogo/favoritos durante ese estado intermedio.
 
 **RN-020:** La foto de perfil se almacena en Cloudinary; solo la URL (`foto_perfil_url`) vive en la base de datos, nunca el archivo.
 
@@ -439,41 +466,49 @@ para que músicos puedan transportarlas al tono que necesiten de manera rápida 
 
 ## 2️⃣ Entidades y agregados
 
-**Entidad: Usuario**
+**Entidad: Usuario** *(tabla real: `users`, modelo Prisma `User`)*
 
-- **Atributos:** id, nombre, correo (solo cuentas locales), método de autenticación (local | Google), rol (músico | administrador), foto de perfil (URL), fecha de creación, fecha de eliminación lógica (opcional).
+- **Atributos:** `id`, `username`, `email`, `metodoAutenticacion`, `password`, `googleId`, `rol`, `fotoPerfilUrl`, `creadoEn`, `eliminadoEn`.
 - **Reglas invariantes:**
-    - El correo debe ser único en el sistema (RN-007)
-    - Todo usuario tiene exactamente un rol.
-    - Al marcarse como eliminado (`eliminado_en`), el usuario pierde acceso al sistema, pero sus versiones Verificadas y Favoritos permanecen sin cambios (RN-018).
-- **Eventos clave:** creado (registro o primer login con Google).
+    - 🚧 Correo único en el sistema (RN-007) — validado en código, sin `@unique` en BD.
+    - ✅ Todo usuario tiene exactamente un rol.
+    - ✅ Borrado lógico revoca acceso, conserva versiones Verificadas y Favoritos (RN-018).
+- **Eventos clave:** creado (registro local ✅; login con Google ⏳ no implementado).
 
-**Entidad: Canción**
+Notas: el plan original usaba `nombre`/`correo`/`password_hash`; el código usa `username`/`email`/`password`. `email` es nullable. Ni `email` ni `googleId` tienen `@unique` en la base de datos todavía.
 
-- **Atributos:** id, título, artista, fecha de creación.
+**Entidad: Canción** *(tabla real: `canciones`, modelo Prisma `Cancion`)*
+
+- **Atributos:** `id`, `titulo`, `artista`, `creadoEn`, `eliminadoEn`, y `estado` (campo nuevo, no en el diseño original).
 - **Reglas invariantes:**
-    - Título+artista no debería duplicarse exactamente (advertencia, no bloqueo — RN-010)
-    - Una canción solo aparece en el catálogo público si tiene al menos una versión en estado Verificada.
+    - 🚧 Título+artista sin duplicado exacto (RN-010): no forzado en BD, sin advertencia real todavía.
+    - 🚧 Solo visible en catálogo público si tiene versión Verificada — no implementado.
 - **Eventos clave:** creada (al aportar su primera versión).
 
-**Entidad: Versión**
+Notas: `estado` usa el mismo enum `Estado` que Versión, default `pendiente`, pero ningún endpoint lo asigna ni lo usa — es un campo sin lógica funcional todavía. Queda pendiente decidir si Canción tendrá su propio ciclo de aprobación o si el campo se elimina. `GET /canciones/{id}` hoy devuelve todas las versiones no eliminadas sin filtrar por estado.
 
-- **Atributos:** id, canción_id, autor_id, tono original, contenido (ChordPro), estado (Pendiente de revisión | Verificada | Rechazada), fecha de creación, fecha de revisión, revisor_id (opcional), fecha de eliminación lógica (opcional).
+**Entidad: Versión** *(tabla real: `versiones`, modelo Prisma `Version`)*
+
+- **Atributos:** `id`, `cancionId`, `autorId`, `tonoOriginal`, `contenidoChordpro`, `estado`, `creadoEn`, `revisadoEn`, `eliminadoEn`. *(`revisorId` ya no existe, ver nota.)*
 - **Reglas invariantes:**
-    - Pertenece exactamente a una canción (RN-001)
-    - El tono original es fijo y no cambia tras crearse (RN-002)
-    - El ChordPro debe ser válido y usar solo tipos de acorde soportados (RN-005/RN-009)
-    - Nace en **Pendiente de revisión** salvo que el autor sea administrador, en cuyo caso nace directamente **Verificada**
-    - La etiqueta de estado solo es visible para el autor, el resto de usuarios solo ven versiones en estado Verificada, sin ninguna etiqueta.
-    - El borrado lógico de una versión es independiente de su estado de revisión
-    - Una versión eliminada deja de ser visible en el catálogo y en favoritos ajenos, sin importar si estaba Verificada, Pendiente o Rechazada (RN-019).
-- **Eventos clave:** creada, aprobada, rechazada.
+    - ✅ Pertenece exactamente a una canción (RN-001).
+    - ✅ Tono original fijo, no cambia tras crearse (RN-002).
+    - ⏳ ChordPro válido con tipos de acorde soportados (RN-005/RN-009) — no implementado.
+    - 🚧 Nace Pendiente, salvo autor administrador → Verificada — solo la primera mitad implementada.
+    - 🚧 Estado no verificado visible solo para el autor (RN-015) — no implementado.
+    - ✅ Borrado lógico independiente del estado de revisión.
+    - 🚧 Versión eliminada deja de verse en catálogo/favoritos (RN-019) — implementado vía flujo de dos pasos.
+- **Eventos clave:** creada, aprobada, rechazada, 🚧 eliminación solicitada, 🚧 eliminación confirmada.
 
-**Entidad: Favorito**
+Notas: el enum `estado` real tiene 5 valores, no 3: `pendiente`, `verificada`, `rechazada`, `pendienteEliminacion`, `eliminada` — los dos últimos son parte del flujo real de eliminación de versión (RN-019/RN-019b). El campo `revisorId` se agregó en la migración inicial y fue eliminado deliberadamente poco después: hoy no se registra qué administrador aprobó/rechazó una versión, solo la fecha `revisadoEn`.
 
-- **Atributos:** usuario_id, versión_id, fecha en que se marcó.
-- **Reglas invariantes:** una misma versión solo puede aparecer una vez en los favoritos de un mismo usuario — operación idempotente (RN-006); solo pueden marcarse como favoritas versiones en estado Verificada.
+**Entidad: Favorito** *(tabla real: `favoritos`, modelo Prisma `Favorito`)*
+
+- **Atributos:** `userId` (campo real de `usuario_id`), `versionId`, `creadoEn`.
+- **Reglas invariantes:** ✅ idempotente por usuario (RN-006); 🚧 "solo versiones Verificadas" — no validado.
 - **Eventos clave:** agregado, eliminado.
+
+Notas: `POST /favoritos` valida que la versión exista y no esté eliminada, pero no valida que su `estado` sea `verificada` — se podría marcar como favorita una versión Pendiente o Rechazada.
 
 ---
 
@@ -481,13 +516,14 @@ para que músicos puedan transportarlas al tono que necesiten de manera rápida 
 
 ```
 Usuario 1—N Versión (como autor)
-Usuario 1—N Versión (como revisor, opcional)
 Canción 1—N Versión
 Usuario N—N Versión (a través de Favorito)
 ```
 
+> 🚧 La relación "Usuario 1—N Versión (como revisor)" del diseño original ya no existe: el campo `revisor_id` fue removido del schema (ver nota en la entidad Versión arriba). Si se quiere volver a auditar quién aprobó/rechazó cada versión, hay que reintroducir ese campo.
+
 - Un usuario puede aportar muchas versiones; cada versión tiene exactamente un autor.
-- Un administrador puede revisar muchas versiones; una versión tiene a lo sumo un revisor (el admin que tomó la decisión), y ninguno mientras está Pendiente.
+- 🚧 Actualmente **no se registra** qué administrador revisó una versión — solo queda la fecha de revisión (`revisado_en`) y el estado resultante.
 - Una canción puede tener muchas versiones; cada versión pertenece a una única canción.
 - Un usuario puede marcar muchas versiones como favoritas, y una versión puede ser favorita de muchos usuarios.
 
@@ -497,13 +533,18 @@ Usuario N—N Versión (a través de Favorito)
 
 ```
 (creación por músico) → Pendiente de revisión
-(creación por administrador) → Verificada  [directo, sin pasar por Pendiente]
+(creación por administrador) → Verificada  [diseñado como directo; NO implementado todavía — hoy toda versión nace Pendiente sin importar el rol del autor]
 
 Pendiente de revisión → administrador aprueba → Verificada
 Pendiente de revisión → administrador rechaza → Rechazada
 
-Verificada → (estado final, no vuelve a Pendiente ni a Rechazada)
+Verificada → (estado final respecto a revisión, no vuelve a Pendiente ni a Rechazada)
 Rechazada → (estado final en el MVP; no hay reenvío ni edición contemplados)
+
+--- 🚧 Transiciones reales adicionales (implementadas, diseño no confirmado como definitivo) ---
+
+Pendiente | Verificada | Rechazada → (autor solicita eliminar, PATCH /versiones/{id}) → Pendiente de eliminación
+Pendiente de eliminación → (administrador confirma, DELETE /versiones/{id}) → Eliminada [+ eliminado_en]
 ```
 
 ---
@@ -521,87 +562,96 @@ Rechazada → (estado final en el MVP; no hay reenvío ni edición contemplados)
 
 ## 1️⃣ Modelo lógico
 
-### Entidad: Usuario
+> **Nota general:** las tablas siguientes muestran el nombre lógico original del documento y, entre paréntesis, el nombre real de la columna en el código/schema actual cuando difiere. ✅ = coincide con el diseño e implementado; 🚧 = implementado con diferencias; ⏳ = diseñado pero no implementado/forzado aún.
 
-| Atributo | Tipo lógico | PK/FK | Restricción |
+### Entidad: Usuario *(tabla `users`)*
+
+| Atributo | Tipo lógico | PK/FK | Estado |
 | --- | --- | --- | --- |
-| id | entero | PK | autoincremental |
-| nombre | texto | — | obligatorio, máx 120 caracteres |
-| correo | texto | — | único (solo si metodo_autenticacion = local), obligatorio en ese caso — RN-007 |
-| metodo_autenticacion | enum ('local', 'google') | — | obligatorio |
-| password_hash | texto | — | obligatorio si metodo_autenticacion = local |
-| google_id | texto | — | único (solo si metodo_autenticacion = google) |
-| rol | enum ('musico', 'administrador') | — | obligatorio, default 'musico' |
-| foto_perfil_url | texto | — | opcional (URL a Cloudinary) |
-| creado_en | fecha/hora | — | obligatorio, default: ahora |
-| eliminado_en | fecha/hora | — | borrado lógico (confirmado) |
+| id | entero | PK | ✅ |
+| nombre (real: `username`) | texto | — | 🚧 |
+| correo (real: `email`) | texto | — | 🚧 |
+| metodo_autenticacion | enum | — | ✅ |
+| password_hash (real: `password`) | texto | — | 🚧 |
+| google_id | texto | — | 🚧 |
+| rol | enum | — | ✅ |
+| foto_perfil_url | texto | — | ✅ |
+| creado_en | fecha/hora | — | ✅ |
+| eliminado_en | fecha/hora | — | ✅ |
 
-### Entidad: Canción
+Notas: `nombre`/`correo`/`password_hash` del plan son `username`/`email`/`password` en código. `email` es único solo por validación de código, sin `@unique` en BD (RN-007). `google_id` existe en el schema pero sin lógica de login Google que lo llene, tampoco tiene `@unique`.
 
-| Atributo | Tipo lógico | PK/FK | Restricción |
+### Entidad: Canción *(tabla `canciones`)*
+
+| Atributo | Tipo lógico | PK/FK | Estado |
 | --- | --- | --- | --- |
-| id | entero | PK | autoincremental |
-| titulo | texto | — | obligatorio, máx 200 caracteres |
-| artista | texto | — | obligatorio, máx 200 caracteres (texto plano, no entidad — sin imagen asociada) |
-| creado_en | fecha/hora | — | obligatorio, default: ahora |
-| eliminado_en | fecha/hora | — | borrado lógico (confirmado) |
+| id | entero | PK | ✅ |
+| titulo | texto | — | ✅ |
+| artista | texto | — | ✅ |
+| estado *(no en el diseño original)* | enum | — | 🚧 |
+| creado_en | fecha/hora | — | ✅ |
+| eliminado_en | fecha/hora | — | ✅ |
 
-### Entidad: Versión
+Notas: `estado` usa el mismo enum `Estado` que Versión, default `pendiente`, sin lógica de negocio que lo use todavía (ver Fase 3).
 
-| Atributo | Tipo lógico | PK/FK | Restricción |
+### Entidad: Versión *(tabla `versiones`)*
+
+| Atributo | Tipo lógico | PK/FK | Estado |
 | --- | --- | --- | --- |
-| id | entero | PK | autoincremental |
-| cancion_id | entero | FK → Canción | obligatorio — RN-001 |
-| autor_id | entero | FK → Usuario | obligatorio |
-| revisor_id | entero | FK → Usuario | opcional, solo se llena al aprobar/rechazar |
-| tono_original | texto (12 valores posibles) | — | obligatorio, inmutable tras creación — RN-002 |
-| contenido_chordpro | texto largo | — | obligatorio, debe validar sintaxis ChordPro y tipos de acorde soportados — RN-005 / RN-009 |
-| estado | enum ('pendiente', 'verificada', 'rechazada') | — | obligatorio; default 'pendiente' si autor.rol = músico, default 'verificada' si autor.rol = administrador — RN-014 |
-| creado_en | fecha/hora | — | obligatorio, default: ahora |
-| revisado_en | fecha/hora | — | opcional |
-| eliminado_en | fecha/hora | — | borrado lógico (confirmado) |
+| id | entero | PK | ✅ |
+| cancion_id | entero | FK → Canción | ✅ |
+| autor_id | entero | FK → Usuario | ✅ |
+| ~~revisor_id~~ | ~~entero~~ | ~~FK → Usuario~~ | ⏳ removido del schema |
+| tono_original | texto (10 chars) | — | ✅ |
+| contenido_chordpro | texto largo (TEXT) | — | 🚧 |
+| estado | enum, 5 valores | — | 🚧 |
+| creado_en | fecha/hora | — | ✅ |
+| revisado_en | fecha/hora | — | ✅ |
+| eliminado_en | fecha/hora | — | ✅ |
 
-### Entidad: Favorito
+Notas: `tono_original` es obligatorio e inmutable tras creación (RN-002). `contenido_chordpro` es obligatorio y no vacío, pero no valida sintaxis ChordPro ni tipos de acorde (RN-005/RN-009). El enum `estado` real tiene 5 valores: `pendiente`, `verificada`, `rechazada`, `pendienteEliminacion`, `eliminada` (no 3 como el plan original) — default `pendiente`; el default a `verificada` cuando el autor es administrador (RN-014) no está implementado.
 
-| Atributo | Tipo lógico | PK/FK | Restricción |
+### Entidad: Favorito *(tabla `favoritos`)*
+
+| Atributo | Tipo lógico | PK/FK | Estado |
 | --- | --- | --- | --- |
-| usuario_id | entero | PK (compuesta) / FK → Usuario | obligatorio |
-| version_id | entero | PK (compuesta) / FK → Versión | obligatorio |
-| creado_en | fecha/hora | — | obligatorio, default: ahora |
+| usuario_id (real: `user_id`) | entero | PK compuesta / FK → Usuario | ✅ |
+| version_id | entero | PK compuesta / FK → Versión | ✅ |
+| creado_en | fecha/hora | — | ✅ |
 
-> La combinación (usuario_id, version_id) es la clave primaria compuesta, lo que garantiza de forma nativa la idempotencia de RN-006. Solo puede referenciar versiones en estado `verificada`.
-> 
+Notas: la PK compuesta (usuario_id, version_id) garantiza la idempotencia de RN-006. "Solo referencia versiones Verificadas" no está validado: `POST /favoritos` solo verifica que la versión exista y no esté eliminada, no que su estado sea `verificada`.
 
 ---
 
 ## 2️⃣ Modelo físico (borrador)
 
-- **Motor de base de datos candidato:** PostgreSQL vía Neon (decidido en Fase 0, restricción de costo).
-- **Índices sugeridos:**
-    - `Usuario.correo` — único, parcial (`WHERE metodo_autenticacion = 'local'`) — RN-007.
-    - `Usuario.google_id` — único, parcial (`WHERE metodo_autenticacion = 'google'`).
-    - `Canción(titulo, artista)` — no único, para búsqueda (HU-02) y detección de duplicados (RN-010, advertencia).
-    - `Versión.cancion_id` — para listar versiones de una canción (HU-03).
-    - `Versión.estado` — para listar pendientes rápido (HU-11 / RN-016).
-    - `Versión.autor_id` — para la sección "mis aportes".
+- **Motor de base de datos:** ✅ PostgreSQL vía Neon, usando **Prisma ORM v7** con `@prisma/adapter-pg` (driver adapter, sin motor binario) — coincide con lo decidido en Fase 0/5.
+- **Índices sugeridos (diseño original):**
+    - `Usuario.correo` (real: `email`) — único, parcial (`WHERE metodo_autenticacion = 'local'`) — RN-007. ⏳ **no creado** en el schema actual.
+    - `Usuario.google_id` — único, parcial (`WHERE metodo_autenticacion = 'google'`). ⏳ **no creado**.
+    - `Canción(titulo, artista)` — no único, para búsqueda (HU-02) y detección de duplicados (RN-010, advertencia). ⏳ **no creado** (la búsqueda actual hace `contains` sin índice dedicado).
+    - `Versión.cancion_id` — para listar versiones de una canción (HU-03). ⏳ **no creado** (existe el índice implícito de la FK, pero no un `@@index` explícito).
+    - `Versión.estado` — para listar pendientes rápido (HU-11 / RN-016). ⏳ **no creado**.
+    - `Versión.autor_id` — para la sección "mis aportes". ⏳ **no creado**.
+    - 🚧 **Nota:** el schema actual (`prisma/schema.prisma`) no declara ningún `@@index` explícito en ningún modelo — solo existen las claves primarias y foráneas automáticas. No es crítico con el volumen de datos actual, pero conviene agregarlos antes de escalar el catálogo (riesgo documentado en Fase 1 §6).
 - **Política de borrado:**
-    - **Canción, Versión y Usuario:** borrado lógico (`eliminado_en`).
-    - **Favorito:** borrado físico (DELETE real).
+    - ✅ **Canción, Versión y Usuario:** borrado lógico (`eliminado_en`), usado consistentemente en los queries (filtran `eliminadoEn: null`).
+    - ✅ **Favorito:** borrado físico (DELETE real).
 - **Retención y backups:**
-    - Export manual **semanal**, adicional al mecanismo propio de Neon.
-    - Se guarda en **Google Drive** (u otro cloud storage equivalente).
+    - ⏳ Export manual **semanal**, adicional al mecanismo propio de Neon — **no configurado todavía** (no hay script en `scripts/` ni automatización).
+    - ⏳ Se guarda en **Google Drive** (u otro cloud storage equivalente) — pendiente.
 
 ---
 
 ## 3️⃣ Gestión de archivos y medios
 
-- **Qué se almacena en Postgres:** todo el contenido textual — letra, acordes en ChordPro y metadatos de canciones/versiones/usuarios.
-- **Qué se almacena externamente:** únicamente la **foto de perfil del Usuario**, en Cloudinary. Canciones, versiones y artistas **no tienen imagen** en el MVP.
-- **Metadatos en la base de datos:** solo la URL del recurso (`foto_perfil_url`), nunca el archivo ni una ruta local absoluta.
-- **Tamaños máximos permitidos:** 10 MB por imagen de perfil.
-- **Convención de nombres:** usar el `public_id` que devuelve Cloudinary al subir, no el nombre original del archivo del usuario.
-- **Estructura en Cloudinary:** carpeta `/usuarios/{usuario_id}/perfil`.
-- **Validaciones al subir:** tipo MIME real de imagen (jpg/png/webp), tamaño ≤ 10 MB.
+- ✅ **Qué se almacena en Postgres:** todo el contenido textual — letra, acordes en ChordPro (como texto plano, sin parsear) y metadatos de canciones/versiones/usuarios.
+- ✅ **Qué se almacena externamente:** únicamente la **foto de perfil del Usuario**, en Cloudinary. Canciones, versiones y artistas **no tienen imagen** en el MVP.
+- ✅ **Metadatos en la base de datos:** solo la URL del recurso (`foto_perfil_url`), nunca el archivo ni una ruta local absoluta.
+- ✅ **Tamaños máximos permitidos:** 10 MB por imagen de perfil (validado en `POST /api/v1/usuarios/me/foto`).
+- ✅ **Convención de nombres:** se usa `public_id: user_{usuario_id}` con `overwrite: true` al subir a Cloudinary (no el nombre original del archivo).
+- 🚧 **Estructura en Cloudinary:** carpeta real **`pentcord_imagenes/perfiles/`** — difiere de lo planeado originalmente (`/usuarios/{usuario_id}/perfil`).
+- ✅ **Validaciones al subir:** tipo MIME real de imagen, tamaño ≤ 10 MB.
 - **Limpieza de archivos huérfanos:** no aplica de forma crítica — al ser borrado lógico de Usuario, la imagen puede quedar en Cloudinary sin necesidad de limpieza inmediata (no hay canciones/versiones con imagen que huerfanar).
 
 ---
@@ -612,13 +662,13 @@ Rechazada → (estado final en el MVP; no hay reenvío ni edición contemplados)
 - [x]  Cada entidad de la Fase 3 tiene su ficha lógica aquí.
 - [x]  Cada regla invariante de la Fase 3 tiene su restricción equivalente:
     - RN-001 (Versión pertenece a una Canción) → `cancion_id` FK obligatorio.
-    - RN-002 (tono original inmutable) → `tono_original` sin mecanismo de edición tras creación.
-    - RN-005 / RN-009 (ChordPro válido, tipos de acorde soportados) → validación a nivel de aplicación sobre `contenido_chordpro`.
-    - RN-006 (favorito idempotente) → PK compuesta (usuario_id, version_id).
-    - RN-007 (correo único) → índice único parcial en `Usuario.correo`.
-    - RN-010 (título+artista sin duplicado exacto, advertencia) → índice no único + validación de advertencia en aplicación.
-    - RN-014 / RN-015 / RN-016 / RN-017 (ciclo de vida de estado) → campo `estado` + `revisor_id` + `revisado_en`.
-- [x]  Ninguna entidad nueva apareció aquí que no estuviera ya en la Fase 3.
+    - RN-002 (tono original inmutable) → `tono_original` sin mecanismo de edición tras creación. ✅
+    - RN-005 / RN-009 (ChordPro válido, tipos de acorde soportados) → validación a nivel de aplicación sobre `contenido_chordpro`. ⏳ pendiente de implementar.
+    - RN-006 (favorito idempotente) → PK compuesta (usuario_id, version_id). ✅
+    - RN-007 (correo único) → índice único parcial en `Usuario.correo`. 🚧 solo validado en código, sin índice único en BD.
+    - RN-010 (título+artista sin duplicado exacto, advertencia) → índice no único + validación de advertencia en aplicación. ⏳ pendiente.
+    - RN-014 / RN-015 / RN-016 / RN-017 (ciclo de vida de estado) → campo `estado` + `revisado_en`. 🚧 `revisor_id` fue removido del schema, ya no forma parte de la trazabilidad.
+- [x]  Ninguna entidad nueva apareció aquí que no estuviera ya en la Fase 3, **excepto** el campo `estado` agregado a Canción (no una entidad nueva, pero sí un campo fuera del diseño original de Fase 3, actualizado ahí retroactivamente).
 
 ---
 
@@ -651,99 +701,105 @@ Rechazada → (estado final en el MVP; no hay reenvío ni edición contemplados)
 
 ## 2️⃣ Componentes internos (solo backend/dominio)
 
-El CRUD de las 4 entidades es simple, pero la lógica de transposición y conversión a grados (prioridad #1 del proyecto, Fase 0) sí justifica separar el dominio del framework, para poder probarlo de forma aislada y reutilizarlo en cliente y servidor.
+> ⏳ **Estado: nada de esta separación en capas existe todavía.** El CRUD de las 4 entidades es simple, pero la lógica de transposición y conversión a grados (prioridad #1 del proyecto, Fase 0) sí justifica separar el dominio del framework, para poder probarlo de forma aislada y reutilizarlo en cliente y servidor — esto sigue siendo el plan objetivo. **Lo que hay hoy en el código:** cada `route.ts` bajo `src/app/api/v1/...` llama a Prisma (`src/lib/prisma.ts`) directamente e inline, sin capa de servicios ni de dominio; la validación de sesión/rol se repite copiada en cada endpoint que la necesita (vía `src/lib/getUserFromToken.ts`), en vez de un middleware o helper central `requireAdmin()`.
 
-- **Route Handlers (`app/api/v1/.../route.ts`):** reciben la petición HTTP, validan sesión/JWT y rol, y llaman a los servicios. No contienen lógica musical.
-- **Servicios:** orquestan casos de uso (ej. "crear versión", "aprobar versión", "marcar favorito"). Coordinan repositorios + dominio.
-- **Dominio (módulo TS puro, sin dependencias de Next.js ni de la base de datos):**
-    - Parser/validador de ChordPro (RN-005, RN-009).
-    - Transportador de acordes (RN-002, RN-003, RN-004).
-    - Conversor acorde ↔ grado (RN-004).
-    - Renderizador (letra + línea de acordes/grados encima) (RN-009b).
+- **Route Handlers (`src/app/api/v1/.../route.ts`):** ✅ existen y reciben la petición HTTP; 🚧 validan sesión/JWT y rol llamando a `getUserFromToken` (no hay capa de servicios detrás — llaman a Prisma directamente). No contienen lógica musical (porque no existe).
+- **Servicios:** ⏳ no existen — los casos de uso ("crear versión", "aprobar versión", "marcar favorito") están implementados directamente dentro de cada Route Handler.
+- **Dominio (módulo TS puro, sin dependencias de Next.js ni de la base de datos):** ⏳ **no existe ninguna carpeta ni archivo de esto.**
+    - Parser/validador de ChordPro (RN-005, RN-009). ⏳
+    - Transportador de acordes (RN-002, RN-003, RN-004). ⏳
+    - Conversor acorde ↔ grado (RN-004). ⏳
+    - Renderizador (letra + línea de acordes/grados encima) (RN-009b). ⏳
     
-    Este módulo se importa **tanto en el cliente (para la vista previa en tiempo real, HU-10, <100 ms) como en el servidor** (para renderizar sin JS y para revalidar en el backend). Así evitamos una llamada de red para transportar o previsualizar.
+    Sigue siendo el plan: este módulo se importaría **tanto en el cliente (para la vista previa en tiempo real, HU-10, <100 ms) como en el servidor** (para renderizar sin JS y para revalidar en el backend), evitando una llamada de red para transportar o previsualizar.
     
-- **Repositorios:** acceso a Neon (Postgres). Sin lógica de negocio, solo consultas.
+- **Repositorios:** ⏳ no existen como capa separada — el acceso a Neon vía Prisma se hace inline en cada Route Handler.
 
 ---
 
 ## 3️⃣ Vistas de secuencia (3 casos críticos)
 
+> Las siguientes secuencias describen el **flujo objetivo** (incluyendo UI y dominio, que no existen aún). Las notas 🚧/⏳ marcan qué parte de cada paso ya funciona hoy solo a nivel de API.
+
 **Flujo: Buscar → ver → transportar**
 
-1. El usuario escribe en el buscador → `GET /api/v1/canciones?q=...`.
-2. El Route Handler llama al repositorio, que busca en Neon por título/artista.
-3. Responde la lista de canciones coincidentes.
-4. El usuario abre una canción → `GET /api/v1/canciones/{id}` (trae sus versiones Verificadas, o también las propias en otro estado si hay sesión).
-5. El usuario elige una versión → `GET /api/v1/versiones/{id}` (trae el ChordPro + tono original).
-6. El módulo de dominio (cargado en el cliente) renderiza la letra con acordes en el tono original.
-7. El usuario cambia el tono en el selector → el dominio transporta y re-renderiza **en el cliente, sin nueva llamada al servidor** (RN-003, <100 ms).
+1. 🚧 El usuario escribe en el buscador → `GET /api/v1/canciones?titulo=...&autor=...` (🚧 parámetros reales `titulo`/`autor`, no `q` como se pensó originalmente; implementado con paginación `page`/`limit`, default `limit=9`, y sugerencia de artistas; sin UI).
+2. ✅ El Route Handler consulta Prisma directamente (no hay repositorio separado), que busca en Neon por título/artista.
+3. ✅ Responde la lista de canciones coincidentes.
+4. 🚧 El usuario abre una canción → `GET /api/v1/canciones/{id}` — **hoy trae TODAS las versiones no eliminadas sin filtrar por estado ni por autor** (RN-015 no enforced), no solo las Verificadas + las propias.
+5. 🚧 El usuario elige una versión → `GET /api/v1/versiones/{id}` (trae el ChordPro crudo + tono original; payload mínimo, sin `id`/`estado`/`autor`).
+6. ⏳ El módulo de dominio (cargado en el cliente) renderiza la letra con acordes en el tono original — **no existe**, hoy no hay ninguna forma de ver la canción renderizada.
+7. ⏳ El usuario cambia el tono en el selector → el dominio transporta y re-renderiza **en el cliente, sin nueva llamada al servidor** (RN-003, <100 ms) — **no implementado**.
 
 **Flujo: Aportar una versión nueva (con vista previa en tiempo real)**
 
-1. El usuario (autenticado, JWT en header) escribe en el textarea de ChordPro.
-2. En cada cambio, el módulo de dominio (en el cliente) valida sintaxis y renderiza la vista previa localmente — **sin llamar al backend** (HU-10, RN-011, RN-013).
-3. Si hay error de sintaxis, se resalta el punto exacto y el botón "Guardar" queda deshabilitado.
-4. Al guardar, el frontend envía `POST /api/v1/canciones/{id}/versiones` con tono original + ChordPro.
-5. El servidor **revalida** el ChordPro con el mismo módulo de dominio (nunca confía solo en la validación del cliente).
-6. Si es válido, el repositorio inserta la versión con `estado = pendiente` (o `verificada` si el autor es administrador, RN-014).
+1. 🚧 El usuario (autenticado) escribe en el textarea de ChordPro — **nota:** la sesión viaja en una **cookie httpOnly (`accesstoken`)**, no en un header `Authorization: Bearer` como describe Fase 6 más abajo; ver nota ahí.
+2. ⏳ En cada cambio, el módulo de dominio (en el cliente) valida sintaxis y renderiza la vista previa localmente — **sin llamar al backend** (HU-10, RN-011, RN-013) — **no implementado, no hay UI ni dominio**.
+3. ⏳ Si hay error de sintaxis, se resalta el punto exacto y el botón "Guardar" queda deshabilitado — **no implementado**.
+4. 🚧 Al guardar, el frontend envía `POST /api/v1/canciones/{id}/versiones` con tono original + ChordPro — endpoint implementado; llamado hoy solo se puede probar directamente contra la API (no hay frontend que lo invoque).
+5. ⏳ El servidor **revalida** el ChordPro con el mismo módulo de dominio (nunca confía solo en la validación del cliente) — **no implementado**, el servidor solo valida que el campo no esté vacío.
+6. 🚧 Si es válido, se inserta la versión con `estado = pendiente` (el caso `verificada` si el autor es administrador — RN-014 — **no está implementado**, siempre nace `pendiente`).
 7. El servidor responde con la versión creada y su estado.
 
-**Flujo: Revisar versión pendiente (administrador)**
+**Flujo: Revisar versión pendiente (administrador)** — 🚧 implementado con diferencias
 
-1. El administrador abre `GET /api/v1/versiones/pendientes` (requiere rol `administrador`, si no → 403 FORBIDDEN).
-2. Selecciona una y ve su detalle (`GET /api/v1/versiones/{id}`).
-3. Envía `PATCH /api/v1/versiones/{id}/revision` con `{ decision: "aprobada" | "rechazada" }`.
-4. El servidor valida que la versión siga en estado `pendiente` (si ya fue revisada por otro admin, responde 409 CONFLICT).
-5. Actualiza `estado`, `revisor_id`, `revisado_en`.
-6. Responde con la versión actualizada; el autor la verá reflejada la próxima vez que abra "mis aportes".
+1. ✅ El administrador abre `GET /api/v1/versiones/pendientes` (requiere rol `administrador`, si no → 403 FORBIDDEN). Nota: la lista solo trae `id` y `autorId`, sin canción ni contenido, y sin paginación.
+2. 🚧 Selecciona una y ve su detalle (`GET /api/v1/versiones/{id}`) — el endpoint real no requiere ser administrador ni devuelve `estado`/`autorId`, solo `contenidoChordpro`/`tonoOriginal`.
+3. 🚧 Envía `PATCH /api/v1/versiones/{id}/revision` con **`{ estado: "verificada" | "rechazada" }`** — el campo real se llama `estado`, no `decision`, y los valores son los mismos nombres del enum (no "aprobada"/"rechazada").
+4. ⏳ El servidor valida que la versión siga en estado `pendiente` (si ya fue revisada por otro admin, responde 409 CONFLICT) — **no implementado**: hoy se puede volver a revisar una versión ya `verificada` o `rechazada` sin error (riesgo para RN-017).
+5. 🚧 Actualiza `estado` y `revisadoEn` — **no actualiza `revisor_id` porque ese campo ya no existe en el schema**.
+6. ✅ Responde con la versión actualizada; el autor podría verla reflejada la próxima vez que consulte `GET /api/v1/myContributions` (aún sin UI).
 
 ---
 
 ## 4️⃣ Patrones y decisiones globales
 
-- **Patrón arquitectónico general:** Monolito modular con Next.js (App Router) — un único despliegue en Vercel para frontend y backend. La lógica de dominio musical vive en un módulo aislado, sin dependencias de framework, compartido entre cliente y servidor.
-- **Tipo de comunicación:** REST/JSON síncrono vía Route Handlers (`/api/v1/...`). La transposición y la vista previa **no** viajan por red: corren en el cliente.
-- **Estrategia de persistencia:** PostgreSQL (Neon) utilizando **Prisma ORM** como capa de acceso a datos.
-- **Seguridad mínima:** JWT en header `Authorization: Bearer <token>`, emitido en login local/Google. HTTPS siempre (garantizado por Vercel). Contraseñas locales hasheadas (bcrypt). Cada Route Handler protegido valida rol antes de ejecutar (RN-016).
-- **Dónde corre el sistema:** Vercel (app Next.js completa) + Neon (Postgres) + Cloudinary (fotos de perfil).
+- ✅ **Patrón arquitectónico general:** Monolito con Next.js (App Router) — un único despliegue previsto en Vercel para frontend y backend. 🚧 La lógica de dominio musical en un módulo aislado sigue siendo el plan, pero **no existe todavía** (ver §2).
+- 🚧 **Tipo de comunicación:** REST/JSON síncrono vía Route Handlers (`/api/v1/...`) — implementado para todo lo que existe. La transposición y la vista previa **no** viajan por red porque **no existen aún** (cuando se implementen, deberían correr en el cliente según el plan original).
+- ✅ **Estrategia de persistencia:** PostgreSQL (Neon) utilizando **Prisma ORM v7** (con `@prisma/adapter-pg`) como capa de acceso a datos.
+- 🚧 **Seguridad mínima:** el diseño original decía JWT en header `Authorization: Bearer <token>`; **la implementación real usa una cookie httpOnly (`accesstoken`)** seteada por el servidor en login/registro, leída manualmente del header `cookie` en cada Route Handler (`src/lib/getUserFromToken.ts`) — no se usa el header `Authorization`. HTTPS depende de Vercel (⏳ aún no desplegado). Contraseñas locales hasheadas con **bcryptjs** (variante JS pura de bcrypt), 12 rounds. Cada Route Handler protegido valida rol inline (no hay middleware ni helper centralizado). Login con Google: ⏳ no implementado.
+- ⏳ **Dónde corre el sistema:** Vercel (app Next.js completa) + Neon (Postgres) + Cloudinary (fotos de perfil) — sigue siendo el plan; **el proyecto no está desplegado todavía** (desarrollo 100% local).
 
 ---
 
 ## 5️⃣ Endpoints
 
+> Leyenda: ✅ implementado como está descrito · 🚧 implementado con una ruta/nombre/comportamiento distinto al planeado (se documenta la ruta **real**) · ⏳ planeado, no implementado.
+
 **Autenticación**
 
-- `POST /api/v1/auth/register` → registrar cuenta local (HU-01, RN-007)
-- `POST /api/v1/auth/login` → iniciar sesión local, devuelve JWT (HU-01)
-- `POST /api/v1/auth/google` → iniciar/asociar sesión con Google, devuelve JWT (HU-01)
-- `GET /api/v1/auth/me` → datos del usuario autenticado (rol, nombre, foto)
+- ✅ `POST /api/v1/auth/register` → registrar cuenta local (HU-01, RN-007). Body real: `username`, `email`, `password`.
+- ✅ `POST /api/v1/auth/login` → iniciar sesión local, JWT de 15 min en cookie httpOnly `accesstoken` (HU-01). Body real: `email`, `password`.
+- ⏳ `POST /api/v1/auth/google` → iniciar/asociar sesión con Google — **no implementado**.
+- ⏳ `GET /api/v1/auth/me` → datos del usuario autenticado — **no implementado**.
 
 **Canciones**
 
-- `GET /api/v1/canciones` → buscar/listar (HU-02)
-- `GET /api/v1/canciones/{id}` → detalle + versiones visibles (HU-03)
-- `POST /api/v1/canciones` → crear canción + primera versión (HU-08)
+- ✅ `GET /api/v1/canciones` → buscar/listar, paginado (`page`, `limit`, default `limit=9`). 🚧 Filtros reales: `?titulo=&autor=` (contains, insensible a mayúsculas) — el plan decía un único parámetro `?q=` (HU-02). Además devuelve `autoresSugeridos` (autocompletado de artistas para prevenir duplicados, no documentado originalmente).
+- 🚧 `GET /api/v1/canciones/{id}` → detalle + **todas** las versiones no eliminadas, sin filtrar por estado ni autor (HU-03) — RN-015 no enforced aquí.
+- 🚧 `POST /api/v1/canciones` → crear canción + primera versión (HU-08). Respuesta real confirmada: `{ id, titulo, artista, version }`. **Nota técnica:** internamente hace un `fetch` HTTP a `http://localhost:3000/api/v1/canciones/{id}/versiones` (hardcodeado, sin transacción de Prisma) para crear la primera versión — frágil fuera de `localhost:3000`, pendiente de refactor antes de desplegar.
 
 **Versiones**
 
-- `POST /api/v1/canciones/{id}/versiones` → agregar versión a canción existente (HU-09)
-- `GET /api/v1/versiones/{id}` → obtener ChordPro + tono original de una versión (HU-04)
-- `GET /api/v1/versiones/pendientes` → listar pendientes (HU-11, solo administrador)
-- `GET /api/v1/versiones/mias` → "mis aportes" con su estado (soporta RN-015)
-- `PATCH /api/v1/versiones/{id}/revision` → aprobar/rechazar (HU-11, RN-016, RN-017)
-- `DELETE /api/v1/versiones/{id}` → eliminar versión propia, borrado lógico (HU-13, RN-019)
+- ✅ `POST /api/v1/canciones/{id}/versiones` → agregar versión a canción existente (HU-09).
+- 🚧 `GET /api/v1/versiones/{id}` → obtener ChordPro + tono original de una versión (HU-04) — payload mínimo (no incluye `id`, `estado`, `autorId` ni datos de canción); público, sin filtrar por estado (RN-015 no enforced).
+- 🚧 `PATCH /api/v1/versiones/{id}` *(no estaba en el plan original)* → el propio autor solicita eliminar su versión, pasa a `pendienteEliminacion`. Ver RN-019/RN-019b.
+- 🚧 `DELETE /api/v1/versiones/{id}` → **solo administrador** confirma la eliminación (pasa a `eliminada` + `eliminado_en`) — en el diseño original este DELETE lo ejecutaba directamente el dueño de la versión (HU-13, RN-019).
+- ✅ `GET /api/v1/versiones/pendientes` → listar pendientes, solo administrador (HU-11). Sin paginación; payload mínimo (`id`, `autorId`).
+- 🚧 `PATCH /api/v1/versiones/{id}/revision` → aprobar/rechazar (HU-11, RN-016). Body real: `{ estado: "verificada" | "rechazada" }` (no `decision`/"aprobada"). No valida que el estado actual sea `pendiente` antes de cambiarlo (riesgo para RN-017). Ya no registra `revisor_id`.
+- 🚧 `GET /api/v1/myContributions` *(renombrado; el plan decía `versiones/mias`)* → "mis aportes" con su estado (soporta RN-015). Sin paginación, sin incluir datos de la canción.
 
 **Favoritos**
 
-- `GET /api/v1/favoritos` → listar favoritos del usuario (HU-07)
-- `POST /api/v1/favoritos` → agregar favorito `{ version_id }` (HU-07, RN-006, idempotente)
-- `DELETE /api/v1/favoritos/{version_id}` → quitar favorito
+- ✅ `GET /api/v1/favoritos` → listar favoritos del usuario, con canción incluida, ordenados por fecha (HU-07). Sin paginación.
+- ✅ `POST /api/v1/favoritos` → agregar favorito `{ versionId }` (HU-07, RN-006, idempotente). Nota: no valida que la versión esté `verificada`.
+- 🚧 `DELETE /api/v1/favoritos` *(el plan decía `favoritos/{version_id}` como parámetro de ruta)* → quitar favorito, recibiendo `versionId` en el **body JSON**, no en la URL.
 
 **Perfil**
 
-- `POST /api/v1/usuarios/me/foto` → subir/actualizar foto de perfil a Cloudinary (≤10 MB, jpg/png/webp — Fase 4)
-- `DELETE /api/v1/usuarios/me` → eliminar cuenta propia, borrado lógico, conserva versiones verificadas y favoritos (HU-14, RN-018)
+- ✅ `POST /api/v1/usuarios/me/foto` → subir/actualizar foto de perfil a Cloudinary (≤10 MB — Fase 4).
+- ⏳ `GET /api/v1/usuarios/me` → perfil del usuario autenticado — **no implementado** (equivalente a `auth/me`, tampoco existe).
+- 🚧 `DELETE /api/v1/usuarios` *(el plan decía `/usuarios/me`)* → eliminar cuenta propia, borrado lógico, conserva versiones verificadas y favoritos (HU-14, RN-018). También borra una cookie `refreshtoken` que en la práctica nunca llega a crearse (código de refresh token comentado).
 
 ---
 
@@ -758,97 +814,113 @@ Request:
 | correo | texto | sí |
 | password | texto | sí |
 
-Response 200:
+> 🚧 **Nota general sobre esta sección:** los ejemplos siguientes muestran los payloads **reales** devueltos por el código hoy (verificados leyendo cada `route.ts`), que difieren notablemente de los ejemplos originales del documento: no hay un campo `token` en el body (el JWT viaja en la cookie `accesstoken`), los mensajes de error usan `message` (rutas de auth) o `error` (resto de rutas) como texto libre — **no existe todavía el catálogo normalizado de códigos** (`VALIDATION_ERROR`, `UNAUTHENTICATED`, etc.) descrito en Fase 5 §7 más abajo.
+
+Response 200 (real, `POST /api/v1/auth/login`):
 
 ```json
-{ "token": "jwt...", "usuario": { "id": 1, "nombre": "Kevin", "rol": "musico" } }
+{ "message": "Inicio de sesión exitoso", "user": { "id": 1, "email": "kevin@mail.com", "username": "kevin" } }
 ```
 
-Response 401:
+*(el JWT no viaja en el body — se setea como cookie httpOnly `accesstoken`, 15 min de expiración)*
+
+Response 401 (real):
 
 ```json
-{ "error": "UNAUTHENTICATED", "message": "Correo o contraseña incorrectos" }
+{ "message": "Credenciales invalidas" }
 ```
 
 **POST /api/v1/canciones**
 
-Request:
+Request (campos reales):
 
 | Campo | Tipo | Obligatorio |
 | --- | --- | --- |
 | titulo | texto | sí |
 | artista | texto | sí |
-| tono_original | texto (una de 12 notas) | sí |
+| tono_original | texto | sí |
 | contenido_chordpro | texto largo | sí |
 
-Response 201:
+Response 201 (✅ confirmado contra el código real):
 
 ```json
 { "id": 10, "titulo": "...", "artista": "...", "version": { "id": 55, "estado": "pendiente", "tono_original": "C" } }
 ```
 
-Response 400 (ChordPro inválido):
+*(el objeto `version` viene de la llamada interna a `POST /canciones/{id}/versiones`, ver nota técnica en Fase 5 §5)*
 
-```json
-{ "error": "VALIDATION_ERROR", "message": "Acorde no reconocido", "linea": 4, "columna": 12 }
-```
+Response 400 (ChordPro inválido) — ⏳ **no implementado**: hoy no hay validación de sintaxis ChordPro, solo se rechaza si el campo viene vacío, con un mensaje libre (no el código `VALIDATION_ERROR` ni `linea`/`columna`).
 
 **GET /api/v1/versiones/{id}**
 
-Response 200:
+Response 200 (real — payload reducido, sin `id`/`estado`/`cancion_id`):
 
 ```json
-{ "id": 55, "cancion_id": 10, "tono_original": "C", "estado": "verificada", "contenido_chordpro": "[C]Cuando salga el [G]sol" }
+{ "contenidoChordpro": "[C]Cuando salga el [G]sol", "tonoOriginal": "C" }
 ```
 
-> El transporte y la conversión a grados **no** son parámetros de este endpoint: el cliente recibe siempre el ChordPro original y lo recalcula localmente con el módulo de dominio.
+> ⏳ El transporte y la conversión a grados siguen sin implementarse: hoy la API solo devuelve el ChordPro crudo tal cual se guardó, sin ningún recálculo.
 > 
 
 **PATCH /api/v1/versiones/{id}/revision**
 
-Request:
+Request (🚧 campo real es `estado`, no `decision`):
 
 | Campo | Tipo | Obligatorio |
 | --- | --- | --- |
-| decision | enum ("aprobada", "rechazada") | sí |
+| estado | enum ("verificada", "rechazada") | sí |
 
-Response 200:
-
-```json
-{ "id": 55, "estado": "verificada", "revisor_id": 2, "revisado_en": "2026-07-13T10:00:00Z" }
-```
-
-Response 409 (ya revisada):
+Response 200 (real — sin `revisor_id`, ya no existe):
 
 ```json
-{ "error": "CONFLICT", "message": "Esta versión ya fue revisada" }
+{ "message": "Versión verificada", "version": { "id": 55, "estado": "verificada", "revisadoEn": "2026-07-13T10:00:00Z" } }
 ```
+
+Response 409 (ya revisada): ⏳ **no implementado** — hoy el endpoint permite re-revisar una versión ya `verificada`/`rechazada` sin devolver conflicto.
 
 **POST /api/v1/favoritos**
 
-Request:
+Request (🚧 campo real es `versionId`, camelCase):
 
 | Campo | Tipo | Obligatorio |
 | --- | --- | --- |
-| version_id | entero | sí |
+| versionId | entero | sí |
 
-Response 200/201 (idempotente, RN-006):
+Response 201 (creado):
 
 ```json
-{ "usuario_id": 1, "version_id": 55, "creado_en": "2026-07-13T10:00:00Z" }
+{ "message": "Versión agregada a favoritos", "favorito": { "userId": 1, "versionId": 55, "creadoEn": "2026-07-13T10:00:00Z" } }
 ```
 
-**DELETE /api/v1/usuarios/me**
+Response 200 (idempotente, RN-006 — ya existía):
+
+```json
+{ "message": "La versión ya estaba en favoritos", "favorito": { "userId": 1, "versionId": 55, "creadoEn": "2026-07-13T10:00:00Z" } }
+```
+
+**DELETE /api/v1/favoritos** *(el plan decía `favoritos/{version_id}` como parámetro de ruta; la ruta real recibe `versionId` en el body JSON)*
 
 Response 200:
 
 ```json
-{"eliminado_en":"2026-07-13T10:00:00Z","mensaje":"Cuenta eliminada. Tus versiones verificadas y favoritos se conservan." }
+{ "message": "Versión eliminada de favoritos" }
 ```
+
+**DELETE /api/v1/usuarios** *(la ruta real no lleva `/me`)*
+
+Response 200 (real):
+
+```json
+{ "message": "Cuenta desactivada correctamente" }
+```
+
+*(borra las cookies `accesstoken` y `refreshtoken` — esta última nunca llegó a crearse, ya que el refresh token está comentado en login/registro)*
 
 ---
 
 ## 7️⃣ Catálogo único de errores
+
+> ⏳ **Este catálogo es el diseño objetivo — no está implementado todavía.** Hoy cada endpoint devuelve errores como texto libre (`{ "message": "..." }` en las rutas de `auth/*`, `{ "error": "..." }` en el resto), sin un código normalizado (`VALIDATION_ERROR`, `UNAUTHENTICATED`, etc.). Los status HTTP sí se usan de forma razonablemente consistente (400/401/403/404/409/500), pero el body no sigue todavía un formato único. Se recomienda introducir este catálogo antes de que crezca más la superficie de la API, para no tener que migrar muchos endpoints a la vez.
 
 | Código | Nombre |
 | --- | --- |
@@ -860,16 +932,16 @@ Response 200:
 | 413 | PAYLOAD_TOO_LARGE |
 | 500 | INTERNAL_ERROR |
 
-Todos los endpoints usan este mismo catálogo. Los errores de sintaxis de ChordPro (RN-009) se devuelven como `400 VALIDATION_ERROR`, con `linea`/`columna` adicionales para que el frontend resalte el punto exacto (HU-10, RN-013).
+Todos los endpoints deberían usar este mismo catálogo (⏳ pendiente). Los errores de sintaxis de ChordPro (RN-009) se devolverían como `400 VALIDATION_ERROR`, con `linea`/`columna` adicionales para que el frontend resalte el punto exacto (HU-10, RN-013) — depende de que exista el parser de ChordPro, que tampoco existe aún.
 
 ---
 
 ## 8️⃣ Paginación, orden, filtros y versionado
 
-- **Paginación:** `?page=1&limit=20` en listados (`/canciones`, `/versiones/pendientes`, `/versiones/mias`) → respuesta `{ items, page, limit, total }`.
-- **Orden por defecto:** fecha de creación descendente, salvo `/canciones` que ordena por relevancia de búsqueda (o alfabético si no hay término de búsqueda).
-- **Filtros:** `/canciones?q=` (título/artista, coherente con el índice `(titulo, artista)` de Fase 4); `/versiones/pendientes` no necesita filtros adicionales en el MVP.
-- **Versionado:** todas las rutas bajo `/api/v1/...`. Un cambio incompatible se libera como `/api/v2/...`, sin romper `/v1`.
+- 🚧 **Paginación:** implementada solo en `GET /api/v1/canciones` (`?page=&limit=`, respuesta con `data` + `pagination {total, page, limit, totalPages}` — nombres de campos distintos a los planeados `{items, page, limit, total}`). ⏳ **Ausente** en `/versiones/pendientes`, `/myContributions` (antes `/versiones/mias`) y `/favoritos`, pese a ser listados que van a crecer.
+- ✅ **Orden por defecto:** `/canciones` filtra por `titulo`/`artista` (`contains`, insensible a mayúsculas); `/favoritos` ordena por `creadoEn desc`. El resto de listados no define un orden explícito documentado en el código revisado.
+- 🚧 **Filtros:** `/canciones?titulo=&autor=` (🚧 nombres reales de los parámetros, no `q` como decía el plan original) implementado, pero **sin el índice `(titulo, artista)`** de Fase 4 (no hay `@@index` declarado); `/versiones/pendientes` no tiene filtros adicionales, como se planeó.
+- ✅ **Versionado:** todas las rutas reales están bajo `/api/v1/...`, coincide con el plan.
 
 ---
 
@@ -889,64 +961,87 @@ Todos los endpoints usan este mismo catálogo. Los errores de sintaxis de ChordP
 
 ### 1️⃣ Autenticación y roles
 
-**Método de autenticación:** JWT (`Authorization: Bearer <token>`), emitido tras login local (correo/contraseña) o login con Google. Buscar y ver canciones/versiones no requiere sesión (RN-008).
+**Método de autenticación:** 🚧 diseño original: JWT en header `Authorization: Bearer <token>`. **Real:** JWT (HS256, expira en 15 min) emitido tras login/registro local, entregado en una **cookie httpOnly `accesstoken`** (`secure` solo en producción, `sameSite: strict`), leída manualmente del header `cookie` en cada Route Handler protegido. ⏳ Login con Google no implementado. ✅ Buscar y ver canciones/versiones no requiere sesión (RN-008).
 
-| Rol | Puede | No puede |
+| Rol | Puede (resumen) | No puede (resumen) |
 | --- | --- | --- |
-| Músico | Crear/editar sus propias versiones y canciones; guardar favoritas; ver sus propios aportes; eliminar sus propias versiones y su propia cuenta | Ver o modificar versiones ajenas no verificadas; aprobar/rechazar versiones (endpoints de revisión); eliminar cuenta ajena; al eliminar su cuenta, no puede eliminar retroactivamente sus versiones ya Verificadas ni sus favoritos (quedan intactos, RN-018) |
-| Administrador | Todo lo del músico + revisar (aprobar/rechazar) versiones pendientes; sus propios aportes nacen directamente Verificados | Editar el contenido de una versión que no es suya |
+| Músico | Crear versiones/canciones, favoritas, ver sus aportes, solicitar eliminar sus versiones, eliminar su cuenta | Aprobar/rechazar versiones; eliminar cuenta ajena |
+| Administrador | Todo lo del músico + revisar y confirmar eliminación de versiones | Editar contenido de una versión ajena |
+
+Notas de implementación:
+
+- Músico: ✅ crear versiones/canciones y guardar favoritas; 🚧 ver sus propios aportes vía `GET /myContributions` (sin paginación); 🚧 solicitar eliminar sus propias versiones es un flujo de dos pasos, no un DELETE directo; ✅ eliminar su propia cuenta.
+- 🚧 "Un músico no puede ver versiones ajenas no verificadas" — hoy **sí puede**: RN-015 no está enforced en `GET /canciones/{id}` ni `GET /versiones/{id}`.
+- ✅ Aprobar/rechazar versiones sigue restringido a administrador (RN-016); eliminar cuenta ajena no es posible.
+- ✅ Al eliminar su cuenta, las versiones Verificadas y favoritos del usuario quedan intactos (RN-018).
+- Administrador: ✅ revisa versiones pendientes y ✅ confirma la eliminación de versiones (`DELETE /versiones/{id}`).
+- 🚧 "Los aportes de un administrador nacen directamente Verificados" — **no implementado**: todas las versiones nacen `pendiente` sin importar el rol del autor.
+- No existe ningún endpoint de edición de versiones para nadie, músico o administrador.
 
 ---
 
 ### 2️⃣ Dónde viven los secretos
 
-- [x]  `.env` está en `.gitignore` desde el primer commit
-- **Procedimiento de rotación:** si un secreto se filtra, se genera un nuevo `JWT_SECRET` manualmente en Vercel; esto invalida todas las sesiones activas de inmediato (los usuarios deben volver a iniciar sesión).
-- [ ]  Existe `.env.example` sin valores reales *(pendiente de crear)*
+- [x]  `.env` está en `.gitignore` desde el primer commit (confirmado, y no hay ningún `.env` comprometido en el repo).
+- **Procedimiento de rotación:** si un secreto se filtra, se genera un nuevo `JWT_SECRET` manualmente en Vercel; esto invalida todas las sesiones activas de inmediato (los usuarios deben volver a iniciar sesión). *(⏳ el proyecto aún no está desplegado en Vercel, este procedimiento sigue siendo el plan.)*
+- [ ]  Existe `.env.example` sin valores reales *(pendiente de crear — sigue sin existir)*
 
 ---
 
 ### 3️⃣ Protección de datos sensibles
 
-- **Hash de contraseñas:** bcrypt, **12 rounds**.
-- **Convención de nombres de archivos subidos:** se usa el `public_id` que devuelve Cloudinary al subir la foto de perfil; nunca el nombre original del archivo del usuario (heredado de Fase 4).
-- **Otros datos sensibles a proteger:** `JWT_SECRET`, `DATABASE_URL`, credenciales de Google OAuth y de Cloudinary — todos viven exclusivamente en variables de entorno, nunca en el código ni en el repositorio.
+- 🚧 **Hash de contraseñas:** bcrypt (vía la librería `bcryptjs`, no `bcrypt` nativo), pero el código real usa **10 rounds** (`bcrypt.hash(password, 10)` en `auth/register`), no 12 como se había documentado. Sigue siendo ≥10, cumple el gate de Fase 6, pero el número exacto hay que corregirlo aquí.
+- ✅ **Convención de nombres de archivos subidos:** se usa `public_id: user_{usuario_id}` que genera la subida a Cloudinary; nunca el nombre original del archivo del usuario.
+- ✅ **Otros datos sensibles a proteger:** `JWT_SECRET`, `DATABASE_URL`, credenciales de Cloudinary viven en variables de entorno. `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` están planeadas pero ⏳ no se usan en ningún lugar del código todavía (no hay login con Google).
 
 ---
 
 ### 4️⃣ Amenazas reales (3–5)
 
-| Amenaza | Mitigación |
-| --- | --- |
-| Acceso no autorizado a versiones/canciones ajenas (ej. editar o ver una versión Pendiente/Rechazada que no es propia) | Cada Route Handler valida `autor_id` contra el usuario autenticado antes de permitir edición; las versiones no Verificadas solo son visibles para su autor (RN-015) |
-| Escalar a rol administrador sin serlo (manipular el JWT o llamar directo al endpoint de revisión) | El rol se valida siempre en el servidor a partir de los datos del usuario en base de datos, nunca se confía en un campo `rol` enviado desde el cliente; endpoints de revisión (`PATCH /versiones/{id}/revision`, `GET /versiones/pendientes`) verifican `rol = administrador` server-side y responden `403 FORBIDDEN` si no aplica (RN-016) |
-| Subida de imagen de perfil maliciosa o gigante | Validación de tipo MIME real (jpg/png/webp) y límite de tamaño ≤10 MB antes de subir a Cloudinary (Fase 4); Cloudinary además aplica sus propios límites de la cuenta |
+| Amenaza | Mitigación planeada | Estado |
+| --- | --- | --- |
+| Acceso no autorizado a versiones/canciones ajenas | Validar `autor_id` y RN-015 (no Verificadas solo visibles para su autor) | 🚧 Parcial, ver nota |
+| Escalar a rol administrador sin serlo | Rol validado server-side en cada endpoint sensible (RN-016) | ✅ Mitigado |
+| Subida de imagen de perfil maliciosa o gigante | Validar tipo MIME real y tamaño ≤10 MB | ✅ Mitigado |
+| Condición de carrera en registro simultáneo *(riesgo nuevo, no documentado originalmente)* | — | 🚧 Sin mitigar, ver nota |
+
+Notas de implementación:
+
+- **Acceso no autorizado:** la edición no existe (no hay endpoint para editar versiones, así que no hay riesgo ahí), pero la **lectura sí es un gap real hoy**: `GET /canciones/{id}` y `GET /versiones/{id}` no filtran por `estado` ni exigen sesión, así que cualquiera con el id puede leer una versión Pendiente o Rechazada ajena.
+- **Escalar a administrador:** el rol se valida siempre en el servidor a partir de los datos del usuario en BD, nunca se confía en un campo `rol` del cliente; `PATCH /versiones/{id}/revision`, `GET /versiones/pendientes` y `DELETE /versiones/{id}` verifican `rol = administrador` y responden 403 si no aplica. La validación está duplicada en cada endpoint en vez de un helper/middleware central, pero funciona.
+- **Subida de imagen:** mitigado según lo diseñado; Cloudinary además aplica sus propios límites de cuenta.
+- **Condición de carrera en registro:** como `email`/`username` no tienen `@unique` a nivel de base de datos, dos registros concurrentes con el mismo correo podrían pasar ambos la validación en código antes de insertarse, creando usuarios duplicados. Mitigación pendiente: agregar `@unique` en el schema.
 
 ---
 
 ### 5️⃣ Logging
 
-- **Qué se registra:** inicios de sesión (exitosos y fallidos), creación/edición/eliminación de canciones y versiones, aprobación/rechazo de versiones, errores de la aplicación.
-- **Qué NO se registra:** contraseñas, tokens JWT completos, ni el contenido completo del `.env`.
-- **Formato:** `[timestamp] [nivel] [módulo] mensaje`
-- **Niveles usados:** `info` (eventos normales), `warn` (algo raro pero no crítico, ej. intento de acceso no autorizado), `error` (falló algo, ej. error de validación de ChordPro no capturado antes).
-- **Dónde viven:** consola/logs nativos de Vercel (sin servicio externo por ahora — suficiente para el tamaño del proyecto).
+> ⏳ **Nada de esto está implementado todavía.** El código real solo tiene llamadas puntuales a `console.error(...)` dentro de bloques `catch` en unos pocos endpoints (`auth/login`, `auth/register`, `versiones/[id]`, `versiones/[id]/revision`, `canciones/[id]/versiones`, `usuarios/me/foto`) para depuración — sin niveles, sin formato consistente, y sin registrar los eventos de negocio (logins exitosos, aprobaciones/rechazos, etc.) descritos abajo, que siguen siendo el diseño objetivo.
+
+- ⏳ **Qué se registra (planeado):** inicios de sesión (exitosos y fallidos), creación/edición/eliminación de canciones y versiones, aprobación/rechazo de versiones, errores de la aplicación.
+- **Qué NO se registra:** contraseñas, tokens JWT completos, ni el contenido completo del `.env` — esto sigue siendo válido porque ningún log expone estos datos hoy.
+- ⏳ **Formato (planeado):** `[timestamp] [nivel] [módulo] mensaje` — no implementado, hoy son `console.error` con mensajes libres.
+- ⏳ **Niveles usados (planeado):** `info`/`warn`/`error` — no implementado.
+- **Dónde viven:** consola local en desarrollo (⏳ Vercel aún no aplica, no está desplegado).
 
 ---
 
 ### 6️⃣ Catálogo de configuración
 
-| Variable | Propósito | Default | ¿Sensible? |
-| --- | --- | --- | --- |
-| DATABASE_URL | Conexión a Neon (PostgreSQL) | — | Sí |
-| JWT_SECRET | Firma y verificación de tokens de sesión | — | Sí |
-| GOOGLE_CLIENT_ID | Autenticación con Google OAuth | — | No |
-| GOOGLE_CLIENT_SECRET | Autenticación con Google OAuth | — | Sí |
-| CLOUDINARY_CLOUD_NAME | Identificador de la cuenta de Cloudinary | — | No |
-| CLOUDINARY_API_KEY | Subida de fotos de perfil | — | Sí |
-| CLOUDINARY_API_SECRET | Subida de fotos de perfil | — | Sí |
+| Variable | ¿Sensible? | Estado |
+| --- | --- | --- |
+| DATABASE_URL | Sí | ✅ en uso |
+| JWT_SECRET | Sí | ✅ en uso |
+| JWT_REFRESH_SECRET *(no en el catálogo original)* | Sí | 🚧 sin uso real |
+| GOOGLE_CLIENT_ID | No | ⏳ sin usar |
+| GOOGLE_CLIENT_SECRET | Sí | ⏳ sin usar |
+| CLOUDINARY_CLOUD_NAME | No | ✅ en uso |
+| CLOUDINARY_API_KEY | Sí | ✅ en uso |
+| CLOUDINARY_API_SECRET | Sí | ✅ en uso |
 
-Ninguna de estas variables tiene un default razonable; si falta alguna al iniciar, el sistema debe fallar de inmediato con un mensaje claro, no silenciosamente.
+Notas: `DATABASE_URL` se usa en `src/lib/prisma.ts`; `JWT_SECRET` en `getUserFromToken.ts`/`auth/login`/`auth/register`; `JWT_REFRESH_SECRET` solo aparece en código comentado, no corre en runtime; `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` no se referencian en ningún archivo (login con Google no implementado); las 3 variables de `CLOUDINARY_*` se usan en `src/lib/cloudinary.ts`.
+
+Ninguna de estas variables tiene un default razonable; si falta alguna al iniciar, el sistema debe fallar de inmediato con un mensaje claro, no silenciosamente. ⏳ Esto último no está verificado/probado explícitamente en el código actual.
 
 ---
 
@@ -968,7 +1063,7 @@ Ninguna de estas variables tiene un default razonable; si falta alguna al inicia
 
 - [x]  ¿Los roles y permisos están definidos, aunque sea uno solo?
 - [x]  ¿Todos los secretos viven en `.env`, fuera del repositorio?
-- [x]  ¿Las contraseñas se guardan hasheadas con bcrypt ≥10 rounds? (12 rounds)
+- [x]  ¿Las contraseñas se guardan hasheadas con bcrypt ≥10 rounds? (real: 10 rounds vía `bcryptjs`, no 12 como se documentaba antes)
 - [x]  ¿Existen entre 3 y 5 amenazas reales, con mitigación documentada?
 - [x]  ¿El logging tiene niveles definidos y un formato mínimo?
 - [x]  ¿El catálogo de variables de entorno está completo y sin secretos expuestos en código?
@@ -979,6 +1074,8 @@ Ninguna de estas variables tiene un default razonable; si falta alguna al inicia
 **⚠️ Nota:** el gate no está 100% cerrado. Falta probar la restauración del backup antes de dar por completada esta fase con confianza real.
 
 # 🎨 Fase 7 · UX: Navegación y Flujos de Pantalla
+
+> ⏳ **Estado: 0% construido.** `src/app/page.tsx` está vacío y no existe ninguna otra ruta de página, ni carpeta `components/`, bajo `src/app`. Todo lo que sigue en esta fase es el **diseño objetivo**, no una descripción de algo ya construido — se mantiene tal cual porque sigue siendo el plan vigente para cuando arranque el frontend.
 
 ## 1️⃣ Mapa de navegación
 
@@ -1114,6 +1211,8 @@ Login / Registro
 
 ### 1️⃣ Plan de pruebas
 
+> ⏳ **Estado: no existe ninguna infraestructura de pruebas todavía.** No hay `jest`/`vitest`/`playwright` ni ninguna librería de testing en `package.json`, no hay script `test`, y no existe ninguna carpeta `tests/`/`__tests__/`/`e2e/`. La tabla siguiente sigue siendo el plan de casos a cubrir, ninguno implementado aún.
+
 | Historia | Caso (Given / When / Then) | Tipo |
 | --- | --- | --- |
 | HU-01 | Given un usuario registrado con correo/contraseña válidos, When inicia sesión, Then recibe un JWT y accede a la pantalla donde estaba | Flujo completo |
@@ -1156,6 +1255,31 @@ Login / Registro
 > Adaptada al stack real (Next.js App Router como monolito frontend+backend), no a la plantilla genérica de 8 carpetas planas.
 > 
 
+**Estructura real actual** (auditada en `c:\dev\pentcord\src`):
+
+```text
+src/
+├── app/
+│   ├── api/v1/
+│   │   ├── auth/{register,login}/route.ts
+│   │   ├── canciones/route.ts, canciones/[id]/route.ts, canciones/[id]/versiones/route.ts
+│   │   ├── versiones/[id]/route.ts, versiones/[id]/revision/route.ts, versiones/pendientes/route.ts
+│   │   ├── myContributions/route.ts
+│   │   ├── favoritos/route.ts
+│   │   └── usuarios/route.ts, usuarios/me/foto/route.ts
+│   ├── layout.tsx        (layout por defecto de create-next-app, sin personalizar)
+│   └── page.tsx           (⏳ vacío, 0 bytes — sin UI)
+├── generated/
+│   └── prisma/             (🚧 cliente de Prisma generado y comprometido en el repo, salida custom del generator)
+└── lib/
+    ├── cloudinary.ts
+    ├── getUserFromToken.ts
+    └── prisma.ts
+```
+
+No existen `components/`, `domain/`, `application/`, `infrastructure/`, `tests/` ni `scripts/`. La estructura en capas de abajo sigue siendo el **plan objetivo**, no lo construido:
+
+```txt
 /
 ├── src
 │   ├── app
@@ -1223,18 +1347,21 @@ Login / Registro
 │       └── e2e
 │           └── Flujos críticos de punta a punta
 │
-├── prisma
+├── prisma                          ✅ existe (`schema.prisma` + `migrations/`)
 │   ├── schema.prisma
 │   └── migrations
 │
-├── docs
+├── docs                            ⏳ no existe (este documento vive en la raíz del repo, no en `/docs`)
 │   └── Documento de planeación y decisiones técnicas
 │
-└── scripts
+└── scripts                         ⏳ no existe
 ├── Backup manual semanal
 └── Seeds de datos de prueba
+```
 
-**Por qué esta forma:** `/domain` queda aislado porque se importa tanto en cliente (vista previa en tiempo real, transposición sin red) como en servidor (revalidación), tal como se decidió en Fase 5. El resto sigue la convención estándar de App Router para no pelear contra el framework.
+*(`app/`, `domain/`, `application/`, `infrastructure/`, `components/`, `lib/`, `tests/` arriba: ver estado real ⏳/🚧 detallado en el bloque de la estructura real, más arriba.)*
+
+**Por qué esta forma:** `/domain` queda aislado porque se importa tanto en cliente (vista previa en tiempo real, transposición sin red) como en servidor (revalidación), tal como se decidió en Fase 5. El resto sigue la convención estándar de App Router para no pelear contra el framework. *(Sigue siendo la razón de diseño válida — solo que `/domain` y las demás capas todavía no se han creado.)*
 
 ---
 
@@ -1259,23 +1386,26 @@ Login / Registro
 
 ### 4️⃣ Sprints iniciales
 
-- **Sprint 1 — Núcleo musical + datos:** construir y validar con pruebas unitarias el parser de ChordPro, el transportador y el conversor a grados; definir el `schema.prisma` con las 4 entidades y correr la primera migración. Sin UI todavía.
-- **Sprint 2 — Flujo público + auth:** levantar buscar → ver → transportar → ver en grados en la UI (usando `/domain` en el cliente), más login local/Google y favoritos.
-- **Sprint 3 — Contribución y administración:** formulario de aportar canción/versión con vista previa en tiempo real, panel de revisión del administrador, foto de perfil, y eliminación de versión propia/cuenta.
+> 🚧 **El orden real de construcción no siguió este plan.** Se empezó por auth + CRUD de canciones/versiones/favoritos/perfil (lo que este documento llamaba Sprint 2 y 3), sin el núcleo musical del Sprint 1. Hoy no existe todavía ni el parser de ChordPro ni el transportador ni el conversor a grados — la prioridad #1 declarada en Fase 0 sigue sin empezar, mientras que buena parte del backend de los sprints 2 y 3 ya está construida.
+
+- ⏳ **Sprint 1 — Núcleo musical + datos:** construir y validar con pruebas unitarias el parser de ChordPro, el transportador y el conversor a grados; definir el `schema.prisma` con las 4 entidades y correr la primera migración. **El schema y las migraciones sí están hechos** ✅ (aunque con las diferencias de nombres/campos documentadas en Fase 3/4); el parser/transportador/conversor siguen en ⏳.
+- 🚧 **Sprint 2 — Flujo público + auth:** login local ✅ implementado (Google ⏳ no), favoritos ✅ implementados; buscar/ver/transportar/ver en grados en la UI **no existe** (⏳ sin frontend, sin dominio musical).
+- 🚧 **Sprint 3 — Contribución y administración:** APIs de aportar canción/versión ✅, panel de revisión ✅ (API), foto de perfil ✅, eliminación de versión propia/cuenta 🚧 (implementada con el flujo de dos pasos, ver RN-019) — **todo sin UI ni vista previa en tiempo real** (⏳, depende del dominio musical).
 
 ---
 
 ### 5️⃣ Decisiones técnicas críticas
 
-| Decisión | Por qué | Alternativa descartada | Fase |
-| --- | --- | --- | --- |
-| Monolito Next.js (App Router) para frontend + backend | Un único desarrollador, un único despliegue en Vercel, sin el costo de mantener dos repos/servicios | Backend separado (Express/NestJS) + frontend independiente | Fase 5 |
-| Módulo `/domain` en TS puro, sin dependencias de framework ni BD | Se reutiliza en cliente y servidor; permite transponer/previsualizar sin llamada de red y cumplir el NFR de <100 ms | Recalcular siempre en el servidor y llamar por API en cada cambio de tono | Fase 5 |
-| PostgreSQL vía Neon + Prisma ORM | Plan gratuito suficiente para el MVP, tipado fuerte, migraciones versionadas | MongoDB (no se necesita flexibilidad de esquema); SQLite (no escala a producción en Vercel) | Fase 4/5 |
-| ChordPro como formato único de almacenamiento | Formato estándar y compacto para representar acorde+sílaba con precisión, evita recalcular espacios a mano | Guardar el acorde con posición en JSON custom | Fase 2 |
-| JWT en header `Authorization` | Stateless, simple de validar en cada Route Handler, sin infraestructura de sesión adicional | Sesiones con cookie + almacenamiento server-side | Fase 6 |
-| Cloudinary solo para la foto de perfil | Gratuito, no hay canciones/versiones con imagen que justifiquen más | Guardar el archivo en Neon como bytes, o usar S3 | Fase 4 |
-| Borrado lógico en Usuario/Canción/Versión; borrado físico en Favorito | Preserva contenido verificado recuperable ante eliminación de cuenta; los favoritos no tienen valor histórico propio | Borrado físico total en todas las entidades | Fase 4 |
+| Decisión | Por qué | Alternativa descartada | Fase | Estado |
+| --- | --- | --- | --- | --- |
+| Monolito Next.js (App Router) para frontend + backend | Un único desarrollador, un único despliegue en Vercel, sin el costo de mantener dos repos/servicios | Backend separado (Express/NestJS) + frontend independiente | Fase 5 | ✅ vigente |
+| Módulo `/domain` en TS puro, sin dependencias de framework ni BD | Se reutiliza en cliente y servidor; permite transponer/previsualizar sin llamada de red y cumplir el NFR de <100 ms | Recalcular siempre en el servidor y llamar por API en cada cambio de tono | Fase 5 | ⏳ decidido, no construido |
+| PostgreSQL vía Neon + Prisma ORM | Plan gratuito suficiente para el MVP, tipado fuerte, migraciones versionadas | MongoDB (no se necesita flexibilidad de esquema); SQLite (no escala a producción en Vercel) | Fase 4/5 | ✅ implementado — 🚧 con un matiz: se usa **Prisma v7 con `@prisma/adapter-pg`** (driver adapter sin motor binario), decisión técnica más específica no registrada originalmente aquí |
+| ChordPro como formato único de almacenamiento | Formato estándar y compacto para representar acorde+sílaba con precisión, evita recalcular espacios a mano | Guardar el acorde con posición en JSON custom | Fase 2 | 🚧 se guarda como texto plano; el formato no se valida ni se parsea todavía |
+| JWT en header `Authorization` | Stateless, simple de validar en cada Route Handler, sin infraestructura de sesión adicional | Sesiones con cookie + almacenamiento server-side | Fase 6 | 🚧 **cambió en la implementación:** el JWT viaja en una cookie httpOnly (`accesstoken`), no en el header `Authorization` — sigue siendo stateless, pero es una decisión distinta a la registrada aquí, vale la pena confirmar si fue intencional |
+| Cloudinary solo para la foto de perfil | Gratuito, no hay canciones/versiones con imagen que justifiquen más | Guardar el archivo en Neon como bytes, o usar S3 | Fase 4 | ✅ vigente |
+| Borrado lógico en Usuario/Canción/Versión; borrado físico en Favorito | Preserva contenido verificado recuperable ante eliminación de cuenta; los favoritos no tienen valor histórico propio | Borrado físico total en todas las entidades | Fase 4 | ✅ implementado tal cual |
+| 🚧 *(decisión nueva, no registrada originalmente)* `bcryptjs` (implementación JS pura) en vez de `bcrypt` nativo | — *(no documentada; posiblemente para evitar compilación nativa en el entorno de desarrollo/despliegue)* | `bcrypt` (binding nativo) | Fase 6 | ✅ implementado — confirmar si fue una decisión deliberada |
 
 ---
 
@@ -1333,22 +1463,23 @@ Login / Registro
 
 **C. Política de archivos**
 
-- Ubicación base: Cloudinary (carpeta `/usuarios/{usuario_id}/perfil`)
-- Estructura: un recurso por usuario, sobrescribible al actualizar
-- Nombre: `public_id` generado por Cloudinary (nunca el nombre original del archivo)
-- Límites: imagen de perfil ≤ 10 MB, tipo MIME real jpg/png/webp
-- Metadata en DB: solo `foto_perfil_url` (texto), nunca el archivo ni una ruta local
+- Ubicación base: Cloudinary — 🚧 carpeta real `pentcord_imagenes/perfiles/` (el diseño original decía `/usuarios/{usuario_id}/perfil`)
+- Estructura: un recurso por usuario (`public_id: user_{usuario_id}`), sobrescribible al actualizar (`overwrite: true`) ✅
+- Nombre: `public_id` generado por Cloudinary (nunca el nombre original del archivo) ✅
+- Límites: imagen de perfil ≤ 10 MB, tipo MIME real jpg/png/webp ✅
+- Metadata en DB: solo `foto_perfil_url` (texto), nunca el archivo ni una ruta local ✅
 
 **D. Variables de configuración (.env local)**
 
-```
+```text
 # Base de datos
 DATABASE_URL=
 
 # Autenticación
 JWT_SECRET=
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
+JWT_REFRESH_SECRET=       # 🚧 referenciada solo en código comentado, sin uso real todavía
+GOOGLE_CLIENT_ID=         # ⏳ sin uso todavía (login con Google no implementado)
+GOOGLE_CLIENT_SECRET=     # ⏳ sin uso todavía
 
 # Cloudinary
 CLOUDINARY_CLOUD_NAME=
@@ -1356,4 +1487,4 @@ CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 ```
 
-Ninguna variable tiene un default razonable: si falta alguna al iniciar, el sistema debe fallar de inmediato con un mensaje claro.
+Ninguna variable tiene un default razonable: si falta alguna al iniciar, el sistema debe fallar de inmediato con un mensaje claro. ⏳ **`.env.example` sigue sin existir en el repo** (ver Fase 6 §2).
