@@ -1,6 +1,7 @@
 // src/app/api/canciones/[id]/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getUserFromToken } from "@/lib/getUserFromToken";
 
 export async function GET(
   request: Request,
@@ -17,15 +18,36 @@ export async function GET(
   }
 
   try {
+    const { userId, userdb, error } = await getUserFromToken(request);
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
+    }
+    const esAdmin = userdb?.rol === "administrador";
     const cancion = await prisma.cancion.findFirst({
       where: {
         id,
         eliminadoEn: null,
+        ...(esAdmin
+          ? {}
+          : { OR: [{ estado: "verificada" }, { autorId: userId ?? -1 }] }),
       },
       include: {
         _count: { select: { versiones: true } },
         ...{
-          versiones: { where: { eliminadoEn: null } },
+          versiones: {
+            where: {
+              eliminadoEn: null,
+              ...(esAdmin
+                ? {}
+                : {
+                    OR: [{ estado: "verificada" }, { autorId: userId ?? -1 }],
+                  }),
+            },
+          },
         },
       },
     });
