@@ -75,13 +75,14 @@ Mientras no exista:
 
 ### Gaps de reglas de negocio (B.3 del plan, sin tocar)
 
-- **RN-015 en `GET /canciones/{id}`**: el arreglo de hoy fue solo en
-  `GET /versiones/{id}`. `GET /canciones/{id}` sigue devolviendo *todas* las
-  versiones no eliminadas en el arreglo `versiones` que trae incluido, sin
-  filtrar por estado ni autor — cualquiera con el id de la canción lee el
-  ChordPro de una Pendiente o Rechazada ajena llamando a la API directamente.
-  El frontend (`DetalleDeCancion`) las oculta en la interfaz, pero eso no es
-  el arreglo real.
+- ~~**RN-015 en `GET /canciones/{id}`**~~ **Resuelto el 2026-08-23.** Se agregó
+  `GET /canciones/{id}/versiones` con la misma regla que ya tenía
+  `GET /versiones/{id}` (verificada para cualquiera, o propia, o cualquier
+  estado si es admin), y se quitó el `versiones` sin filtrar del `include` de
+  `GET /canciones/{id}` (ese endpoint solo trae `_count` ahora).
+  `DetalleDeCancion` (D.2) se actualizó para pedir la lista al endpoint nuevo
+  en vez de filtrarla en el cliente. Ver la tabla de "Cambios de backend
+  hechos junto con el frontend" en el plan.
 - **RN-017**: `PATCH /versiones/{id}/revision` no responde `409` si la versión
   ya no está `pendiente` — un segundo administrador puede revertir la
   decisión del primero sin error. Nunca lo vamos a ver en la interfaz mientras

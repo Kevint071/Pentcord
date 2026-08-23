@@ -24,9 +24,6 @@ export async function GET(
       },
       include: {
         _count: { select: { versiones: true } },
-        ...{
-          versiones: { where: { eliminadoEn: null } },
-        },
       },
     });
 
