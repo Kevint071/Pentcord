@@ -20,7 +20,6 @@ export async function GET(
     const cancion = await prisma.cancion.findFirst({
       where: {
         id,
-        estado: "verificada",
         eliminadoEn: null,
       },
       include: {

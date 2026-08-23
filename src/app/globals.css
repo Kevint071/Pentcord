@@ -1,0 +1,235 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+ * C.1 · Sistema visual de PentCord
+ *
+ * Idea rectora: la app hace a mano lo que el músico hacía con un bolígrafo
+ * sobre una fotocopia — escribir los acordes encima de la letra. De ahí salen
+ * las decisiones: papel gris-oliva, letra en tinta negra, acordes en azul de
+ * bolígrafo y los acordes no reconocidos marcados en rojo, como el círculo que
+ * uno hace cuando no entiende lo que está escrito.
+ *
+ * Los tokens son semánticos y cambian de valor entre claro y oscuro. Por eso
+ * casi nunca hace falta la variante `dark:` en el marcado: basta con usar
+ * `bg-papel`, `text-tinta`, `text-acorde`, etc.
+ * ------------------------------------------------------------------------- */
+
+/* El tema se controla con `data-theme` en <html>. Sin atributo manda el
+ * sistema operativo. La variante existe para los pocos casos que no se pueden
+ * resolver con un token (p. ej. `color-scheme` de un control nativo). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* --- Claro · "Papel" ------------------------------------------------------ */
+:root {
+  --pc-papel: #eaebe4;
+  --pc-hoja: #f6f6f1;
+  --pc-hoja-alta: #fdfdfa;
+  --pc-tinta: #15181a;
+  --pc-tinta-suave: #565c55;
+  --pc-tinta-tenue: #666b64;
+  --pc-pauta: #d2d5ca;
+  --pc-pauta-fuerte: #b6bbad;
+  --pc-acorde: #1d3fbf;
+  --pc-acorde-suave: #dfe4fa;
+  --pc-acorde-borde: #b3bff0;
+  --pc-alerta: #ad2b1f;
+  --pc-alerta-suave: #f7e0dc;
+  --pc-foco: #1d3fbf;
+  --pc-sombra: 0 1px 2px rgb(21 24 26 / 0.06), 0 8px 24px -12px rgb(21 24 26 / 0.18);
+  --pc-esquema: light;
+}
+
+/* --- Oscuro · "Escenario" -------------------------------------------------
+ * Pensado para un teléfono en un atril con las luces bajas: fondo apagado sin
+ * llegar al negro puro y acordes luminosos pero sin deslumbrar. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --pc-papel: #101311;
+    --pc-hoja: #181c19;
+    --pc-hoja-alta: #202520;
+    --pc-tinta: #e7e8e1;
+    --pc-tinta-suave: #99a098;
+    --pc-tinta-tenue: #8a918a;
+    --pc-pauta: #2b302c;
+    --pc-pauta-fuerte: #3d443e;
+    --pc-acorde: #93b0ff;
+    --pc-acorde-suave: #1a2440;
+    --pc-acorde-borde: #2f3f6b;
+    --pc-alerta: #ff8878;
+    --pc-alerta-suave: #35201d;
+    --pc-foco: #93b0ff;
+    --pc-sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.7);
+    --pc-esquema: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --pc-papel: #101311;
+  --pc-hoja: #181c19;
+  --pc-hoja-alta: #202520;
+  --pc-tinta: #e7e8e1;
+  --pc-tinta-suave: #99a098;
+  --pc-tinta-tenue: #8a918a;
+  --pc-pauta: #2b302c;
+  --pc-pauta-fuerte: #3d443e;
+  --pc-acorde: #93b0ff;
+  --pc-acorde-suave: #1a2440;
+  --pc-acorde-borde: #2f3f6b;
+  --pc-alerta: #ff8878;
+  --pc-alerta-suave: #35201d;
+  --pc-foco: #93b0ff;
+  --pc-sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.7);
+  --pc-esquema: dark;
+}
+
+@theme inline {
+  --color-papel: var(--pc-papel);
+  --color-hoja: var(--pc-hoja);
+  --color-hoja-alta: var(--pc-hoja-alta);
+  --color-tinta: var(--pc-tinta);
+  --color-tinta-suave: var(--pc-tinta-suave);
+  --color-tinta-tenue: var(--pc-tinta-tenue);
+  --color-pauta: var(--pc-pauta);
+  --color-pauta-fuerte: var(--pc-pauta-fuerte);
+  --color-acorde: var(--pc-acorde);
+  --color-acorde-suave: var(--pc-acorde-suave);
+  --color-acorde-borde: var(--pc-acorde-borde);
+  --color-alerta: var(--pc-alerta);
+  --color-alerta-suave: var(--pc-alerta-suave);
+  --color-foco: var(--pc-foco);
+
+  /* Tres voces: rótulo condensado, interfaz, y la monoespaciada del pentagrama
+   * de texto (la alineación letra/acordes depende de ella). */
+  --font-rotulo: var(--fuente-rotulo), "Arial Narrow", system-ui, sans-serif;
+  --font-sans: var(--fuente-ui), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--fuente-mono), ui-monospace, "SFMono-Regular", "Menlo", monospace;
+
+  --shadow-hoja: var(--pc-sombra);
+}
+
+/* --- Base ----------------------------------------------------------------- */
+@layer base {
+  html {
+    color-scheme: var(--pc-esquema);
+  }
+
+  body {
+    background-color: var(--color-papel);
+    color: var(--color-tinta);
+    font-family: var(--font-sans);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Foco siempre visible (Fase 7 §4). */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-foco);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-acorde-suave);
+    color: var(--color-tinta);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* --- Utilidades del proyecto ---------------------------------------------- */
+@utility rotulo {
+  font-family: var(--font-rotulo);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+/* Etiqueta al estilo de una directiva ChordPro: `{coro}`, `{verso}`. El
+ * recurso estructural sale del propio formato del contenido, no es adorno. */
+@utility directiva {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-tinta-tenue);
+}
+
+/* Salta al contenido: visible solo con teclado. */
+@utility salto-contenido {
+  position: absolute;
+  left: 0.5rem;
+  top: -3rem;
+  z-index: 60;
+  transition: top 120ms ease;
+
+  &:focus-visible {
+    top: 0.5rem;
+  }
+}
+
+/* --- El cifrado: letra con la línea de acordes encima (RN-009b) ------------
+ * Cada segmento apila su acorde sobre su trozo de letra y se comporta como una
+ * palabra: el ancho lo marca el más largo de los dos, y las líneas largas
+ * envuelven por los límites de segmento, nunca a mitad de una sílaba. Por eso
+ * no hace falta calcular espacios a mano ni desplazarse en horizontal. */
+.cifrado {
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
+  font-size: clamp(0.875rem, 3.3vw, 1rem);
+  tab-size: 2;
+}
+
+.cifrado-linea {
+  display: block;
+  margin-block-end: 0.75rem;
+}
+
+.cifrado-segmento {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: top;
+}
+
+.cifrado-acorde {
+  display: block;
+  min-height: 1.35em;
+  padding-inline-end: 1ch;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-acorde);
+  white-space: pre;
+}
+
+/* RN-005: el acorde que el parser no reconoce se marca como lo marcaría un
+ * músico sobre la fotocopia — en rojo y subrayado — sin romper el resto de la
+ * canción. El subrayado y el `?` evitan depender solo del color (Fase 7 §4). */
+.cifrado-acorde[data-reconocido="false"] {
+  color: var(--color-alerta);
+  text-decoration: underline wavy currentColor 1px;
+  text-underline-offset: 0.22em;
+}
+
+.cifrado-acorde[data-reconocido="false"]::after {
+  content: "?";
+  font-weight: 600;
+}
+
+.cifrado-letra {
+  display: block;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.cifrado-linea-vacia {
+  height: 0.75rem;
+}
