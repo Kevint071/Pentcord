@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+const DUMMY_HASH = "$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUU123456";
 
 export async function POST(request: Request) {
   try {
@@ -9,7 +10,12 @@ export async function POST(request: Request) {
     const { email, password } = body;
 
     // Validación básica
-    if (typeof !email !== "string" || typeof !password !== "string") {
+    if (
+      !email ||
+      !password ||
+      typeof email !== "string" ||
+      typeof password !== "string"
+    ) {
       return NextResponse.json(
         { message: "Faltan campos: email y password son requeridos" },
         { status: 400 },
@@ -31,10 +37,9 @@ export async function POST(request: Request) {
       );
     }
     // Verificar contraseña
-    const passwordValida = await bcrypt.compare(
-      password,
-      (user as { password: string }).password,
-    );
+    const hashToCompare = user?.password ?? DUMMY_HASH;
+
+    const passwordValida = await bcrypt.compare(password, hashToCompare);
 
     if (!passwordValida) {
       return NextResponse.json(

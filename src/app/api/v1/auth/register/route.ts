@@ -22,9 +22,12 @@ export async function POST(request: Request) {
     const { email, password, username } = body;
 
     if (
-      typeof !email !== "string" ||
-      typeof !password !== "string" ||
-      typeof !username !== "string"
+      !email ||
+      !password ||
+      !username ||
+      typeof email !== "string" ||
+      typeof password !== "string" ||
+      typeof username !== "string"
     ) {
       return NextResponse.json(
         { message: "Faltan campos: email, password y username son requeridos" },

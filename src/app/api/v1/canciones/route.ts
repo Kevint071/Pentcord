@@ -84,7 +84,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { userId, userdb, error } = await getUserFromToken(request);
+    const { userId, error } = await getUserFromToken(request);
 
     if (error) {
       return NextResponse.json(
