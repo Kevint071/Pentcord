@@ -3,19 +3,12 @@ import { getUserFromToken } from "@/lib/getUserFromToken";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
-  const { userId, userdb, error } = await getUserFromToken(request);
+  const { userId, error } = await getUserFromToken(request);
 
   if (error) {
     return NextResponse.json(
       { error: error.message },
       { status: error.status },
-    );
-  }
-
-  if (!userdb) {
-    return NextResponse.json(
-      { error: "Usuario no encontrado" },
-      { status: 404 },
     );
   }
 
@@ -39,7 +32,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { userId, userdb, error } = await getUserFromToken(request);
+  const { userId, error } = await getUserFromToken(request);
 
   if (error) {
     return NextResponse.json(
