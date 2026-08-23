@@ -10,12 +10,14 @@
 | Bloque | Estado | Peso |
 | --- | --- | --- |
 | Cimientos (arranque de la app + testing) | ✅ hecho (0.1–0.5) | chico |
-| Dominio musical (ChordPro, transporte, grados, render) | ⏳ nada — **prioridad #1** | grande |
+| Dominio musical (ChordPro, transporte, grados, render) | ✅ hecho (A.1–A.8, 2026-08-23) | grande |
 | Backend: cerrar gaps de reglas de negocio | 🚧 parcial — B.2 y la visibilidad de RN-015 en `GET /versiones/{id}` ya están | mediano |
 | Frontend completo | 🚧 C, D, E.1, E.2 y E.4 hechos (salvo el motor del visor); faltan E.3 y E.5 (ambas bloqueadas por el Bloque A) y F | grande |
 | Pruebas y accesibilidad | ⏳ nada | mediano |
 
-**~~Bloqueante inmediato~~ — resuelto el 2026-08-22 (Bloque 0).** La app ya arranca. El siguiente cuello de botella real sigue siendo el **Bloque A** (dominio musical): sin él no se puede transportar de verdad, ni dar vista previa en Aportar (E.3), ni "renderizar" una versión pendiente en el panel de administración (E.5). Todo lo demás que dependía solo de datos de sesión y de la API ya está construido (2026-08-23).
+**~~Bloqueante inmediato~~ — resuelto el 2026-08-22 (Bloque 0).** La app ya arranca.
+
+**~~Cuello de botella~~ — resuelto el 2026-08-23 (Bloque A).** El dominio musical existe, está probado y cumple el criterio No-Go. Con eso se desbloquean tres cosas que estaban paradas y que **siguen pendientes**: enchufar el visor D.3 al renderizador real (y borrar `src/lib/demo/cifradoDeMaqueta.ts`), la pantalla de aportar con vista previa (E.3) y el panel de administración (E.5).
 
 **Regresión encontrada y corregida el 2026-08-23:** un commit reciente (`b5b20d2`) añadió `estado: "verificada"` como filtro también sobre la propia `Cancion` en `GET /canciones/{id}`. Como ningún endpoint pone jamás ese campo en `verificada` (nace `pendiente` por defecto y no existe ningún `PATCH` que lo cambie), la ruta devolvía **404 siempre** — la pantalla de detalle de canción (D.2, ya marcada como hecha) estaba completamente rota. Se quitó el filtro; ver decisión abierta #2, que sigue sin resolver (¿tiene Canción su propio ciclo de aprobación, o se elimina el campo?).
 
@@ -52,16 +54,53 @@
 
 ## Bloque A · Dominio musical (`src/domain/musica/`) — PRIORIDAD #1
 
-> Módulo TypeScript **puro**: sin Next.js, sin Prisma, sin React. Se importa en cliente (vista previa y transporte sin red) y en servidor (revalidación al guardar). Hoy no existe ni una línea, pese a ser la prioridad declarada en Fase 0 y la mitigación del riesgo #1 de Fase 1.
+> Módulo TypeScript **puro**: sin Next.js, sin Prisma, sin React. Se importa en cliente (vista previa y transporte sin red) y en servidor (revalidación al guardar).
+>
+> ✅ **Cerrado el 2026-08-23.** 1008 acordes verificados contra tabla de teoría musical; el criterio No-Go de Fase 0 §8 pasa. Detalle abajo.
 
-- [ ] **A.1 · Notas y tonalidades** — clases de pitch (0–11), enarmónicas, lista de los 12 tonos del selector, y **ortografía dependiente de la tonalidad** (en Eb el semitono 1 es `Db`, en D es `C#`). Sin esto el transporte devuelve nombres incorrectos.
-- [ ] **A.2 · Parser/formateador de acordes** — RN-005: mayor, menor, `7`, `maj7`, `m7`, `sus2`, `sus4`, más acordes con bajo (`C/E`). Todo lo demás devuelve "no reconocido".
-- [ ] **A.3 · Parser de ChordPro** — RN-009. Documento con tokens de acorde y letra, y acumulación de errores con **línea y columna exactas** (corchete sin cerrar, corchete vacío, acorde no reconocido). Es lo que habilita RN-013.
-- [ ] **A.4 · Transportador** — HU-05 / RN-003. Distancia en semitonos entre tono origen y destino, reescritura de cada acorde con la ortografía del destino, sin mutar el documento original. Transportar al mismo tono es identidad, no error.
-- [ ] **A.5 · Conversor acorde ↔ grado (Nashville)** — HU-06 / RN-004. Siempre relativo al **tono activo en pantalla**, no a un tono fijo. Ida y vuelta sin pérdida. Definir y documentar la notación (`6m`, `57`, `4sus4`, `b7`, `1/3`).
-- [ ] **A.6 · Renderizador** — RN-009b. Convierte el documento en líneas de acordes encima de la letra, devolviendo **segmentos posicionados** (no una cadena ya formateada) para que la UI pueda marcar los acordes no reconocidos. Manejar directivas `{coro}`, líneas vacías y solapamiento de acordes largos.
-- [ ] **A.7 · Suite de precisión** — 12 tonos × 7 calidades × 12 grados, exhaustiva, contra tabla de teoría musical. Es el criterio No-Go de Fase 0 §8: si falla, no se avanza.
-- [ ] **A.8 · Verificación del NFR de rendimiento** — medir con `performance.now()` sobre una canción de ~40 líneas, 20 corridas, promedio y p95 < 100 ms.
+- [x] **A.1 · Notas y tonalidades** — clases de pitch (0–11), enarmónicas, lista de los 12 tonos del selector, y **ortografía dependiente de la tonalidad** (en Eb el semitono 1 es `Db`, en D es `C#`). Sin esto el transporte devuelve nombres incorrectos.
+- [x] **A.2 · Parser/formateador de acordes** — RN-005: mayor, menor, `7`, `maj7`, `m7`, `sus2`, `sus4`, más acordes con bajo (`C/E`). Todo lo demás devuelve "no reconocido".
+- [x] **A.3 · Parser de ChordPro** — RN-009. Documento con tokens de acorde y letra, y acumulación de errores con **línea y columna exactas** (corchete sin cerrar, corchete vacío, acorde no reconocido). Es lo que habilita RN-013.
+- [x] **A.4 · Transportador** — HU-05 / RN-003. Distancia en semitonos entre tono origen y destino, reescritura de cada acorde con la ortografía del destino, sin mutar el documento original. Transportar al mismo tono es identidad, no error.
+- [x] **A.5 · Conversor acorde ↔ grado (Nashville)** — HU-06 / RN-004. Siempre relativo al **tono activo en pantalla**, no a un tono fijo. Ida y vuelta sin pérdida. Definir y documentar la notación (`6m`, `57`, `4sus4`, `b7`, `1/3`).
+- [x] **A.6 · Renderizador** — RN-009b. Convierte el documento en líneas de acordes encima de la letra, devolviendo **segmentos posicionados** (no una cadena ya formateada) para que la UI pueda marcar los acordes no reconocidos. Manejar directivas `{coro}`, líneas vacías y solapamiento de acordes largos.
+- [x] **A.7 · Suite de precisión** — 12 tonos × 7 calidades × 12 grados, exhaustiva, contra tabla de teoría musical. Es el criterio No-Go de Fase 0 §8: si falla, no se avanza.
+- [x] **A.8 · Verificación del NFR de rendimiento** — medir con `performance.now()` sobre una canción de ~40 líneas, 20 corridas, promedio y p95 < 100 ms.
+
+### Cómo quedó el Bloque A (2026-08-23)
+
+| Tarea | Qué se hizo | Archivos |
+| --- | --- | --- |
+| A.1 | Clases de pitch 0–11 como representación interna de toda nota; `TONOS`, `claseDePitch` (tolerante en la entrada: acepta `E#`, `Cb`), `nombrarNota(clase, tonalidad)`, `claseDeTono`, `distanciaEnSemitonos`. La ortografía la marca la armadura: bemoles en `F`/`Bb`/`Eb`/`Ab`/`Db`, sostenidos en los otros siete. | `notas.ts` |
+| A.2 | `Acorde = { raiz, calidad, bajo }` sin ortografía; `parsearAcorde` devuelve `null` fuera de las siete calidades de RN-005; `nombrarAcorde` escribe siempre la forma canónica. Acepta grafías alternativas de entrada (`Cmin`, `CM7`, `Csus`). | `acordes.ts` |
+| A.3 | `parsearChordPro` nunca lanza: devuelve `{ lineas, errores }` con las líneas legibles igualmente y los errores acumulados con línea y columna 1-based. Cuatro clases: `corchete-sin-cerrar`, `corchete-vacio`, `acorde-no-reconocido`, `directiva-no-reconocida`. | `chordpro.ts` |
+| A.4 | `transportarAcorde` (aritmética pura) y `transportarDocumento(doc, desde, hasta)`, que devuelve estructura nueva —comprobado con `structuredClone`— y reescribe cada literal con la ortografía del destino. Al mismo tono es identidad. | `transporte.ts` |
+| A.5 | `acordeAGrado` / `gradoAAcorde`, con la tónica **como parámetro obligatorio** (RN-004: no hay tono global). Notación documentada en el JSDoc del archivo y en Fase 8 §2 de la documentación. | `grados.ts` |
+| A.6 | `renderizar(documento, { tonoOriginal, tono, modo })`: única puerta que necesita el visor; transporta y convierte a grados por dentro y devuelve `CifradoRenderizado`, exactamente el contrato que ya declaraba `tipos.ts`. | `render.ts` |
+| A.7 | 12 tonos × 7 calidades × 12 grados = **1008 acordes** contra una tabla de teoría musical escrita a mano, sobre la cadena completa (parsear → transportar → renderizar); más el I-IV-V-vi de las 12 tonalidades y la ida y vuelta acorde↔grado. | `precision.test.ts` |
+| A.8 | 20 corridas tras calentamiento sobre una canción de 40 líneas, con `performance.now()`. Abrir versión **0,17 ms** de promedio / 0,34 ms p95; cambiar de tono 0,02 / 0,02; ver en grados 0,03 / 0,09. Límite: 100 ms. | `rendimiento.test.ts` |
+
+**Verificado:** `npm run test:run` ✅ (183 pruebas, 16 archivos — 117 nuevas), `npx tsc --noEmit` ✅, `npm run build` ✅, `npm run lint` ✅ (0 errores; los 10 warnings son los preexistentes de los route handlers, ninguno en `domain/musica`).
+
+**Decisiones tomadas (estaban abiertas en el enunciado de las tareas):**
+
+1. **Ortografía práctica, no estricta.** Nunca se escriben `E#`, `B#`, `Fb` ni `Cb`, aunque la teoría los pida — en F# mayor el séptimo grado se lee `F`, no `E#`. De entrada sí se aceptan. Afecta a un solo tono de los doce y gana legibilidad en un cifrado.
+2. **Notación de grados:** número de un solo dígito (1–7) de la escala mayor, `b` delante para los cromáticos, sufijo de calidad pegado detrás, `/` + número para el bajo → `6m`, `57`, `4sus4`, `b7`, `1/3`. `57` no es ambiguo porque el grado es siempre un dígito. De salida los cromáticos siempre con bemol; de entrada se acepta también el sostenido.
+3. **Directivas: lista blanca cerrada y solo en español** — `{intro}`, `{verso}`, `{precoro}`, `{coro}`, `{puente}`, `{interludio}`, `{solo}`, `{final}`. Cualquier otra llave, incluidos los metadatos ingleses de otras apps (`{title: …}`), es error de sintaxis con línea y columna.
+4. **El solapamiento lo resuelve el renderizador, no el CSS.** Si el acorde mide más que su sílaba, se rellena la letra con espacios hasta dejar uno de separación, para que el mismo resultado valga en pantalla, en texto plano y en el servidor.
+
+**Desviaciones respecto al plan original:**
+
+- `tipos.ts` **ya existía** (solo tipos, escrito para D.3). Se conservó intacto lo que había —`Tono`, `ModoDeAcordes`, `SegmentoRenderizado`, `LineaRenderizada`, `CifradoRenderizado`— y se le añadieron los tipos del documento. El contrato del visor **no cambió**, que era la promesa.
+- Se añadió `index.ts` como barril público, no previsto en el enunciado. Los consumidores importan de `@/domain/musica` y no de cada archivo.
+- A.6 pedía manejar «directivas `{coro}`»: se resolvió con la lista blanca de A.3, así que el renderizador solo las pasa.
+
+**Lo que este bloque NO hace (y ahora está desbloqueado):**
+
+- **Enchufar el visor D.3.** Sigue leyendo `src/lib/demo/cifradoDeMaqueta.ts`, que hay que borrar. Es cambiar de dónde sale `cifrado` en `Visor.tsx`; el contrato es el mismo.
+- **`distanciaEnSemitonos` está duplicada:** existe en `src/components/visor/SelectorDeTono.tsx` y ahora también, canónica, en el dominio. Al enchufar el visor, borrar la del componente e importar la del dominio.
+- **Revalidar en el servidor** (RN-009/RN-013, Bloque B.3) y **validar `tono_original`** (RN-002): el módulo ya da lo que hace falta —`parsearChordPro` y `esTono`—, pero llamarlos desde los route handlers es trabajo de backend.
+- **E.3 y E.5**, que eran las dos pantallas bloqueadas.
 
 ## Bloque B · Endurecer el backend existente
 
