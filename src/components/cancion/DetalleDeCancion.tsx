@@ -16,11 +16,9 @@ import { BotonEnlace } from "@/components/ui/Boton";
  * Lista las versiones visibles: las verificadas para todo el mundo, más las
  * propias en cualquier estado, cada una con su etiqueta.
  *
- * El filtro se aplica aquí porque `GET /canciones/{id}` todavía devuelve todas
- * las versiones no eliminadas sin filtrar por estado ni autor. Esto es una
- * cortesía de la interfaz, **no** el arreglo de RN-015: mientras el servidor
- * no filtre, cualquiera puede leer una versión pendiente ajena llamando a la
- * API directamente. La tarea sigue viva en el Bloque B.3.
+ * El filtro (RN-015) ahora lo aplica `GET /canciones/{id}/versiones` en el
+ * servidor; `esMia` aquí es solo para decorar la etiqueta "tuya", no un
+ * filtro de seguridad.
  */
 
 type Version = {
@@ -35,7 +33,6 @@ type Cancion = {
   id: number;
   titulo: string;
   artista: string;
-  versiones: Version[];
 };
 
 const FECHA = new Intl.DateTimeFormat("es", {
@@ -47,15 +44,21 @@ const FECHA = new Intl.DateTimeFormat("es", {
 export function DetalleDeCancion({ id }: { id: string }) {
   const { usuario } = useSesion();
   const [cancion, setCancion] = useState<Cancion | null>(null);
+  const [visibles, setVisibles] = useState<Version[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [noExiste, setNoExiste] = useState(false);
 
   useEffect(() => {
     let vigente = true;
 
-    pedirApi<{ data: Cancion }>(`/canciones/${id}`)
-      .then((respuesta) => {
-        if (vigente) setCancion(respuesta.data);
+    Promise.all([
+      pedirApi<{ data: Cancion }>(`/canciones/${id}`),
+      pedirApi<{ data: Version[] }>(`/canciones/${id}/versiones`),
+    ])
+      .then(([cancionResp, versionesResp]) => {
+        if (!vigente) return;
+        setCancion(cancionResp.data);
+        setVisibles(versionesResp.data);
       })
       .catch((causa) => {
         if (!vigente) return;
@@ -91,19 +94,13 @@ export function DetalleDeCancion({ id }: { id: string }) {
     );
   }
 
-  if (!cancion) {
+  if (!cancion || !visibles) {
     return (
       <Contenedor>
         <p className="py-16 text-center text-sm text-tinta-suave">Cargando…</p>
       </Contenedor>
     );
   }
-
-  const visibles = cancion.versiones.filter(
-    (version) =>
-      version.estado === "verificada" ||
-      (usuario !== null && version.autorId === usuario.id),
-  );
 
   return (
     <Contenedor>

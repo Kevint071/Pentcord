@@ -7,7 +7,7 @@
 Leyenda usada en todo el documento: **✅ Implementado** · **🚧 Parcial / difiere del diseño original** · **⏳ Planeado, no implementado**.
 
 - **Backend/API:** 🚧 avanzado — auth local (registro/login con JWT en cookie), CRUD de canciones y versiones, sistema de revisión (aprobar/rechazar), favoritos y foto de perfil (Cloudinary) están construidos y funcionando, pero varios nombres de campos/rutas y reglas de negocio ya se desviaron del diseño original (detallado sección por sección más abajo).
-- **Módulo de dominio musical (parser ChordPro, transposición, conversión a grados Nashville, renderizador):** ⏳ **no existe ninguna línea de código todavía**, pese a ser la Prioridad #1 declarada en Fase 0. `contenido_chordpro` hoy es un texto plano que se guarda y devuelve tal cual, sin parsear.
+- **Módulo de dominio musical (parser ChordPro, transposición, conversión a grados Nashville, renderizador):** ✅ **construido y probado** en `src/domain/musica/` (2026-08-23), con la suite de precisión de 1008 acordes en verde. Lo que falta ahora es **consumirlo**: el visor sigue pintando una maqueta, la pantalla de aportar no existe, y `contenido_chordpro` se guarda y devuelve tal cual, sin que el servidor lo revalide.
 - **Frontend/UI:** ⏳ **no existe** — `src/app/page.tsx` está vacío, no hay páginas de login, buscador, detalle de canción/versión, aportar, perfil ni panel de admin, y no hay carpeta `components/`.
 - **Login con Google:** ⏳ solo existen los campos de datos (`metodoAutenticacion: google`, `googleId`); no hay endpoint ni lógica OAuth.
 - **Refresh token:** ⏳ el código existe pero está comentado; no se emite ni se usa.
@@ -129,10 +129,10 @@ para que músicos puedan transportarlas al tono que necesiten de manera rápida 
 ## 3️⃣ MVP — funcionalidades (5–8)
 
 - 🚧 Iniciar sesión (cuenta local o con Google) — local funciona (registro/login con JWT); Google **no** implementado.
-- ⏳ Buscar y ver canciones (letra + acordes) — el endpoint de búsqueda existe (`GET /api/v1/canciones`), pero no hay UI ni renderizado de letra+acordes (no existe el módulo de dominio que interpreta el ChordPro).
+- 🚧 Buscar y ver canciones (letra + acordes) — el endpoint de búsqueda existe (`GET /api/v1/canciones`) y la pantalla del visor también, pero todavía pinta una canción de maqueta: falta enchufarla al renderizador del dominio, que ya está construido.
 - 🚧 Ver las distintas versiones de una misma canción — el dato existe y se puede listar vía API; sin UI.
 - ⏳ Transportar (transponer) los acordes de una canción a cualquier tono — no implementado, no existe el módulo de dominio.
-- ⏳ Convertir acordes a grados y de grados a acordes — no implementado, no existe el módulo de dominio.
+- 🚧 Convertir acordes a grados y de grados a acordes — el conversor del dominio está hecho y verificado; el conmutador de la pantalla todavía habla con la maqueta.
 - ✅ Guardar canciones como favoritas/frecuentes — API completa (GET/POST/DELETE), idempotente; sin UI.
 - 🚧 Agregar una canción o una versión nueva al catálogo — API funcional, pero sin vista previa en tiempo real (no hay módulo de dominio para renderizar) ni UI.
 - ✅ Revisar (aprobar/rechazar) versiones pendientes — API funcional, restringida a rol administrador; sin UI.
@@ -166,7 +166,7 @@ para que músicos puedan transportarlas al tono que necesiten de manera rápida 
 
 | Riesgo | Impacto | Mitigación |
 | --- | --- | --- |
-| La lógica de transporte/conversión a grados es más compleja de lo previsto (casos especiales: acordes con bajo, sus, add9, etc.) | Alto | Construir y validar esa lógica primero, con una suite de casos de prueba reales, antes de tocar la UI. 🚧 **Nota (2026-08-22):** la mitigación ("construir esa lógica primero") no se siguió en la práctica — se construyó primero auth + CRUD de datos, y el módulo de transporte/grados sigue sin empezar (ver Fase 8 §4). El riesgo en sí no se ha materializado todavía porque el código simplemente no ha llegado ahí. |
+| La lógica de transporte/conversión a grados es más compleja de lo previsto (casos especiales: acordes con bajo, sus, add9, etc.) | Alto | Construir y validar esa lógica primero, con una suite de casos de prueba reales, antes de tocar la UI. ✅ **Cerrado el 2026-08-23:** la mitigación se cumplió, aunque tarde y fuera de orden (primero se construyó auth + CRUD y la interfaz). El módulo existe, con suite exhaustiva de 1008 acordes contra tabla de teoría musical. Los casos especiales que preocupaban se resolvieron así: acordes con bajo sí (`C/E`), `sus2`/`sus4` sí, y todo lo que queda fuera de las siete calidades de RN-005 —`add9`, `dim`, `aug`, novenas— se marca "no reconocido" y se arrastra tal cual en vez de adivinarse. |
 | Cargar canciones a mano es tedioso y puede desincentivar mantener el catálogo | Medio | Definir un formato de texto simple y estándar para pegar letra+acordes, en vez de un formulario campo por campo. |
 | Como único administrador, revisar cada aporte puede volverse un cuello de botella | Medio | Mantener el criterio de aprobación simple y rápido (validez de ChordPro + no duplicado evidente), sin proceso burocrático |
 | Dependencia de Neon (plan gratuito) para persistencia | Bajo | Revisar límites del plan gratuito antes de escalar el catálogo; documentar la limitación. |
@@ -273,11 +273,11 @@ para que músicos puedan transportarlas al tono que necesiten de manera rápida 
 
 **RN-002:** ✅ Toda versión tiene un tono original fijo, asignado al momento de crearse; este tono no cambia después. *(campo `tono_original`, sin endpoint que lo edite)*
 
-**RN-003:** ⏳ Transportar o convertir a grados genera una vista distinta, pero nunca modifica el tono original ni la letra+acordes almacenados. *(no aplica todavía: no existe transposición ni conversión a grados)*
+**RN-003:** ✅ Transportar o convertir a grados genera una vista distinta, pero nunca modifica el tono original ni la letra+acordes almacenados. *(`transportarDocumento` y `renderizar` devuelven estructuras nuevas y no mutan el documento de entrada; hay pruebas que lo comprueban con `structuredClone`. Nada del dominio escribe en base de datos. **Pendiente aparte:** el visor D.3 sigue conectado a la maqueta, ver RN-009b)*
 
-**RN-004:** ⏳ La conversión acorde↔grado siempre es relativa al tono activo en pantalla (original o transportado), nunca a un tono fijo global. *(no implementado)*
+**RN-004:** ✅ La conversión acorde↔grado siempre es relativa al tono activo en pantalla (original o transportado), nunca a un tono fijo global. *(`acordeAGrado`/`gradoAAcorde` reciben la tónica como parámetro obligatorio; no existe ningún tono global en el módulo. `renderizar` le pasa siempre el tono que hay en pantalla, no el original)*
 
-**RN-005:** ⏳ Los tipos de acorde soportados en el MVP son: mayor, menor, séptima (dominante, mayor, menor) y suspendido (sus2/sus4). Un acorde fuera de estos tipos se marca como "no reconocido" en vez de fallar silenciosamente. *(no implementado: no hay parser de ChordPro ni validación de acordes)*
+**RN-005:** ✅ Los tipos de acorde soportados en el MVP son: mayor, menor, séptima (dominante, mayor, menor) y suspendido (sus2/sus4). Un acorde fuera de estos tipos se marca como "no reconocido" en vez de fallar silenciosamente. *(`parsearAcorde` devuelve `null` fuera de esas siete calidades; el token conserva el literal, el renderizador lo pinta tal cual con `reconocido: false` y el transportador no lo toca. Ver «Dominio musical» en Fase 8 §2)*
 
 **RN-006:** ✅ Una canción/versión solo puede aparecer una vez en la lista de favoritas de un mismo usuario (guardar una ya guardada es una operación idempotente, no crea duplicados). *(PK compuesta `(user_id, version_id)` en `Favorito`, y `POST /favoritos` responde 200 sin duplicar si ya existe)*
 
@@ -285,9 +285,9 @@ para que músicos puedan transportarlas al tono que necesiten de manera rápida 
 
 **RN-008:** ✅ Buscar y ver canciones/versiones no requiere autenticación. Guardar favoritas y aportar contenido (canción o versión nueva) sí requieren sesión iniciada. *(`GET /canciones`, `GET /canciones/{id}`, `GET /versiones/{id}` son públicos; `POST /canciones`, `POST /canciones/{id}/versiones`, `POST /favoritos` exigen JWT)*
 
-**RN-009:** 🚧 La letra+acordes se almacena siempre en formato ChordPro: el acorde va entre corchetes inmediatamente antes de la sílaba donde se toca (ej. `[C]Cuando salga el [G]sol`). Cualquier texto entre corchetes que no corresponda a un acorde válido de los tipos soportados (RN-005) se considera un error de formato al momento de guardar. *(el campo se guarda y se exige que no esté vacío, pero **no se valida sintaxis ChordPro ni tipos de acorde** — cualquier texto se acepta)*
+**RN-009:** 🚧 La letra+acordes se almacena siempre en formato ChordPro: el acorde va entre corchetes inmediatamente antes de la sílaba donde se toca (ej. `[C]Cuando salga el [G]sol`). Cualquier texto entre corchetes que no corresponda a un acorde válido de los tipos soportados (RN-005) se considera un error de formato al momento de guardar. *(el **parser ya existe** en `src/domain/musica/chordpro.ts` y acumula los errores con línea y columna, pero el endpoint sigue guardando cualquier texto: falta llamarlo desde `POST /canciones/{id}/versiones`. Es tarea de backend, pendiente en el plan)*
 
-**RN-009b:** ⏳ La visualización nunca muestra el ChordPro crudo al usuario final; siempre se renderiza como línea de acordes encima de la letra. El renderizado es una vista derivada, se recalcula en cada consulta y no se almacena. *(no implementado: no hay renderizador; la API devuelve el ChordPro crudo tal cual se guardó)*
+**RN-009b:** 🚧 La visualización nunca muestra el ChordPro crudo al usuario final; siempre se renderiza como línea de acordes encima de la letra. El renderizado es una vista derivada, se recalcula en cada consulta y no se almacena. *(el **renderizador ya existe** — `renderizar` devuelve segmentos posicionados y no persiste nada — pero el visor D.3 todavía se alimenta de `src/lib/demo/cifradoDeMaqueta.ts`; falta enchufarlo. La API sigue devolviendo el ChordPro crudo, que es correcto: el render se hace en el cliente)*
 
 **RN-010:** 🚧 El título de la canción base no necesita ser único (pueden existir canciones con el mismo título de artistas distintos), pero la combinación título+artista sí debería evitar duplicados exactos accidentales (advertencia, no bloqueo, ya que no hay moderación). *(no hay duplicación en BD, correcto; pero `POST /canciones` tampoco emite ninguna advertencia de posible duplicado — solo `GET /canciones` devuelve `autoresSugeridos`, una función de autocompletado no documentada originalmente, útil para prevenir duplicados desde la UI cuando exista)*
 
@@ -295,7 +295,7 @@ para que músicos puedan transportarlas al tono que necesiten de manera rápida 
 
 **RN-012:** ⏳ La ubicación de la vista previa se adapta al ancho de pantalla: al lado del textarea si hay espacio horizontal suficiente, debajo del textarea si la pantalla es angosta (móvil). Es una decisión de layout responsivo, no cambia el comportamiento de fondo. *(no implementado, depende de RN-011)*
 
-**RN-013:** ⏳ Si el texto en edición tiene un error de sintaxis (formato ChordPro inválido o acorde no reconocido según RN-005), la vista previa debe señalar el error en el punto donde ocurre en vez de romperse, mostrar contenido vacío o quedar congelada con la última versión válida. *(no implementado, depende de RN-005/RN-011)*
+**RN-013:** 🚧 Si el texto en edición tiene un error de sintaxis (formato ChordPro inválido o acorde no reconocido según RN-005), la vista previa debe señalar el error en el punto donde ocurre en vez de romperse, mostrar contenido vacío o quedar congelada con la última versión válida. *(la mitad de dominio está hecha: `parsearChordPro` nunca lanza, devuelve las líneas legibles igualmente y acumula `{ clase, linea, columna, literal, mensaje }` con posiciones 1-based, listas para `details.linea`/`details.columna`. Falta la pantalla de aportar, que es la que lo señala)*
 
 **RN-014:** ✅ Toda versión aportada por un músico nace en estado Pendiente de revisión; una versión aportada por un administrador nace directamente Verificada. *(default `pendiente` en el schema; no se encontró lógica que ponga `verificada` automáticamente si el autor es administrador — **verificar/implementar**, ver nota técnica)*
 
@@ -663,7 +663,7 @@ Notas: la PK compuesta (usuario_id, version_id) garantiza la idempotencia de RN-
 - [x]  Cada regla invariante de la Fase 3 tiene su restricción equivalente:
     - RN-001 (Versión pertenece a una Canción) → `cancion_id` FK obligatorio.
     - RN-002 (tono original inmutable) → `tono_original` sin mecanismo de edición tras creación. ✅
-    - RN-005 / RN-009 (ChordPro válido, tipos de acorde soportados) → validación a nivel de aplicación sobre `contenido_chordpro`. ⏳ pendiente de implementar.
+    - RN-005 / RN-009 (ChordPro válido, tipos de acorde soportados) → validación a nivel de aplicación sobre `contenido_chordpro`. 🚧 el validador existe (`parsearChordPro`), falta llamarlo desde el endpoint que guarda.
     - RN-006 (favorito idempotente) → PK compuesta (usuario_id, version_id). ✅
     - RN-007 (correo único) → índice único parcial en `Usuario.correo`. 🚧 solo validado en código, sin índice único en BD.
     - RN-010 (título+artista sin duplicado exacto, advertencia) → índice no único + validación de advertencia en aplicación. ⏳ pendiente.
@@ -701,17 +701,59 @@ Notas: la PK compuesta (usuario_id, version_id) garantiza la idempotencia de RN-
 
 ## 2️⃣ Componentes internos (solo backend/dominio)
 
-> ⏳ **Estado: nada de esta separación en capas existe todavía.** El CRUD de las 4 entidades es simple, pero la lógica de transposición y conversión a grados (prioridad #1 del proyecto, Fase 0) sí justifica separar el dominio del framework, para poder probarlo de forma aislada y reutilizarlo en cliente y servidor — esto sigue siendo el plan objetivo. **Lo que hay hoy en el código:** cada `route.ts` bajo `src/app/api/v1/...` llama a Prisma (`src/lib/prisma.ts`) directamente e inline, sin capa de servicios ni de dominio; la validación de sesión/rol se repite copiada en cada endpoint que la necesita (vía `src/lib/getUserFromToken.ts`), en vez de un middleware o helper central `requireAdmin()`.
+> 🚧 **Estado: el dominio musical ya existe; el resto de la separación en capas no.** `src/domain/musica/` está construido y probado (ver más abajo). Lo que sigue sin existir es la capa de servicios: cada `route.ts` bajo `src/app/api/v1/...` llama a Prisma (`src/lib/prisma.ts`) directamente e inline, y la validación de sesión/rol se repite copiada en cada endpoint que la necesita (vía `src/lib/getUserFromToken.ts`), en vez de un middleware o helper central `requireAdmin()`.
 
 - **Route Handlers (`src/app/api/v1/.../route.ts`):** ✅ existen y reciben la petición HTTP; 🚧 validan sesión/JWT y rol llamando a `getUserFromToken` (no hay capa de servicios detrás — llaman a Prisma directamente). No contienen lógica musical (porque no existe).
 - **Servicios:** ⏳ no existen — los casos de uso ("crear versión", "aprobar versión", "marcar favorito") están implementados directamente dentro de cada Route Handler.
-- **Dominio (módulo TS puro, sin dependencias de Next.js ni de la base de datos):** ⏳ **no existe ninguna carpeta ni archivo de esto.**
-    - Parser/validador de ChordPro (RN-005, RN-009). ⏳
-    - Transportador de acordes (RN-002, RN-003, RN-004). ⏳
-    - Conversor acorde ↔ grado (RN-004). ⏳
-    - Renderizador (letra + línea de acordes/grados encima) (RN-009b). ⏳
+- **Dominio (módulo TS puro, sin dependencias de Next.js ni de la base de datos):** ✅ `src/domain/musica/`, construido en 2026-08-23. Ni una importación de `next`, `@prisma/client` ni `react`, así que se puede importar igual desde el cliente y desde un route handler.
+    - `notas.ts` — clases de pitch, los 12 tonos y la ortografía por tonalidad (RN-002). ✅
+    - `acordes.ts` — parser/formateador de acordes (RN-005). ✅
+    - `chordpro.ts` — parser de ChordPro con errores situados (RN-009, RN-013). ✅
+    - `transporte.ts` — transportador (RN-003, RN-004). ✅
+    - `grados.ts` — conversor acorde ↔ grado (RN-004). ✅
+    - `render.ts` — renderizador, letra con la línea de acordes/grados encima (RN-009b). ✅
+    - `tipos.ts` / `index.ts` — contrato público.
     
-    Sigue siendo el plan: este módulo se importaría **tanto en el cliente (para la vista previa en tiempo real, HU-10, <100 ms) como en el servidor** (para renderizar sin JS y para revalidar en el backend), evitando una llamada de red para transportar o previsualizar.
+    Se importa **tanto en el cliente (vista previa en tiempo real, HU-10, y transporte sin red, HU-05) como en el servidor** (revalidar el ChordPro al guardar), evitando una llamada de red para transportar o previsualizar.
+
+### El dominio musical por dentro
+
+**Todo es aritmética, el nombre se decide al final.** Al parsear, un acorde deja de ser texto y pasa a ser `{ raiz: 0–11, calidad, bajo }`. El documento queda así **sin ortografía**: transportar es sumar semitonos, y si el semitono 1 se escribe `Db` o `C#` lo decide la tonalidad en el momento de pintarlo, no el texto que se guardó.
+
+**Ortografía dependiente de la tonalidad.** La dirección la marca la armadura: `F`, `Bb`, `Eb`, `Ab` y `Db` se escriben con bemoles; los otros siete tonos, con sostenidos. Se tomó a propósito la variante **práctica** sobre la estricta: nunca se escriben `E#`, `B#`, `Fb` ni `Cb`, aunque la teoría los pida (F# mayor lleva `E#` en el séptimo grado, y aquí se lee `F`). De **entrada** sí se aceptan: quien aporte `[E#]` obtiene el acorde correcto, escrito luego como corresponda.
+
+**Notación de grados (sistema numérico tipo Nashville).** Número + sufijo, y opcionalmente `/` + número para el bajo:
+
+| Escrito | Significa | En tono de C |
+| --- | --- | --- |
+| `1` | primer grado, mayor | `C` |
+| `6m` | sexto grado, menor | `Am` |
+| `57` | quinto grado, séptima dominante | `G7` |
+| `1maj7` | primer grado, séptima mayor | `Cmaj7` |
+| `6m7` | sexto grado, séptima menor | `Am7` |
+| `4sus4` | cuarto grado, sus4 | `Fsus4` |
+| `b7` | séptimo grado bemol, mayor | `Bb` |
+| `1/3` | primer grado con el bajo en el tercero | `C/E` |
+
+El número es siempre **un solo dígito del 1 al 7**, tomado de la escala mayor de la tónica; los grados de fuera de la escala llevan `b` delante (`b2`, `b3`, `b5`, `b6`, `b7`). Por eso `57` no es ambiguo: el `5` es el grado y el `7` es la calidad. De salida los cromáticos siempre se escriben con bemol; de entrada se acepta también el sostenido (`#4` = `b5`).
+
+**Directivas de sección: lista blanca cerrada y solo en español.** Se admiten ocho, entre llaves y solas en su línea: `{intro}`, `{verso}`, `{precoro}`, `{coro}`, `{puente}`, `{interludio}`, `{solo}`, `{final}`. Cualquier otra llave —incluidos los metadatos ingleses que traen otras aplicaciones, como `{title: …}`— es un error de sintaxis con línea y columna. Es una decisión deliberada: la aplicación es de una sola lengua.
+
+**El parser nunca lanza.** Acumula los errores en una lista y devuelve las líneas legibles igualmente. Es la condición de RN-013: mientras el músico escribe, el texto pasa por estados inválidos (un corchete a medio cerrar) y la vista previa tiene que señalar el punto exacto sin romperse ni quedarse congelada. Las cuatro clases de error son `corchete-sin-cerrar`, `corchete-vacio`, `acorde-no-reconocido` y `directiva-no-reconocida`, todas con `linea` y `columna` 1-based.
+
+**Solapamiento de acordes largos.** Si el nombre del acorde mide más que la sílaba que lleva debajo, el renderizador rellena esa sílaba con espacios hasta dejar al menos uno de separación. Se resuelve en el dominio y no en el CSS para que el mismo resultado valga en pantalla, en un volcado a texto plano y en el servidor.
+
+**Precisión verificada.** La suite exhaustiva cubre 12 tonos × 7 calidades × 12 grados = **1008 acordes**, comprobados contra una tabla de teoría musical escrita a mano, sobre la cadena completa (parsear → transportar → renderizar); más el I-IV-V-vi de las doce tonalidades y la ida y vuelta acorde↔grado sin pérdida. Es el criterio No-Go de Fase 0 §8.
+
+**Rendimiento medido** con `performance.now()` sobre una canción de 40 líneas, 20 corridas tras calentamiento, contra el límite de 100 ms de HU-04/HU-05:
+
+| Operación | Promedio | p95 |
+| --- | --- | --- |
+| Abrir la versión (parsear + renderizar) | 0,17 ms | 0,34 ms |
+| Cambiar de tono (documento ya parseado) | 0,02 ms | 0,02 ms |
+| Ver en grados | 0,03 ms | 0,09 ms |
+
+Tres órdenes de magnitud de margen: el presupuesto de los 100 ms se lo va a gastar entero la pintura del navegador, no el dominio.
     
 - **Repositorios:** ⏳ no existen como capa separada — el acceso a Neon vía Prisma se hace inline en cada Route Handler.
 
