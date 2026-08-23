@@ -21,7 +21,11 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { email, password, username } = body;
 
-    if (!email || !password || !username) {
+    if (
+      typeof !email !== "string" ||
+      typeof !password !== "string" ||
+      typeof !username !== "string"
+    ) {
       return NextResponse.json(
         { message: "Faltan campos: email, password y username son requeridos" },
         { status: 400 },

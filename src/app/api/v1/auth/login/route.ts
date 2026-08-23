@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const { email, password } = body;
 
     // Validación básica
-    if (!email || !password) {
+    if (typeof !email !== "string" || typeof !password !== "string") {
       return NextResponse.json(
         { message: "Faltan campos: email y password son requeridos" },
         { status: 400 },
