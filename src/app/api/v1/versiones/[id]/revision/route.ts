@@ -9,7 +9,7 @@ export async function PATCH(request: Request) {
     // 1. Leer el estado desde el JSON del body
     const body = await request.json();
     const { estado } = body;
-    const { userId, userdb, error } = await getUserFromToken(request);
+    const { userId, error } = await getUserFromToken(request);
 
     if (error) {
       return NextResponse.json(

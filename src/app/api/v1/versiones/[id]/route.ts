@@ -11,6 +11,7 @@ export async function GET(
     const version = await prisma.version.findFirst({
       where: {
         id: Number(idParam),
+        estado: "verificada",
         eliminadoEn: null,
       },
       select: {

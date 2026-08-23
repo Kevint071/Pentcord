@@ -45,7 +45,7 @@ export async function POST(
 
   try {
     const body = await request.json();
-    const { userId, userdb, error } = await getUserFromToken(request);
+    const { userId, error } = await getUserFromToken(request);
 
     if (error) {
       return NextResponse.json(
