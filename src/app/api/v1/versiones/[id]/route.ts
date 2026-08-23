@@ -7,32 +7,56 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: idParam } = await params;
+  const versionId = Number(idParam);
+
+  if (!idParam || isNaN(versionId)) {
+    return NextResponse.json(
+      { error: "ID de la versión no proporcionado o inválido" },
+      { status: 400 },
+    );
+  }
+
   try {
+    // RN-015: una versión verificada es visible para cualquiera; una que no lo
+    // es solo para su autor o para un administrador (que la necesita para
+    // revisarla). El resto recibe el mismo 404 que "no existe".
+    const { userId, userdb } = await getUserFromToken(request);
+    const esAdmin = userdb?.rol === "administrador";
+
     const version = await prisma.version.findFirst({
       where: {
-        id: Number(idParam),
-        estado: "verificada",
+        id: versionId,
         eliminadoEn: null,
+        ...(esAdmin
+          ? {}
+          : { OR: [{ estado: "verificada" }, { autorId: userId ?? -1 }] }),
       },
       select: {
-        contenidoChordpro: true,
+        id: true,
+        autorId: true,
+        estado: true,
         tonoOriginal: true,
+        contenidoChordpro: true,
+        cancion: {
+          select: { id: true, titulo: true, artista: true },
+        },
       },
     });
 
     if (!version) {
       return NextResponse.json(
-        { error: "La version del Id no a sido encontrada" },
-        { status: 400 },
+        { error: "La versión no ha sido encontrada" },
+        { status: 404 },
       );
     }
 
-    return NextResponse.json({
-      contenidoChordpro: version.contenidoChordpro,
-      tonoOriginal: version.tonoOriginal,
-    });
+    return NextResponse.json({ data: version });
   } catch (error) {
-    return NextResponse.json(error);
+    console.error("Error al obtener la versión:", error);
+    return NextResponse.json(
+      { error: "Error interno del servidor" },
+      { status: 500 },
+    );
   }
 }
 
