@@ -83,7 +83,6 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
     const { userId, error } = await getUserFromToken(request);
 
     if (error) {
@@ -92,53 +91,51 @@ export async function POST(request: Request) {
         { status: error.status },
       );
     }
+
+    const body = await request.json();
     const { titulo, artista, contenido_chordpro, tono_original } = body;
 
-    // Validación básica de campos obligatorios
-    if (!titulo || !artista) {
+    // Validación básica de campos obligatorios: canción y primera versión se
+    // crean juntas, así que hace falta lo que pide cada una de las dos.
+    if (!titulo || !artista || !contenido_chordpro || !tono_original) {
       return NextResponse.json(
-        { error: "titulo y artista son obligatorios" },
+        {
+          error:
+            "titulo, artista, contenido_chordpro y tono_original son obligatorios",
+        },
         { status: 400 },
       );
     }
 
-    const cancion = await prisma.cancion.create({
-      data: { titulo, artista },
-      select: { id: true, titulo: true, artista: true },
+    const { cancion, version } = await prisma.$transaction(async (tx) => {
+      const cancion = await tx.cancion.create({
+        data: { titulo, artista },
+        select: { id: true, titulo: true, artista: true },
+      });
+
+      const version = await tx.version.create({
+        data: {
+          cancionId: cancion.id,
+          autorId: userId,
+          tonoOriginal: tono_original,
+          contenidoChordpro: contenido_chordpro,
+        },
+        select: { id: true, estado: true, tonoOriginal: true },
+      });
+
+      return { cancion, version };
     });
-
-    const id = cancion.id;
-
-    const createVersionResponse = await fetch(
-      `http://localhost:3000/api/v1/canciones/${cancion.id}/versiones`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id,
-          contenido_chordpro,
-          userId,
-          tono_original,
-        }),
-      },
-    );
-
-    if (!createVersionResponse.ok) {
-      const errorData = await createVersionResponse.json();
-      return NextResponse.json(
-        { error: errorData.error || "Error al crear la versión" },
-        { status: createVersionResponse.status },
-      );
-    }
-
-    const { data: version } = await createVersionResponse.json();
 
     return NextResponse.json(
       {
         id: cancion.id,
         titulo: cancion.titulo,
         artista: cancion.artista,
-        version,
+        version: {
+          id: version.id,
+          estado: version.estado,
+          tono_original: version.tonoOriginal,
+        },
       },
       { status: 201 },
     );

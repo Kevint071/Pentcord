@@ -11,7 +11,7 @@
 | --- | --- | --- |
 | Cimientos (arranque de la app + testing) | ✅ hecho (0.1–0.5) | chico |
 | Dominio musical (ChordPro, transporte, grados, render) | ✅ hecho (A.1–A.8, 2026-08-23) | grande |
-| Backend: cerrar gaps de reglas de negocio | 🚧 parcial — B.2 y la visibilidad de RN-015 en `GET /versiones/{id}` ya están | mediano |
+| Backend: cerrar gaps de reglas de negocio | 🚧 parcial — B.2 (parcial), B.3 (parcial) y B.4 (**hecho, 2026-08-23**) ya están | mediano |
 | Frontend completo | 🚧 C, D, E.1–E.4 hechos (salvo el motor del visor); faltan E.5 y F | grande |
 | Pruebas y accesibilidad | ⏳ nada | mediano |
 
@@ -19,7 +19,7 @@
 
 **~~Cuello de botella~~ — resuelto el 2026-08-23 (Bloque A).** El dominio musical existe, está probado y cumple el criterio No-Go. Con eso se desbloquearon tres cosas que estaban paradas: la pantalla de aportar con vista previa (**E.3, hecha el 2026-08-23**, es el primer consumidor real del renderizador), enchufar el visor D.3 al renderizador real (y borrar `src/lib/demo/cifradoDeMaqueta.ts`) y el panel de administración (E.5). Las dos últimas **siguen pendientes**.
 
-**Blocante nuevo, verificado el 2026-08-23 contra el servidor:** `POST /api/v1/canciones` responde **`401` siempre**, incluso con la cookie de sesión válida — y deja la canción creada sin versión. Con eso, aportar una **canción nueva** (HU-08) no llega a completarse hoy. Es el punto de B.4 que decía "no funciona fuera de localhost": en realidad no funciona nunca. E.3 está construida entera contra el contrato correcto y ofrece la salida (aportar la versión sobre la canción que quedó creada), pero arreglarlo es trabajo de backend. Detalle y evidencia abajo, en B.4.
+**~~Blocante nuevo~~ — resuelto el 2026-08-23 (B.4).** `POST /api/v1/canciones` respondía `401` siempre, incluso con la cookie de sesión válida, y dejaba la canción creada sin versión — el `fetch` interno a `localhost:3000` no reenviaba la cookie. Se reemplazó por una transacción de Prisma (crea `Cancion` y `Version` juntas, sin llamada HTTP de por medio). HU-08 (aportar una canción nueva) ya se puede completar de punta a punta. Detalle en "Cómo quedó B.4", abajo. El mensaje de cortesía `FalloAlCrearCancion` en `Aportar.tsx` (E.3) quedó sin motivo para dispararse pero no se tocó esa pantalla — limpieza menor pendiente.
 
 **Regresión encontrada y corregida el 2026-08-23:** un commit reciente (`b5b20d2`) añadió `estado: "verificada"` como filtro también sobre la propia `Cancion` en `GET /canciones/{id}`. Como ningún endpoint pone jamás ese campo en `verificada` (nace `pendiente` por defecto y no existe ningún `PATCH` que lo cambie), la ruta devolvía **404 siempre** — la pantalla de detalle de canción (D.2, ya marcada como hecha) estaba completamente rota. Se quitó el filtro; ver decisión abierta #2, que sigue sin resolver (¿tiene Canción su propio ciclo de aprobación, o se elimina el campo?).
 
@@ -142,13 +142,33 @@
 
 ### B.4 · Bugs y deuda que bloquean el despliegue
 
-- [ ] **`POST /api/v1/canciones` hace un `fetch` a `http://localhost:3000` hardcodeado** para crear la primera versión, sin transacción. No funciona fuera de localhost (es decir, no funciona en Vercel) y si la versión falla la canción queda huérfana. Reemplazar por una transacción de Prisma.
-  - **Es peor de lo que decía este punto: no funciona tampoco en localhost.** Ese `fetch` interno no reenvía la cookie `accesstoken`, y `POST /canciones/{id}/versiones` autentica con `getUserFromToken(request)` — así que la llamada interna siempre da `401`, el endpoint devuelve `401 No autenticado` al cliente y **la canción queda creada sin ninguna versión**. Comprobado el 2026-08-23 con una sesión real: registro → `GET /auth/me` `200` → `POST /canciones` `401` → la canción aparece igualmente en `GET /canciones?titulo=…`. Con esto, HU-08 (aportar una canción nueva) no se puede completar hoy por mucho que el frontend esté bien. La versión sobre una canción que ya existe (`POST /canciones/{id}/versiones`) sí funciona: devuelve `201` con `{ data: { id, estado, tono_original } }`. La transacción de Prisma resuelve las tres cosas a la vez (sesión, atomicidad y despliegue).
-- [ ] Quitar los `console.error` que devuelven `detail`, `code` y `meta` de Prisma al cliente en `canciones/[id]/versiones`.
+- [x] **`POST /api/v1/canciones` hace un `fetch` a `http://localhost:3000` hardcodeado** para crear la primera versión, sin transacción. No funciona fuera de localhost (es decir, no funciona en Vercel) y si la versión falla la canción queda huérfana. Reemplazar por una transacción de Prisma. — **corregido el 2026-08-23**, ver "Cómo quedó B.4" abajo.
+- [x] Quitar los `console.error` que devuelven `detail`, `code` y `meta` de Prisma al cliente en `canciones/[id]/versiones` — corregido el 2026-08-23.
 - [x] `GET /versiones/{id}` devuelve `400` en vez de `404` cuando no encuentra la versión — corregido el 2026-08-23 junto con RN-015 (ver B.3).
 - [x] **Regresión del 2026-08-23 (commit `b5b20d2`):** `GET /canciones/{id}` empezó a filtrar también por `estado: "verificada"` de la propia `Cancion`. Como nada pone jamás ese campo en `verificada`, la ruta devolvía **404 siempre**, rompiendo D.2 por completo. Se quitó el filtro el mismo día. La decisión abierta #2 (¿tiene Canción su propio ciclo de aprobación?) sigue sin resolver — hasta que se resuelva, no se debe volver a filtrar por este campo.
-- [ ] Limpiar la extracción manual del id desde `url.pathname` en `versiones/[id]/revision` y el fallback duplicado en `canciones/[id]/versiones`: en Next 16 `params` ya lo entrega.
-- [ ] `DELETE /usuarios` borra una cookie `refreshtoken` que nunca llega a crearse (el refresh token está comentado). Decidir: activarlo o quitar el código muerto.
+- [x] Limpiar la extracción manual del id desde `url.pathname` en `versiones/[id]/revision` y el fallback duplicado en `canciones/[id]/versiones`: en Next 16 `params` ya lo entrega. — corregido el 2026-08-23.
+- [x] `DELETE /usuarios` borra una cookie `refreshtoken` que nunca llega a crearse (el refresh token está comentado). Decidir: activarlo o quitar el código muerto. — **decidido el 2026-08-23: se quitó la línea muerta**, no se activó el refresh token (sigue siendo la decisión abierta #4, es una funcionalidad nueva, no un bug).
+
+### Cómo quedó B.4 (2026-08-23)
+
+> Bloque de **backend**. Se implementó por pedido explícito del usuario, que confirmó la excepción a [[feedback_no-tocar-backend]] para esta tarea puntual — el resto de B (B.0, B.1, B.2, B.3, B.5) sigue sin tocar.
+
+| Tarea | Qué se hizo | Archivos |
+| --- | --- | --- |
+| `POST /canciones` | Reemplazado el `fetch` interno a `localhost:3000` por una única `prisma.$transaction`: crea `Cancion` y `Version` en el mismo `tx`, usando el `userId` que ya dio `getUserFromToken` (no hace falta reenviar ninguna cookie). Ahora exige también `contenido_chordpro` y `tono_original` al crear la canción (antes solo pedía `titulo`/`artista` y delegaba esa validación al endpoint de versiones, que nunca llegaba a responder). Si la versión falla, la canción tampoco se crea — ya no queda huérfana. La respuesta al cliente no cambió: `{ id, titulo, artista, version: { id, estado, tono_original } }`, que es lo que ya consume `Aportar.tsx` (E.3). | `src/app/api/v1/canciones/route.ts` |
+| `POST /canciones/{id}/versiones` | Quitado el `console.error` y los campos `detail` / `code` / `meta` que el `catch` reenviaba al cliente con los detalles crudos de Prisma. El body de error vuelve a ser solo `{ error: "<mensaje>" }`. | `src/app/api/v1/canciones/[id]/versiones/route.ts` |
+| Extracción de `id` | `POST /canciones/{id}/versiones` tenía un fallback que reparseaba `url.pathname` si `params` no traía el id (nunca ocurre en Next 16); se quitó y quedó igual que el `GET` del mismo archivo. `PATCH /versiones/{id}/revision` ni siquiera declaraba `{ params }`: sacaba el id buscando el segmento después de `"versiones"` en el `pathname`. Se cambió la firma para recibir `params` como los demás handlers de la ruta dinámica. | `src/app/api/v1/canciones/[id]/versiones/route.ts`, `src/app/api/v1/versiones/[id]/revision/route.ts` |
+| `DELETE /usuarios` | Quitado `response.cookies.delete("refreshtoken")`: no hay ningún endpoint que llegue a poner esa cookie (el refresh token está comentado en `auth/login`), así que borrarla no hacía nada. No se activó el refresh token — es la decisión abierta #4, una funcionalidad nueva a decidir aparte, no un bug de B.4. | `src/app/api/v1/usuarios/route.ts` |
+
+**TDD:** se cubrieron con test los dos cambios con comportamiento observable nuevo — la transacción de `POST /canciones` (RED confirmado: sin mockear `fetch`, la llamada interna fallaba y devolvía `500`) y la fuga de `code`/`meta`/`detail` en `POST /canciones/{id}/versiones` (RED confirmado: el body incluía esos campos). Es la primera vez que se testea un route handler en este proyecto — no hay base de datos de prueba (B.1 sigue pendiente), así que se mockeó `@/lib/prisma` y `@/lib/getUserFromToken` en vez de golpear una base real. La limpieza de extracción de `id` y el `refreshtoken` muerto son remociones de código sin cambio de comportamiento observable (Next 16 siempre entrega `params`; la cookie nunca existía) — no se les escribió test nuevo por la misma razón que no se hace TDD de un `rename`.
+
+**Verificado:** `npm run test:run` ✅ (197 pruebas, 19 archivos — 5 nuevas en `src/tests/app/api/v1/canciones/`), `npx tsc --noEmit` ✅, `npm run build` ✅ (21 rutas), `npm run lint` ✅ (0 errores; los mismos 10 avisos preexistentes, ninguno nuevo). No se probó a mano contra un servidor real corriendo (no se pidió) — la cobertura es de los route handlers en aislamiento.
+
+**Desviaciones respecto al plan original:**
+
+1. **`POST /canciones` ahora exige `contenido_chordpro` y `tono_original` desde el primer request**, no solo `titulo`/`artista`. Es necesario para que la transacción sea atómica (si faltan, no se crea nada); antes esa validación vivía en el endpoint de versiones y nunca se alcanzaba a ejecutar por el `401` interno. `Aportar.tsx` (E.3) ya manda los cuatro campos, así que no hay cambio de contrato para el frontend real.
+2. **`FalloAlCrearCancion` en `Aportar.tsx` quedó sin motivo para dispararse** (el `401` que explicaba ya no ocurre), pero no se tocó esa pantalla — no era parte de lo pedido en esta tarea (B.4 es backend) y el propio plan ya anotaba que se puede borrar sin tocar nada más el día que esto se arreglara. Sigue pendiente como limpieza menor de frontend.
+3. **No se activó el refresh token.** Seguía comentado; activarlo es la decisión abierta #4 (funcionalidad nueva, variable de entorno `JWT_REFRESH_SECRET`, endpoint de refresh), no algo que B.4 pidiera arreglar.
 
 ### B.5 · Payloads y listados
 

@@ -56,36 +56,11 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: idParam } = await params;
-  // 1. Intentar obtener el ID desde params
-  let rawId = idParam;
+  const cancionId = Number(idParam);
 
-  // 2. Si no viene en params, extraerlo de la URL del request
-  if (!rawId) {
-    const url = new URL(request.url);
-    // Extrae la ruta (ej: "/api/v1/canciones/12/versiones")
-    const segments = url.pathname.split("/").filter(Boolean);
-
-    // Busca el segmento justo después de "canciones"
-    const cancionesIndex = segments.indexOf("canciones");
-    if (cancionesIndex !== -1 && segments[cancionesIndex + 1]) {
-      rawId = segments[cancionesIndex + 1];
-    }
-  }
-
-  // 3. Convertir a número
-  const cancionId = Number(rawId);
-
-  // 4. Validar que tengamos un ID numérico válido
-  if (!rawId || isNaN(cancionId)) {
+  if (!idParam || isNaN(cancionId)) {
     return NextResponse.json(
       { error: "ID de canción no proporcionado o inválido" },
-      { status: 400 },
-    );
-  }
-
-  if (Number.isNaN(cancionId)) {
-    return NextResponse.json(
-      { error: "El id de la canción no es válido" },
       { status: 400 },
     );
   }
@@ -135,21 +110,15 @@ export async function POST(
       { status: 201 },
     );
   } catch (error) {
-    console.error("Error real:", error); // 👈 agrega esto
-
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       return NextResponse.json(
-        {
-          error: "Error de base de datos al crear la versión",
-          code: error.code, // 👈 y esto temporalmente
-          meta: error.meta, // 👈 esto te dice EXACTAMENTE qué campo falló
-        },
+        { error: "Error de base de datos al crear la versión" },
         { status: 400 },
       );
     }
 
     return NextResponse.json(
-      { error: "Error al crear la versión", detail: String(error) }, // 👈 y esto
+      { error: "Error al crear la versión" },
       { status: 500 },
     );
   }

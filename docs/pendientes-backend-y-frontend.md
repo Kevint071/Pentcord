@@ -27,6 +27,28 @@ diffs (son pequeños, cada uno cabe en una pantalla) y decida si los deja como
 están, los rehace a su manera, o los mueve a donde le convenga en su flujo de
 trabajo. Mientras tanto el frontend ya depende de los dos.
 
+**Actualización 2026-08-23 (misma tarde):** el usuario pidió explícitamente
+implementar el Bloque B.4 completo (bugs y deuda de despliegue), no solo
+documentarlo. Es una excepción puntual a "el backend lo lleva otra persona" —
+confirmada dos veces antes de tocar código. Detalle abajo, en la sección 1.b.
+
+### 1.b · B.4 implementado por pedido explícito (2026-08-23)
+
+| Archivo | Qué cambié | Por qué |
+| --- | --- | --- |
+| `src/app/api/v1/canciones/route.ts` | `POST`: reemplacé el `fetch` interno a `http://localhost:3000` por una `prisma.$transaction` que crea `Cancion` y `Version` juntas, usando el `userId` de `getUserFromToken` (sin reenviar cookies). Ahora exige `contenido_chordpro` y `tono_original` desde el primer request. | Era el bug documentado abajo: el `fetch` no reenviaba `accesstoken`, así que la llamada interna daba `401` siempre y la canción quedaba huérfana. La transacción resuelve sesión, atomicidad y despliegue (Vercel) de una vez. |
+| `src/app/api/v1/canciones/[id]/versiones/route.ts` | `POST`: quité el `console.error` y los campos `detail`/`code`/`meta` de Prisma que el `catch` devolvía al cliente. También quité el fallback que reparseaba `url.pathname` cuando `params` no traía el id (nunca pasa en Next 16). | Fuga de detalles internos al cliente; código muerto. |
+| `src/app/api/v1/versiones/[id]/revision/route.ts` | `PATCH`: pasó a recibir `{ params }` como los demás handlers de rutas dinámicas, en vez de sacar el id buscando `"versiones"` en `url.pathname`. | Mismo patrón que el resto de la API; ya no dependía de nada frágil, pero era la única ruta que no usaba `params`. |
+| `src/app/api/v1/usuarios/route.ts` | `DELETE`: quité `response.cookies.delete("refreshtoken")`. | Esa cookie nunca llega a crearse (el refresh token sigue comentado en `auth/login`), así que borrarla no hacía nada. No se activó el refresh token — sigue siendo la decisión abierta #4 del plan, es funcionalidad nueva, no un bug. |
+
+Cubierto con tests nuevos (mockeando `@/lib/prisma` y `@/lib/getUserFromToken`,
+no hay base de datos de prueba todavía — B.1 sigue pendiente):
+`src/tests/app/api/v1/canciones/route.test.ts` y
+`src/tests/app/api/v1/canciones/[id]/versiones/route.test.ts`. Verificado con
+`npm run test:run` (197 ✅), `npx tsc --noEmit` (✅) y `npm run build` (✅, 21
+rutas). Detalle completo en "Cómo quedó B.4" dentro de
+`docs/plan-implementacion-mvp.md`.
+
 ---
 
 ## 2 · Backend que sigue faltando (bloquea o degrada al frontend)
@@ -53,39 +75,17 @@ llamarlo antes de limpiar el estado local.
 
 Orden por impacto en lo que el frontend puede hacer hoy, del resto de gaps:
 
-### `POST /api/v1/canciones` responde `401` siempre — HU-08 no se puede completar
+### ~~`POST /api/v1/canciones` responde `401` siempre~~ — resuelto el 2026-08-23 (B.4)
 
-Es el punto de B.4 del plan («hace un `fetch` a `http://localhost:3000`
-hardcodeado»), pero es más grave de lo que decía ahí: **tampoco funciona en
-localhost**. Ese `fetch` interno no reenvía la cookie `accesstoken`, y
-`POST /canciones/{id}/versiones` autentica con `getUserFromToken(request)`, así
-que la llamada interna siempre da `401`; el endpoint devuelve `401 No
-autenticado` al cliente **y la canción se queda creada sin ninguna versión**.
-
-Comprobado el 2026-08-23 con una sesión real (los datos de prueba se borraron
-después):
-
-```bash
-curl -c ck -X POST …/auth/register -d '{…}'          # 200
-curl -b ck …/auth/me                                  # 200, usuario correcto
-curl -b ck -X POST …/canciones -d '{"titulo":…}'      # 401 {"error":"No autenticado"}
-curl …/canciones?titulo=Prueba%20E3                   # la canción existe, sin versiones
-curl -b ck -X POST …/canciones/15/versiones -d '{…}'  # 201 {"data":{…}} ← este sí funciona
-```
-
-Con esto, **aportar una canción nueva (HU-08) no llega a completarse**, por
-bien que esté el frontend. E.3 está construida entera contra el contrato
-correcto y no esconde el fallo: explica que es del servidor, no del usuario, y
-como la canción sí queda creada, ofrece guardar la versión sobre ella sin
-perder lo escrito. En cuanto esto se arregle no hay que tocar la pantalla —
-solo se puede borrar el mensaje de cortesía (`FalloAlCrearCancion` en
-`src/components/aportar/Aportar.tsx`).
-
-**Lo que se necesita:** que `POST /canciones` cree canción y primera versión en
-una **transacción de Prisma**, sin llamarse a sí mismo por HTTP. Resuelve de
-una vez la sesión, la atomicidad (hoy la canción queda huérfana si falla la
-versión) y el despliegue (el `localhost:3000` hardcodeado no funciona en
-Vercel).
+Era el punto de B.4 del plan («hace un `fetch` a `http://localhost:3000`
+hardcodeado»), y era más grave de lo que decía ahí: tampoco funcionaba en
+localhost, porque ese `fetch` interno no reenviaba la cookie `accesstoken`. Se
+reemplazó por una `prisma.$transaction` que crea `Cancion` y `Version` juntas
+sin llamada HTTP de por medio — ver "Cómo quedó B.4" en el plan y la sección
+1.b arriba. HU-08 (aportar una canción nueva) ya se puede completar de punta a
+punta. Queda como limpieza menor de frontend: `FalloAlCrearCancion` en
+`src/components/aportar/Aportar.tsx` explicaba este bug y ya no tiene motivo
+para dispararse, pero no se tocó esa pantalla (no era parte de lo pedido).
 
 ### ~~Bloquea el Bloque A (dominio musical)~~ — resuelto el 2026-08-23
 
@@ -201,7 +201,7 @@ endpoint.
 ```bash
 npm run build     # 21 rutas: 13 de API + 8 de página
 npm run lint      # 0 errores; quedan avisos preexistentes de variables sin usar en route handlers
-npm run test:run  # 192 pruebas, 17 archivos
+npm run test:run  # 197 pruebas, 19 archivos
 npx tsc --noEmit  # sin errores de tipos
 ```
 
