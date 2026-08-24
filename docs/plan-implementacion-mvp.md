@@ -1,6 +1,6 @@
 # Plan de implementación · MVP PentCord
 
-*Basado en `Documentación PentCord.md` y en el estado real del código a 2026-08-23.*
+*Basado en `Documentación PentCord.md` y en el estado real del código a 2026-08-24.*
 *Solo listado de tareas pendientes. Las referencias `HU-xx` / `RN-xxx` / `Fase N` apuntan a la documentación.*
 
 ---
@@ -12,12 +12,12 @@
 | Cimientos (arranque de la app + testing) | ✅ hecho (0.1–0.5) | chico |
 | Dominio musical (ChordPro, transporte, grados, render) | ✅ hecho (A.1–A.8, 2026-08-23) | grande |
 | Backend: cerrar gaps de reglas de negocio | 🚧 parcial — B.2 (parcial), B.3 (parcial) y B.4 (**hecho, 2026-08-23**) ya están | mediano |
-| Frontend completo | 🚧 C, D, E.1–E.4 hechos (salvo el motor del visor); faltan E.5 y F | grande |
+| Frontend completo | 🚧 C, D, E.1–E.4 hechos; faltan E.5 y F | grande |
 | Pruebas y accesibilidad | ⏳ nada | mediano |
 
 **~~Bloqueante inmediato~~ — resuelto el 2026-08-22 (Bloque 0).** La app ya arranca.
 
-**~~Cuello de botella~~ — resuelto el 2026-08-23 (Bloque A).** El dominio musical existe, está probado y cumple el criterio No-Go. Con eso se desbloquearon tres cosas que estaban paradas: la pantalla de aportar con vista previa (**E.3, hecha el 2026-08-23**, es el primer consumidor real del renderizador), enchufar el visor D.3 al renderizador real (y borrar `src/lib/demo/cifradoDeMaqueta.ts`) y el panel de administración (E.5). Las dos últimas **siguen pendientes**.
+**~~Cuello de botella~~ — resuelto el 2026-08-23 (Bloque A).** El dominio musical existe, está probado y cumple el criterio No-Go. Con eso se desbloquearon tres cosas que estaban paradas: la pantalla de aportar con vista previa (**E.3, hecha el 2026-08-23**, es el primer consumidor real del renderizador), enchufar el visor al renderizador real (**D.3, hecha el 2026-08-24**, borró `src/lib/demo/cifradoDeMaqueta.ts`) y el panel de administración (E.5, **sigue pendiente**).
 
 **~~Blocante nuevo~~ — resuelto el 2026-08-23 (B.4).** `POST /api/v1/canciones` respondía `401` siempre, incluso con la cookie de sesión válida, y dejaba la canción creada sin versión — el `fetch` interno a `localhost:3000` no reenviaba la cookie. Se reemplazó por una transacción de Prisma (crea `Cancion` y `Version` juntas, sin llamada HTTP de por medio). HU-08 (aportar una canción nueva) ya se puede completar de punta a punta. Detalle en "Cómo quedó B.4", abajo. El mensaje de cortesía `FalloAlCrearCancion` en `Aportar.tsx` (E.3) quedó sin motivo para dispararse pero no se tocó esa pantalla — limpieza menor pendiente.
 
@@ -213,10 +213,10 @@ Ninguno de los tres toca reglas de negocio nuevas: son huecos que ya estaban ano
 
 - [x] **D.1 · Inicio / buscador** (HU-02) — búsqueda por título y artista, paginada, usando `autoresSugeridos` para el autocompletado. Estado vacío neutro ("sin resultados", no un error).
 - [x] **D.2 · Detalle de canción** (HU-03) — lista de versiones visibles, con etiqueta de estado en las propias del usuario.
-- [ ] **D.3 · Visor de versión** (HU-04, HU-05, HU-06) — **la pantalla central del producto**. *La pantalla está construida; lo que falta es el motor. Sigue sin marcar porque hoy funciona sobre datos de ejemplo, no sobre la versión real.*
-  - [x] Render de la letra con la línea de acordes encima; nunca mostrar el ChordPro crudo (RN-009b). *(la pantalla; el ChordPro real lo traen A.3/A.6)*
-  - [ ] Selector de tono → transporte **en el cliente**, sin llamada de red, < 100 ms. *(el selector existe y es instantáneo; el transporte correcto es A.1/A.4)*
-  - [ ] Conmutador notas ↔ grados, relativo al tono activo en pantalla. *(el control existe; la conversión real es A.5)*
+- [x] **D.3 · Visor de versión** (HU-04, HU-05, HU-06) — **la pantalla central del producto**. Enchufada al motor real el 2026-08-24; ver "Cómo quedó D.3" abajo.
+  - [x] Render de la letra con la línea de acordes encima; nunca mostrar el ChordPro crudo (RN-009b).
+  - [x] Selector de tono → transporte **en el cliente**, sin llamada de red, < 100 ms.
+  - [x] Conmutador notas ↔ grados, relativo al tono activo en pantalla.
   - [x] Marca visual de los acordes no reconocidos, sin romper el resto de la canción.
   - [x] Verificar el flujo `buscar → ver → transportar` en **máximo 3 clics**, en móvil y escritorio.
 
@@ -230,13 +230,21 @@ Ninguno de los tres toca reglas de negocio nuevas: son huecos que ya estaban ano
 | C.4 | `pedirApi` envía la cookie del mismo origen y normaliza el error al catálogo de `src/lib/errors.ts`. Importa los tipos con `import type` porque `errors.ts` arrastra `next/server`, que no puede entrar en el bundle del navegador. `rutaDeLogin` codifica el contexto y `mensajeDeCampo` saca el mensaje en línea de un `VALIDATION_ERROR`. | `src/lib/api/cliente.ts` |
 | D.1 | Buscador con el término, el artista y la página en la URL (atrás/adelante funcionan y un resultado se puede compartir), rebote de 350 ms, y guarda contra respuestas fuera de orden. Estado vacío neutro. La portada se prerrenderiza entera: la espera de Suspense es la misma pantalla, no un "cargando". | `src/app/page.tsx`, `src/components/buscador/*` |
 | D.2 | Lista de versiones con el tono como dato principal, etiqueta de estado solo en las propias, y estados separados para "no existe" y "sin versiones". | `src/app/canciones/[id]/page.tsx`, `src/components/cancion/DetalleDeCancion.tsx` |
-| D.3 | Pantalla completa: selector de tono con forma de octava de piano (las flechas se mueven de semitono en semitono, `Inicio` vuelve al original, tabulación itinerante), conmutador notas/grados, aviso de acordes no reconocidos y render del cifrado. **Funciona sobre datos de ejemplo**, no sobre la versión real. | `src/app/versiones/[id]/page.tsx`, `src/components/visor/*`, `src/lib/demo/cifradoDeMaqueta.ts` |
+| D.3 | Pantalla completa: selector de tono con forma de octava de piano (las flechas se mueven de semitono en semitono, `Inicio` vuelve al original, tabulación itinerante), conmutador notas/grados, aviso de acordes no reconocidos y render del cifrado. **Funcionó sobre datos de ejemplo hasta el 2026-08-24**; ver "Cómo quedó D.3" abajo. | `src/app/versiones/[id]/page.tsx`, `src/components/visor/*` |
 
-**Verificado:** `npm run build` ✅ (20 rutas: 14 de API + 6 de página), `npm run test:run` ✅ (43 pruebas, 6 archivos), `npm run lint` ✅ (0 errores; siguen los 12 avisos preexistentes de variables sin usar en los route handlers). Contraste comprobado número a número: **todos** los pares de texto y fondo pasan 4.5:1 en claro y en oscuro.
+**Verificado (2026-08-22, C y D sobre la maqueta):** `npm run build` ✅ (20 rutas: 14 de API + 6 de página), `npm run test:run` ✅ (43 pruebas, 6 archivos), `npm run lint` ✅ (0 errores; siguen los 12 avisos preexistentes de variables sin usar en los route handlers). Contraste comprobado número a número: **todos** los pares de texto y fondo pasan 4.5:1 en claro y en oscuro.
+
+### Cómo quedó D.3 (2026-08-24)
+
+El visor ya no lee `src/lib/demo/cifradoDeMaqueta.ts` (borrado): lee la versión real de `GET /versiones/{id}` (el payload que dejó B.3 — `id`, `estado`, `autorId`, `tonoOriginal`, `contenidoChordpro`, `cancion.{id,titulo,artista}`) y la pasa por el dominio musical real de `@/domain/musica`: `parsearChordPro` interpreta el ChordPro guardado y `renderizar` transporta y convierte a grados, con la ortografía correcta por tonalidad (en Eb pinta `Db`, no `C#`, que era justo el bug de la maqueta). El selector de tono y el conmutador notas/grados siguen sin tocar la red: cada cambio es un `renderizar` nuevo en el cliente (HU-05). De paso se quitó la duplicación de `distanciaEnSemitonos` en `SelectorDeTono.tsx`: ahora reexporta la del dominio en vez de tener su propia tabla cromática.
+
+Estados nuevos que la pantalla no tenía en la maqueta: "cargando" mientras llega la versión, "esta versión no está" (mismo componente `EstadoVacio` que D.2, para `NOT_FOUND` — incluye el caso RN-015 de una versión no verificada que no es propia) y un aviso genérico si falla el servidor. No hizo falta tocar ningún archivo de `src/app/api/**`: B.3 ya había dejado el endpoint y su payload listos el 2026-08-23.
+
+**Verificado:** `npm run test:run` ✅ (204 pruebas, 20 archivos — suma `src/tests/components/visor/Visor.test.tsx`, nuevo, con el dominio real sin mockear), `npm run build` ✅ (mismas 20 rutas), `npm run lint` ✅ (0 errores; los mismos avisos preexistentes de antes, ninguno nuevo).
 
 **Desviaciones y deuda que dejan estos bloques:**
 
-1. **D.3 es una maqueta.** Se decidió no adelantar el Bloque A. `src/lib/demo/cifradoDeMaqueta.ts` es un sustituto tosco y **hay que borrarlo**: trocea los acordes a mano en vez de parsear ChordPro, y transporta con una única tabla cromática de sostenidos, así que escribe `C#` donde en Eb corresponde `Db` — justo el error que A.1 existe para evitar. El contrato al que se conectará A.6 ya está declarado en `src/domain/musica/tipos.ts` (**solo tipos, sin lógica**), así que cuando aterrice el Bloque A solo cambia de dónde saca los datos el visor. *(sigue así al 2026-08-23: agregarle el botón de favorito no tocó el motor.)*
+1. ~~**D.3 es una maqueta.**~~ **Resuelto el 2026-08-24** — ver "Cómo quedó D.3" arriba.
 2. ~~`GET /auth/me` (B.2) es ahora el bloqueo real de C.3.~~ **Resuelto el 2026-08-23** — B.2 existe. Quedó un bug de contrato en el propio endpoint (no envuelve en `{ data }`, y sus errores anidan mal el objeto de `getUserFromToken` en vez de su `.message`); `SesionProvider` ya está escrito contra la forma real, no la del catálogo. Ver "Cambios de backend hechos junto con el frontend" arriba y B.2.
 3. ~~El filtro de visibilidad de D.2 no arregla RN-015 del todo.~~ **Resuelto el 2026-08-23** — ver B.3: nuevo endpoint `GET /canciones/{id}/versiones` con el filtro real en el servidor; D.2 ya no filtra en el cliente.
 4. **B.0 sigue pendiente y el cliente lo compensa.** `pedirApi` deduce el código a partir del status para las dos formas heredadas de error (`{ message }` en `auth/*`, `{ error: "texto" }` en el resto). Ese código de compatibilidad se puede borrar en cuanto los 12 route handlers usen `errorResponse()`.

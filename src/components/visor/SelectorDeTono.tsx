@@ -1,7 +1,10 @@
 "use client";
 
 import { useRef } from "react";
+import { distanciaEnSemitonos } from "@/domain/musica";
 import type { Tono } from "@/domain/musica/tipos";
+
+export { distanciaEnSemitonos };
 
 /**
  * D.3 · Selector de tono.
@@ -59,13 +62,6 @@ function pintarTono(tono: Tono) {
 
 function decirTono(tono: Tono) {
   return tono.replace(/[b#]/, (s) => PALABRAS[s]);
-}
-
-/** Distancia en semitonos por el camino más corto: −5 … +6. */
-export function distanciaEnSemitonos(desde: Tono, hasta: Tono) {
-  const bruta =
-    (CROMATICA.indexOf(hasta) - CROMATICA.indexOf(desde) + 12) % 12;
-  return bruta > 6 ? bruta - 12 : bruta;
 }
 
 export function etiquetaDeDistancia(desde: Tono, hasta: Tono) {
@@ -140,7 +136,7 @@ export function SelectorDeTono({
       role="radiogroup"
       aria-label={etiqueta}
       onKeyDown={alPulsarTecla}
-      className="relative h-[72px] w-full select-none sm:h-20"
+      className="relative h-18 w-full select-none sm:h-20"
     >
       {/* Teclas blancas */}
       <div className="flex h-full w-full gap-px">
