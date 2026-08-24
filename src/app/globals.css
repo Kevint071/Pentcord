@@ -233,3 +233,17 @@
 .cifrado-linea-vacia {
   height: 0.75rem;
 }
+
+/* E.3 · RN-013: en la vista previa de aportar, la línea que tiene un error de
+ * sintaxis se marca en su sitio — como el subrayado del acorde no reconocido,
+ * pero para la línea entera. El resto de la canción se sigue leyendo igual, que
+ * es la condición de la regla: señalar sin romper ni congelar la vista previa.
+ * El atributo solo lo pone la vista previa; el visor nunca lo manda. */
+.cifrado [data-linea-error] {
+  margin-inline-start: -0.625rem;
+  border-inline-start: 2px solid var(--color-alerta);
+  border-start-end-radius: 2px;
+  border-end-end-radius: 2px;
+  padding-inline-start: 0.5rem;
+  background-color: var(--color-alerta-suave);
+}

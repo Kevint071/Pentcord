@@ -6,11 +6,24 @@ import type { CifradoRenderizado } from "@/domain/musica/tipos";
  * Nunca muestra el ChordPro crudo: consume los segmentos ya posicionados que
  * devuelve el renderizador y se limita a pintarlos. Un acorde no reconocido
  * (RN-005) se marca en su sitio y la canción sigue leyéndose alrededor.
+ *
+ * `lineasConError` es opcional y solo lo usa la vista previa de E.3: el
+ * renderizador devuelve una línea por cada línea del texto, así que el número
+ * de línea del error (1-based, RN-013) es el índice + 1 y se puede marcar en el
+ * sitio exacto sin que el visor tenga que enterarse.
  */
-export function Cifrado({ cifrado }: { cifrado: CifradoRenderizado }) {
+export function Cifrado({
+  cifrado,
+  lineasConError,
+}: {
+  cifrado: CifradoRenderizado;
+  lineasConError?: ReadonlySet<number>;
+}) {
   return (
     <div className="cifrado text-tinta">
       {cifrado.lineas.map((linea, indice) => {
+        const conError = lineasConError?.has(indice + 1) ? true : undefined;
+
         if (linea.tipo === "vacia") {
           return <div key={indice} className="cifrado-linea-vacia" />;
         }
@@ -19,6 +32,7 @@ export function Cifrado({ cifrado }: { cifrado: CifradoRenderizado }) {
           return (
             <p
               key={indice}
+              data-linea-error={conError}
               className="directiva mt-6 mb-3 border-b border-pauta pb-1.5 first:mt-0"
             >
               {linea.nombre}
@@ -27,7 +41,7 @@ export function Cifrado({ cifrado }: { cifrado: CifradoRenderizado }) {
         }
 
         return (
-          <p key={indice} className="cifrado-linea">
+          <p key={indice} data-linea-error={conError} className="cifrado-linea">
             {linea.segmentos.map((segmento, posicion) => (
               <span key={posicion} className="cifrado-segmento">
                 <span

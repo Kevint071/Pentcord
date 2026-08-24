@@ -12,12 +12,14 @@
 | Cimientos (arranque de la app + testing) | ✅ hecho (0.1–0.5) | chico |
 | Dominio musical (ChordPro, transporte, grados, render) | ✅ hecho (A.1–A.8, 2026-08-23) | grande |
 | Backend: cerrar gaps de reglas de negocio | 🚧 parcial — B.2 y la visibilidad de RN-015 en `GET /versiones/{id}` ya están | mediano |
-| Frontend completo | 🚧 C, D, E.1, E.2 y E.4 hechos (salvo el motor del visor); faltan E.3 y E.5 (ambas bloqueadas por el Bloque A) y F | grande |
+| Frontend completo | 🚧 C, D, E.1–E.4 hechos (salvo el motor del visor); faltan E.5 y F | grande |
 | Pruebas y accesibilidad | ⏳ nada | mediano |
 
 **~~Bloqueante inmediato~~ — resuelto el 2026-08-22 (Bloque 0).** La app ya arranca.
 
-**~~Cuello de botella~~ — resuelto el 2026-08-23 (Bloque A).** El dominio musical existe, está probado y cumple el criterio No-Go. Con eso se desbloquean tres cosas que estaban paradas y que **siguen pendientes**: enchufar el visor D.3 al renderizador real (y borrar `src/lib/demo/cifradoDeMaqueta.ts`), la pantalla de aportar con vista previa (E.3) y el panel de administración (E.5).
+**~~Cuello de botella~~ — resuelto el 2026-08-23 (Bloque A).** El dominio musical existe, está probado y cumple el criterio No-Go. Con eso se desbloquearon tres cosas que estaban paradas: la pantalla de aportar con vista previa (**E.3, hecha el 2026-08-23**, es el primer consumidor real del renderizador), enchufar el visor D.3 al renderizador real (y borrar `src/lib/demo/cifradoDeMaqueta.ts`) y el panel de administración (E.5). Las dos últimas **siguen pendientes**.
+
+**Blocante nuevo, verificado el 2026-08-23 contra el servidor:** `POST /api/v1/canciones` responde **`401` siempre**, incluso con la cookie de sesión válida — y deja la canción creada sin versión. Con eso, aportar una **canción nueva** (HU-08) no llega a completarse hoy. Es el punto de B.4 que decía "no funciona fuera de localhost": en realidad no funciona nunca. E.3 está construida entera contra el contrato correcto y ofrece la salida (aportar la versión sobre la canción que quedó creada), pero arreglarlo es trabajo de backend. Detalle y evidencia abajo, en B.4.
 
 **Regresión encontrada y corregida el 2026-08-23:** un commit reciente (`b5b20d2`) añadió `estado: "verificada"` como filtro también sobre la propia `Cancion` en `GET /canciones/{id}`. Como ningún endpoint pone jamás ese campo en `verificada` (nace `pendiente` por defecto y no existe ningún `PATCH` que lo cambie), la ruta devolvía **404 siempre** — la pantalla de detalle de canción (D.2, ya marcada como hecha) estaba completamente rota. Se quitó el filtro; ver decisión abierta #2, que sigue sin resolver (¿tiene Canción su propio ciclo de aprobación, o se elimina el campo?).
 
@@ -141,6 +143,7 @@
 ### B.4 · Bugs y deuda que bloquean el despliegue
 
 - [ ] **`POST /api/v1/canciones` hace un `fetch` a `http://localhost:3000` hardcodeado** para crear la primera versión, sin transacción. No funciona fuera de localhost (es decir, no funciona en Vercel) y si la versión falla la canción queda huérfana. Reemplazar por una transacción de Prisma.
+  - **Es peor de lo que decía este punto: no funciona tampoco en localhost.** Ese `fetch` interno no reenvía la cookie `accesstoken`, y `POST /canciones/{id}/versiones` autentica con `getUserFromToken(request)` — así que la llamada interna siempre da `401`, el endpoint devuelve `401 No autenticado` al cliente y **la canción queda creada sin ninguna versión**. Comprobado el 2026-08-23 con una sesión real: registro → `GET /auth/me` `200` → `POST /canciones` `401` → la canción aparece igualmente en `GET /canciones?titulo=…`. Con esto, HU-08 (aportar una canción nueva) no se puede completar hoy por mucho que el frontend esté bien. La versión sobre una canción que ya existe (`POST /canciones/{id}/versiones`) sí funciona: devuelve `201` con `{ data: { id, estado, tono_original } }`. La transacción de Prisma resuelve las tres cosas a la vez (sesión, atomicidad y despliegue).
 - [ ] Quitar los `console.error` que devuelven `detail`, `code` y `meta` de Prisma al cliente en `canciones/[id]/versiones`.
 - [x] `GET /versiones/{id}` devuelve `400` en vez de `404` cuando no encuentra la versión — corregido el 2026-08-23 junto con RN-015 (ver B.3).
 - [x] **Regresión del 2026-08-23 (commit `b5b20d2`):** `GET /canciones/{id}` empezó a filtrar también por `estado: "verificada"` de la propia `Cancion`. Como nada pone jamás ese campo en `verificada`, la ruta devolvía **404 siempre**, rompiendo D.2 por completo. Se quitó el filtro el mismo día. La decisión abierta #2 (¿tiene Canción su propio ciclo de aprobación?) sigue sin resolver — hasta que se resuelva, no se debe volver a filtrar por este campo.
@@ -217,7 +220,7 @@ Ninguno de los tres toca reglas de negocio nuevas: son huecos que ya estaban ano
 2. ~~`GET /auth/me` (B.2) es ahora el bloqueo real de C.3.~~ **Resuelto el 2026-08-23** — B.2 existe. Quedó un bug de contrato en el propio endpoint (no envuelve en `{ data }`, y sus errores anidan mal el objeto de `getUserFromToken` en vez de su `.message`); `SesionProvider` ya está escrito contra la forma real, no la del catálogo. Ver "Cambios de backend hechos junto con el frontend" arriba y B.2.
 3. ~~El filtro de visibilidad de D.2 no arregla RN-015 del todo.~~ **Resuelto el 2026-08-23** — ver B.3: nuevo endpoint `GET /canciones/{id}/versiones` con el filtro real en el servidor; D.2 ya no filtra en el cliente.
 4. **B.0 sigue pendiente y el cliente lo compensa.** `pedirApi` deduce el código a partir del status para las dos formas heredadas de error (`{ message }` en `auth/*`, `{ error: "texto" }` en el resto). Ese código de compatibilidad se puede borrar en cuanto los 12 route handlers usen `errorResponse()`.
-5. **Pantallas de relleno, para que la barra fija tenga a dónde llevar.** `/aportar` sigue así: dice con todas las letras que depende del Bloque A. `/favoritos` y `/perfil` ya no son de relleno (E.2 y E.4, 2026-08-23). `/login` ya conserva el parámetro `volverA` (la parte que sí es del Bloque C); el formulario es E.1.
+5. ~~**Pantallas de relleno, para que la barra fija tenga a dónde llevar.**~~ Ya no queda ninguna: `/favoritos` y `/perfil` dejaron de serlo con E.2 y E.4, y `/aportar` con E.3 (todas el 2026-08-23). `src/components/ui/PantallaPendiente.tsx` se quedó sin usar: bórralo cuando esté claro que no hace falta para E.5. `/login` ya conserva el parámetro `volverA` (la parte que sí es del Bloque C); el formulario es E.1.
 6. **Aviso del build:** `next/font` no encuentra métricas de sustitución para Big Shoulders y no genera una fuente de respaldo ajustada. Hay pila de respaldo declarada (`Arial Narrow`, `system-ui`), pero puede haber un pequeño salto de maquetación en los rótulos mientras carga la fuente.
 7. **Los 3 clics se cumplen:** buscar → tocar la canción (1) → tocar la versión (2) → tocar el tono (3).
 
@@ -225,19 +228,19 @@ Ninguno de los tres toca reglas de negocio nuevas: son huecos que ya estaban ano
 
 - [x] **E.1 · Login / Registro** (HU-01) — mensaje de error **genérico** en credenciales inválidas (sin decir qué campo falló); mensaje específico si el correo ya existe. Retorno al contexto exacto donde estaba el usuario tras autenticarse.
 - [x] **E.2 · Botón de favorito + página Favoritos** (HU-07) — marcar/desmarcar al instante, sin confirmación (no es destructivo). Sin sesión: redirigir a login sin perder la versión que se estaba viendo. Estado vacío que invite a explorar.
-- [ ] **E.3 · Aportar canción / versión** (HU-08, HU-09, HU-10) — **bloqueada por el Bloque A.** La vista previa en tiempo real (RN-011) y el señalar errores de sintaxis en el punto exacto (RN-013) necesitan el parser de ChordPro real; `src/lib/demo/cifradoDeMaqueta.ts` no sirve porque no es un parser genérico, es una canción de ejemplo troceada a mano (ver nota 1 de Bloques C/D). Construirla ahora sin eso sería otra maqueta más, y ya hay una (D.3); se prefirió no duplicar deuda.
-  - [ ] Formulario: título, artista, tono original, textarea de ChordPro.
-  - [ ] **Vista previa renderizada en tiempo real** (RN-011), al lado del textarea en pantalla ancha y debajo en móvil (RN-012).
-  - [ ] Errores de sintaxis señalados **en el punto exacto**, sin romper ni congelar la vista previa (RN-013), y botón Guardar deshabilitado hasta corregirlos.
-  - [ ] Advertencia no bloqueante de posible duplicado título+artista (RN-010).
-  - [ ] Confirmación de que el aporte quedó "Pendiente de revisión".
+- [x] **E.3 · Aportar canción / versión** (HU-08, HU-09, HU-10) — hecha el 2026-08-23 sobre el renderizador real del Bloque A. *El único punto que no se puede probar de punta a punta es el guardado de una canción **nueva**, por el `401` de `POST /canciones` (B.4, backend).*
+  - [x] Formulario: título, artista, tono original, textarea de ChordPro.
+  - [x] **Vista previa renderizada en tiempo real** (RN-011), al lado del textarea en pantalla ancha y debajo en móvil (RN-012).
+  - [x] Errores de sintaxis señalados **en el punto exacto**, sin romper ni congelar la vista previa (RN-013), y botón Guardar deshabilitado hasta corregirlos.
+  - [x] Advertencia no bloqueante de posible duplicado título+artista (RN-010).
+  - [x] Confirmación de que el aporte quedó "Pendiente de revisión".
 - [x] **E.4 · Perfil** (HU-12, HU-13, HU-14) —
   - [x] Subir/cambiar foto de perfil, con rechazo claro de archivo no-imagen o > 10 MB sin tocar la foto anterior.
   - [x] "Mis aportes" con la etiqueta de estado (Pendiente / Verificada / Rechazada) y su estado vacío.
   - [x] Eliminar versión propia, con modal de confirmación explícito.
   - [x] Eliminar cuenta, con modal que explique qué se conserva (versiones verificadas) y qué se pierde.
   - [x] Cerrar sesión.
-- [ ] **E.5 · Panel de administración** (HU-11) — solo visible dentro de Perfil y solo con rol `administrador`. Lista de pendientes con canción y autor, detalle con la versión **renderizada** (no ChordPro crudo), acciones Aprobar / Rechazar, confirmación explícita al rechazar, y manejo del `409` si otro administrador ya la revisó. **Ya no está bloqueada por falta de acceso a los datos** (RN-015 y el payload de `GET /versiones/{id}` se arreglaron el 2026-08-23, ver Bloque B): sigue bloqueada por el Bloque A, porque HU-11 pide la versión "renderizada" y RN-009b prohíbe mostrar el ChordPro crudo — no hay un tercer camino honesto sin el renderizador real.
+- [ ] **E.5 · Panel de administración** (HU-11) — solo visible dentro de Perfil y solo con rol `administrador`. Lista de pendientes con canción y autor, detalle con la versión **renderizada** (no ChordPro crudo), acciones Aprobar / Rechazar, confirmación explícita al rechazar, y manejo del `409` si otro administrador ya la revisó. **Ya no está bloqueada por nada:** el acceso a los datos se arregló el 2026-08-23 (RN-015 y el payload de `GET /versiones/{id}`, ver Bloque B) y el renderizador que pide HU-11 existe desde el Bloque A — E.3 ya lo usa en producción de la misma forma que lo necesita este panel (`parsearChordPro` + `renderizar` + `<Cifrado>`). Lo único que seguirá faltando es el nombre del autor: no hay endpoint que resuelva `autorId` → `username` (B.5).
 
 ### Cómo quedó E.1 (2026-08-22)
 
@@ -271,6 +274,34 @@ Ninguno de los tres toca reglas de negocio nuevas: son huecos que ya estaban ano
 2. **"Mis aportes" hace N+1 contra `/canciones/{id}`** por la falta de datos de canción en `/myContributions` (B.5). Aceptable al tamaño actual del catálogo; hay que quitarlo en cuanto B.5 se cierre.
 3. **El panel de admin no muestra el nombre de quien aportó**, solo podrá mostrar `autorId` cuando se construya E.5: no existe ningún endpoint que resuelva un id de usuario a `username`.
 4. **`GET /auth/me` sigue sin usar el catálogo de errores** (responde `{ message: <objeto>, }` con un bug propio: anida el objeto de error en vez de su texto). No bloqueó nada porque `SesionProvider` trata cualquier fallo de `/auth/me` como "sin sesión" sin mirar el cuerpo del error; queda anotado en B.0/B.2 para cuando se unifiquen los doce route handlers.
+
+### Cómo quedó E.3 (2026-08-23)
+
+| Tarea | Qué se hizo | Archivos |
+| --- | --- | --- |
+| Una pantalla, dos destinos | `/aportar` sin parámetros aporta una **canción nueva**; `/aportar?cancion=<id>` aporta una **versión** a una que ya existe (es el enlace que ya emitía `DetalleDeCancion`). El parámetro se lee en el servidor, así que el componente no necesita ir detrás de un `Suspense` como el buscador. Cambiar de destino **no navega**: es solo estado, para que quien acaba de escribir una canción entera no la pierda justo cuando descubre que ya estaba en el catálogo. | `src/app/aportar/page.tsx`, `src/components/aportar/Aportar.tsx` |
+| Vista previa (RN-011, RN-012) | Primer consumidor real del Bloque A: `parsearChordPro` en cada tecleo y `renderizar` con el tono elegido, reutilizando el mismo `<Cifrado>` del visor — lo que se ve aquí es literalmente lo que verá quien la toque. En pantalla ancha va al lado del textarea y se queda pegada al desplazarse; en móvil, debajo. El tono elegido manda en la ortografía: en Eb un `[C#]` se pinta `Db`. | `src/components/aportar/VistaPrevia.tsx` |
+| Errores en el punto exacto (RN-013) | El parser no lanza nunca, así que la vista previa no se rompe ni se congela mientras se escribe un acorde a medias. La línea con error se marca en su sitio (`data-linea-error`, borde y fondo de alerta) y debajo va la lista `línea:columna` + mensaje; **cada error es un botón que lleva el cursor a ese punto del textarea**. Guardar se deshabilita mientras haya errores bloqueantes, y al lado del botón se dice por qué. | `src/components/aportar/VistaPrevia.tsx`, `src/components/aportar/errores.ts`, `src/app/globals.css` |
+| Duplicado (RN-010) | El backend no avisa (B.3 sigue abierto), así que lo hace el cliente: con 3+ caracteres de título, rebote de 400 ms contra `GET /canciones?titulo=…` y se quedan solo las coincidencias de título **exacto** (sin distinguir mayúsculas ni tildes, con `localeCompare`). El aviso no bloquea nada — dice que se puede seguir y crear la canción igual — y cada coincidencia trae un botón «Aportar mi versión aquí» que cambia el destino sin perder lo escrito. Si la búsqueda falla, se calla. | `src/components/aportar/Aportar.tsx` |
+| Tono original (RN-002) | Se reutiliza el piano de D.3 en vez de un desplegable: elegir tono es un toque y solo se puede elegir uno de los 12 válidos, así que la regla se cumple por construcción. `SelectorDeTono` acepta ahora `tonoOriginal: null` (aquí no hay "casa" anterior que marcar) y una etiqueta propia para el lector de pantalla. | `src/components/visor/SelectorDeTono.tsx` |
+| Confirmación | Tras guardar, la pantalla se sustituye por el acuse: canción, `EtiquetaDeEstado` con el estado **que devolvió la API** (no un "pendiente" escrito a mano — el día que RN-014 exista, un administrador verá "Verificada" sin tocar esto), qué pasa ahora, y tres salidas: ver la versión, ir a la canción, aportar otra. | `src/components/aportar/Aportar.tsx` |
+| Ayuda | Un `<details>` con la sintaxis: acorde entre corchetes pegado a su sílaba, las ocho secciones entre llaves, y los siete tipos de acorde que PentCord sabe transportar. | `src/components/aportar/Aportar.tsx` |
+
+**Verificado:** `npm run test:run` ✅ (192 pruebas, 17 archivos — 9 nuevas en `src/tests/components/aportar/Aportar.test.tsx`), `npx tsc --noEmit` ✅, `npm run build` ✅ (21 rutas), `npm run lint` ✅ (0 errores; siguen los 10 avisos preexistentes de los route handlers). Contra el servidor de verdad, con `curl` y una sesión real: `POST /canciones/{id}/versiones` → `201 { data: { id, estado: "pendiente", tono_original } }`, que es exactamente lo que consume la pantalla; `POST /canciones` → `401` (ver B.4). Los datos de prueba que se crearon para comprobarlo se borraron después. **No se probó a mano en el navegador**: no hay Playwright instalado en el proyecto (F.3 sigue pendiente) y no se instaló para esto.
+
+**Decisiones tomadas:**
+
+1. **No todo error del parser bloquea el guardado.** Bloquean los que impiden interpretar el texto —corchete sin cerrar, corchetes vacíos, llave que no es una de las ocho secciones—; **no bloquea el acorde fuera de RN-005** (`Cadd9`, `Cdim`, `C9`…). Bloquearlo dejaría fuera media canción real y además contradiría a RN-005, que dice explícitamente que un acorde no reconocido se guarda y se muestra tal y como lo escribió quien aportó la versión — si no se pudiera guardar, todo ese camino del visor sería código muerto. Se avisa aparte, en tono neutro y diciendo que no se va a poder transportar. La separación vive en `src/components/aportar/errores.ts`, con el porqué escrito al lado.
+2. **La vista previa no ofrece transportar ni ver en grados.** Aquí se decide en qué tono está escrita la canción (RN-002), no en cuál se quiere leer; el transporte es del visor. El selector de tono, por tanto, cambia el tono **original** del aporte, no una vista.
+3. **Un `401` al guardar no cierra la sesión sin más.** Como `POST /canciones` responde `401` con la sesión intacta (B.4), la pantalla vuelve a preguntar `GET /auth/me`: si la sesión sigue viva es el fallo del servidor y se explica; si no, ahí sí se expira la sesión y se va al login. Sin esto, aportar una canción nueva echaría al usuario al login estando perfectamente autenticado.
+
+**Desviaciones y deuda que deja E.3:**
+
+1. **HU-08 no se puede completar hoy** por el `401` de `POST /canciones` (B.4, backend). La pantalla no lo esconde: explica que el fallo es del servidor y no del usuario, y como la canción sí queda creada, vuelve a lanzar la búsqueda de duplicados para que aparezca ahí mismo y se pueda guardar la versión sobre ella sin perder lo escrito. En cuanto B.4 se arregle, no hay que tocar nada de esta pantalla; el mensaje y ese reintento se pueden borrar (`FalloAlCrearCancion` en `Aportar.tsx`).
+2. **`<Cifrado>` acepta ahora `lineasConError`** (opcional). El visor no lo pasa y se comporta igual que antes; solo la vista previa marca líneas.
+3. **La detección de duplicados es del cliente y es de mínimos:** solo mira coincidencia exacta de título (hasta 5 resultados) sobre `GET /canciones?titulo=…`, que hace `contains`. No detecta erratas ni títulos parecidos. Cuando RN-010 se implemente en `POST /canciones` (B.3), lo suyo es que el aviso venga del servidor y esto se quede solo como ayuda mientras se escribe.
+4. **Sin borrador local.** Si se recarga la pestaña a mitad de escribir una canción, se pierde. No lo pide ninguna HU; si aparece, `localStorage` con la clave del destino es un parche de media hora.
+5. **El textarea no numera las líneas.** El error dice `línea:columna` y el clic lleva el cursor al punto exacto, que resuelve el caso de uso; un margen numerado sincronizado con el desplazamiento es bastante más código y no lo pide RN-013.
 
 ## Bloque F · Cierre de calidad
 

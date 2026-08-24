@@ -53,25 +53,57 @@ llamarlo antes de limpiar el estado local.
 
 Orden por impacto en lo que el frontend puede hacer hoy, del resto de gaps:
 
-### Bloquea el Bloque A (dominio musical) — el cuello de botella real
+### `POST /api/v1/canciones` responde `401` siempre — HU-08 no se puede completar
 
-Nada de esto es "backend" en el sentido de rutas HTTP: es el módulo puro
-`src/domain/musica/` (notas, parser de acordes, parser de ChordPro,
-transportador, conversor a grados, renderizador). Hoy no existe ni una línea.
-Mientras no exista:
+Es el punto de B.4 del plan («hace un `fetch` a `http://localhost:3000`
+hardcodeado»), pero es más grave de lo que decía ahí: **tampoco funciona en
+localhost**. Ese `fetch` interno no reenvía la cookie `accesstoken`, y
+`POST /canciones/{id}/versiones` autentica con `getUserFromToken(request)`, así
+que la llamada interna siempre da `401`; el endpoint devuelve `401 No
+autenticado` al cliente **y la canción se queda creada sin ninguna versión**.
 
-- **E.3 (Aportar)** no se puede construir de verdad: RN-011 (vista previa en
-  tiempo real) y RN-013 (errores de sintaxis en el punto exacto) necesitan el
-  parser real. No hay atajo honesto — ya existe una maqueta de un solo uso
-  (`src/lib/demo/cifradoDeMaqueta.ts`, una canción fija troceada a mano, no un
-  parser genérico) y construir otra maqueta para Aportar sería duplicar deuda.
-- **E.5 (panel de administración)** tampoco: HU-11 pide la versión
-  "renderizada" y RN-009b prohíbe mostrar el ChordPro crudo. El acceso a los
-  datos ya no es el problema (ver arriba, `GET /versiones/{id}` ya deja leer
-  una pendiente completa siendo admin) — falta el renderizador.
-- **D.3 (el Visor)** sigue sobre datos de ejemplo por el mismo motivo. Ya tiene
-  el contrato declarado en `src/domain/musica/tipos.ts` (solo tipos, sin
-  lógica) para conectarse el día que el Bloque A aterrice.
+Comprobado el 2026-08-23 con una sesión real (los datos de prueba se borraron
+después):
+
+```bash
+curl -c ck -X POST …/auth/register -d '{…}'          # 200
+curl -b ck …/auth/me                                  # 200, usuario correcto
+curl -b ck -X POST …/canciones -d '{"titulo":…}'      # 401 {"error":"No autenticado"}
+curl …/canciones?titulo=Prueba%20E3                   # la canción existe, sin versiones
+curl -b ck -X POST …/canciones/15/versiones -d '{…}'  # 201 {"data":{…}} ← este sí funciona
+```
+
+Con esto, **aportar una canción nueva (HU-08) no llega a completarse**, por
+bien que esté el frontend. E.3 está construida entera contra el contrato
+correcto y no esconde el fallo: explica que es del servidor, no del usuario, y
+como la canción sí queda creada, ofrece guardar la versión sobre ella sin
+perder lo escrito. En cuanto esto se arregle no hay que tocar la pantalla —
+solo se puede borrar el mensaje de cortesía (`FalloAlCrearCancion` en
+`src/components/aportar/Aportar.tsx`).
+
+**Lo que se necesita:** que `POST /canciones` cree canción y primera versión en
+una **transacción de Prisma**, sin llamarse a sí mismo por HTTP. Resuelve de
+una vez la sesión, la atomicidad (hoy la canción queda huérfana si falla la
+versión) y el despliegue (el `localhost:3000` hardcodeado no funciona en
+Vercel).
+
+### ~~Bloquea el Bloque A (dominio musical)~~ — resuelto el 2026-08-23
+
+El módulo puro `src/domain/musica/` (notas, parser de acordes, parser de
+ChordPro, transportador, conversor a grados, renderizador) ya existe, con la
+suite de precisión de 1008 acordes en verde. No es "backend" en el sentido de
+rutas HTTP y no necesita nada de la persona de backend. Lo que desbloqueó:
+
+- **E.3 (Aportar)** — **construida el 2026-08-23.** Es el primer consumidor
+  real del renderizador: vista previa en tiempo real (RN-011) y errores de
+  sintaxis en el punto exacto (RN-013), con el mismo `<Cifrado>` del visor.
+- **E.5 (panel de administración)** — ya no está bloqueada por nada: el
+  renderizado que pide HU-11 se hace igual que en E.3. Sigue faltando resolver
+  `autorId` → `username` si se quiere mostrar el nombre de quien aportó.
+- **D.3 (el Visor)** — **sigue sobre datos de ejemplo**, y ya sin motivo:
+  `src/lib/demo/cifradoDeMaqueta.ts` hay que borrarlo y leer la versión real
+  de `GET /versiones/{id}`. El contrato es el mismo
+  (`src/domain/musica/tipos.ts`); es cambiar de dónde salen los datos.
 
 ### Gaps de reglas de negocio (B.3 del plan, sin tocar)
 
@@ -95,7 +127,11 @@ Mientras no exista:
   la versión (esto probablemente se resuelve solo con A.1, no hace falta
   duplicarlo en el endpoint).
 - **RN-010**: sin advertencia de posible duplicado título+artista en
-  `POST /canciones`.
+  `POST /canciones`. Mientras tanto la pantalla de aportar (E.3) avisa por su
+  cuenta desde el cliente, buscando el título exacto en
+  `GET /canciones?titulo=…` mientras se escribe. Es de mínimos (no detecta
+  erratas ni títulos parecidos); cuando el aviso venga del servidor, el del
+  cliente se queda solo como ayuda inmediata.
 
 ### Payloads y listados incompletos (B.5 del plan, sin tocar)
 
@@ -116,8 +152,7 @@ Mientras no exista:
 
 ### Catálogo de errores (B.0, sin tocar)
 
-Los 12 route handlers (menos `auth/logout`, que sí usa una forma simple y
-consistente) siguen sin migrar a `errorResponse()` / `toErrorResponse()` de
+Los 13 route handlers siguen sin migrar a `errorResponse()` / `toErrorResponse()` de
 `src/lib/errors.ts`. Conviven tres formas de error en la API: `{ message }`
 en `auth/*`, `{ error: "texto" }` en el resto, y el catálogo real en ningún
 lado todavía. El cliente (`src/lib/api/cliente.ts`, función
@@ -135,14 +170,15 @@ endpoint.
 
 ## 3 · Frontend que falta
 
-- **E.3 · Aportar canción/versión** (HU-08, HU-09, HU-10) — bloqueado por el
-  Bloque A (ver arriba). La pantalla sigue siendo un `PantallaPendiente` que
-  explica por qué (`src/app/aportar/page.tsx`).
-- **E.5 · Panel de administración** (HU-11) — bloqueado por el Bloque A (ver
-  arriba). El acceso a los datos ya está listo (`GET /versiones/pendientes` +
-  `GET /versiones/{id}` por cada una), así que en cuanto exista el
-  renderizador esto se puede construir sin pedir nada más al backend, salvo
-  resolver `autorId` → `username` si se quiere mostrar el nombre del autor.
+- **D.3 · Enchufar el visor** — la pantalla está construida pero lee
+  `src/lib/demo/cifradoDeMaqueta.ts` en vez de la versión real. Es lo más
+  barato que queda por hacer y lo más visible: hoy cualquiera que abra una
+  versión ve una canción de ejemplo.
+- **E.5 · Panel de administración** (HU-11) — ya no está bloqueado por nada
+  (ver arriba). El acceso a los datos está listo (`GET /versiones/pendientes` +
+  `GET /versiones/{id}` por cada una) y el renderizado se hace igual que en
+  E.3. Lo único que no se va a poder mostrar es el nombre de quien aportó,
+  mientras no exista un endpoint que resuelva `autorId` → `username`.
 - **Bloque F · Cierre de calidad** — nada empezado:
   - F.1 estados especiales (vacío / error / confirmación) en todas las
     pantallas — ya cubierto en C–E, falta auditarlo pantalla por pantalla.
@@ -163,9 +199,10 @@ endpoint.
 ## 4 · Cómo verificar que sigue todo en verde
 
 ```bash
-npm run build     # 21 rutas: 15 de API + 6 de página
+npm run build     # 21 rutas: 13 de API + 8 de página
 npm run lint      # 0 errores; quedan avisos preexistentes de variables sin usar en route handlers
-npm run test:run  # 52 pruebas, 8 archivos
+npm run test:run  # 192 pruebas, 17 archivos
+npx tsc --noEmit  # sin errores de tipos
 ```
 
 El detalle de qué se construyó cada día, con las tablas "Cómo quedó" y las

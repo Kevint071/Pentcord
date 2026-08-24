@@ -80,10 +80,16 @@ export function SelectorDeTono({
   tonoActivo,
   tonoOriginal,
   onCambiar,
+  etiqueta = "Tono de la canción",
 }: {
   tonoActivo: Tono;
-  tonoOriginal: Tono;
+  /**
+   * La marca de "casa". `null` en el formulario de aportar (E.3), donde el tono
+   * que se está eligiendo *es* el original y no hay nada anterior que señalar.
+   */
+  tonoOriginal: Tono | null;
   onCambiar: (tono: Tono) => void;
+  etiqueta?: string;
 }) {
   const teclas = useRef(new Map<Tono, HTMLButtonElement>());
 
@@ -100,7 +106,7 @@ export function SelectorDeTono({
     if (paso !== undefined) {
       const indice = (CROMATICA.indexOf(tonoActivo) + paso + 12) % 12;
       destino = CROMATICA[indice];
-    } else if (evento.key === "Home") {
+    } else if (evento.key === "Home" && tonoOriginal !== null) {
       destino = tonoOriginal;
     }
 
@@ -132,7 +138,7 @@ export function SelectorDeTono({
   return (
     <div
       role="radiogroup"
-      aria-label="Tono de la canción"
+      aria-label={etiqueta}
       onKeyDown={alPulsarTecla}
       className="relative h-[72px] w-full select-none sm:h-20"
     >

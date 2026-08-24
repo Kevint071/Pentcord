@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
 import { ExigeSesion } from "@/components/ui/ExigeSesion";
-import { PantallaPendiente } from "@/components/ui/PantallaPendiente";
+import { Aportar } from "@/components/aportar/Aportar";
 
 export const metadata: Metadata = { title: "Aportar" };
 
-export default function Page() {
+/**
+ * E.3 · Aportar (HU-08, HU-09, HU-10).
+ *
+ * `?cancion=<id>` decide el destino: con id se aporta una versión a esa
+ * canción, sin id se aporta una canción nueva. Se lee aquí, en el servidor, y
+ * no con `useSearchParams`, para que el componente no necesite ir detrás de un
+ * límite de Suspense.
+ */
+export default async function Page(props: PageProps<"/aportar">) {
+  const { cancion } = await props.searchParams;
+  const id = Number(Array.isArray(cancion) ? cancion[0] : cancion);
+
   return (
     <ExigeSesion>
-      <PantallaPendiente
-        seccion="aportar"
-        titulo="Aportar una canción"
-        descripcion="El formulario llevará la vista previa renderizada al lado del texto, para ver cómo queda mientras se escribe. Depende del parser de ChordPro, que es parte del módulo de dominio musical."
-        tarea="E.3 · Aportar canción/versión (HU-08, HU-09, HU-10) — necesita el Bloque A"
-      />
+      <Aportar cancionId={Number.isInteger(id) && id > 0 ? id : null} />
     </ExigeSesion>
   );
 }
