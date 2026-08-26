@@ -4,7 +4,10 @@ import { getUserFromToken } from "@/lib/getUserFromToken";
 
 const ESTADOS_VALIDOS = ["verificada", "rechazada"];
 
-export async function PATCH(request: Request) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     // 1. Leer el estado desde el JSON del body
     const body = await request.json();
@@ -17,17 +20,9 @@ export async function PATCH(request: Request) {
         { status: error.status },
       );
     }
-    // 2. Extraer el versionId desde los segmentos de la URL
-    const url = new URL(request.url);
-    const segments = url.pathname.split("/").filter(Boolean);
 
-    // Busca el elemento justo después de "versiones"
-    const versionesIndex = segments.indexOf("versiones");
-    let versionId = "";
-
-    if (versionesIndex !== -1 && segments[versionesIndex + 1]) {
-      versionId = segments[versionesIndex + 1];
-    }
+    // 2. Leer el versionId desde los params de la ruta
+    const { id: versionId } = await params;
 
     // 3. Validación de campos requeridos
     if (!versionId || !estado) {

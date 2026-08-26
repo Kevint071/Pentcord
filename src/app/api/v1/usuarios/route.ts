@@ -24,9 +24,8 @@ export async function DELETE(request: Request) {
     { status: 200 },
   );
 
-  // Borrar las cookies de sesión, ya que la cuenta quedó inaccesible
+  // Borrar la cookie de sesión, ya que la cuenta quedó inaccesible
   response.cookies.delete("accesstoken");
-  response.cookies.delete("refreshtoken");
 
   return response;
 }

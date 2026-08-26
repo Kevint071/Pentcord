@@ -1,7 +1,10 @@
 "use client";
 
 import { useRef } from "react";
+import { distanciaEnSemitonos } from "@/domain/musica";
 import type { Tono } from "@/domain/musica/tipos";
+
+export { distanciaEnSemitonos };
 
 /**
  * D.3 · Selector de tono.
@@ -61,13 +64,6 @@ function decirTono(tono: Tono) {
   return tono.replace(/[b#]/, (s) => PALABRAS[s]);
 }
 
-/** Distancia en semitonos por el camino más corto: −5 … +6. */
-export function distanciaEnSemitonos(desde: Tono, hasta: Tono) {
-  const bruta =
-    (CROMATICA.indexOf(hasta) - CROMATICA.indexOf(desde) + 12) % 12;
-  return bruta > 6 ? bruta - 12 : bruta;
-}
-
 export function etiquetaDeDistancia(desde: Tono, hasta: Tono) {
   const semitonos = distanciaEnSemitonos(desde, hasta);
   if (semitonos === 0) return "Tono original";
@@ -80,10 +76,16 @@ export function SelectorDeTono({
   tonoActivo,
   tonoOriginal,
   onCambiar,
+  etiqueta = "Tono de la canción",
 }: {
   tonoActivo: Tono;
-  tonoOriginal: Tono;
+  /**
+   * La marca de "casa". `null` en el formulario de aportar (E.3), donde el tono
+   * que se está eligiendo *es* el original y no hay nada anterior que señalar.
+   */
+  tonoOriginal: Tono | null;
   onCambiar: (tono: Tono) => void;
+  etiqueta?: string;
 }) {
   const teclas = useRef(new Map<Tono, HTMLButtonElement>());
 
@@ -100,7 +102,7 @@ export function SelectorDeTono({
     if (paso !== undefined) {
       const indice = (CROMATICA.indexOf(tonoActivo) + paso + 12) % 12;
       destino = CROMATICA[indice];
-    } else if (evento.key === "Home") {
+    } else if (evento.key === "Home" && tonoOriginal !== null) {
       destino = tonoOriginal;
     }
 
@@ -132,9 +134,9 @@ export function SelectorDeTono({
   return (
     <div
       role="radiogroup"
-      aria-label="Tono de la canción"
+      aria-label={etiqueta}
       onKeyDown={alPulsarTecla}
-      className="relative h-[72px] w-full select-none sm:h-20"
+      className="relative h-18 w-full select-none sm:h-20"
     >
       {/* Teclas blancas */}
       <div className="flex h-full w-full gap-px">
