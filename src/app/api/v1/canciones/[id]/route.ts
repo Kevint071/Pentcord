@@ -1,6 +1,9 @@
 // src/app/api/canciones/[id]/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getUserFromToken } from "@/lib/getUserFromToken";
+import { NestedMiddlewareError } from "next/dist/build/utils";
+import { Estado } from "@/generated/prisma/enums";
 
 export async function GET(
   request: Request,
@@ -16,11 +19,21 @@ export async function GET(
     );
   }
 
+  const { userdb, error } = await getUserFromToken(request);
+
+  if (error) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: error.status },
+    );
+  }
+
   try {
     const cancion = await prisma.cancion.findFirst({
       where: {
         id,
         eliminadoEn: null,
+        ...(userdb.rol === "musico" ? { estado: "verificada" } : {}),
       },
       include: {
         _count: { select: { versiones: true } },
