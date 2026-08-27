@@ -20,7 +20,15 @@ export async function GET(
     // RN-015: una versión verificada es visible para cualquiera; una que no lo
     // es solo para su autor o para un administrador (que la necesita para
     // revisarla). El resto recibe el mismo 404 que "no existe".
-    const { userId, userdb } = await getUserFromToken(request);
+    const { userId, userdb, error } = await getUserFromToken(request);
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
+    }
+
     const esAdmin = userdb?.rol === "administrador";
 
     const version = await prisma.version.findFirst({
