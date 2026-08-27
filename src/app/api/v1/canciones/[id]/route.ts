@@ -33,7 +33,9 @@ export async function GET(
       where: {
         id,
         eliminadoEn: null,
-        ...(userdb.rol === "musico" ? { estado: "verificada" } : {}),
+        ...(userdb.rol === "musico" && process.env.NODE_ENV === "production"
+          ? { estado: "verificada" }
+          : {}),
       },
       include: {
         _count: { select: { versiones: true } },
