@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserFromToken } from "@/lib/getUserFromToken";
+import { cookies } from "next/headers";
 
 export async function DELETE(request: Request) {
   const { userId, error } = await getUserFromToken(request);
@@ -19,13 +20,14 @@ export async function DELETE(request: Request) {
     },
   });
 
-  const response = NextResponse.json(
+  const cookieStore = await cookies();
+
+  // Borra las cookies garantizando coincidencia de opciones
+  cookieStore.delete({ name: "accesstoken" });
+  cookieStore.delete({ name: "refreshtoken" });
+
+  return NextResponse.json(
     { message: "Cuenta desactivada correctamente" },
     { status: 200 },
   );
-
-  // Borrar la cookie de sesión, ya que la cuenta quedó inaccesible
-  response.cookies.delete("accesstoken");
-
-  return response;
 }

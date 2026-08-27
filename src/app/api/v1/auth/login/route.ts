@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
 const DUMMY_HASH = "$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUU123456";
 
 export async function POST(request: Request) {
@@ -55,13 +56,31 @@ export async function POST(request: Request) {
       { algorithm: "HS256", expiresIn: "15m" },
     );
 
-    // const refreshToken = jwt.sign(
-    //   { id: user.id },
-    //   process.env.JWT_REFRESH_SECRET as string,
-    //   { algorithm: "HS256", expiresIn: "7d" },
-    // );
+    const refreshtoken = jwt.sign(
+      { id: user.id },
+      process.env.JWT_REFRESH_SECRET as string,
+      { algorithm: "HS256", expiresIn: "7d" },
+    );
 
-    const response = NextResponse.json(
+    const cookieStore = await cookies();
+    // Guardar tokens en cookies httpOnly
+    cookieStore.set("accesstoken", accesstoken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      maxAge: 60 * 15, // 15 minutos
+    });
+
+    cookieStore.set("refreshToken", refreshtoken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 días
+    });
+
+    return NextResponse.json(
       {
         message: "Inicio de sesión exitoso",
         user: {
@@ -72,25 +91,6 @@ export async function POST(request: Request) {
       },
       { status: 200 },
     );
-
-    // Guardar tokens en cookies httpOnly
-    response.cookies.set("accesstoken", accesstoken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      maxAge: 60 * 15, // 15 minutos
-    });
-
-    // response.cookies.set("refreshToken", refreshToken, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === "production",
-    //   sameSite: "strict",
-    //   path: "/",
-    //   maxAge: 60 * 60 * 24 * 7, // 7 días
-    // });
-
-    return response;
   } catch (error) {
     console.error("Error en el login:", error);
     return NextResponse.json(
