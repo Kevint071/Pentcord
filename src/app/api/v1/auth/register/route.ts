@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cloudinary from "@/lib/cloudinary";
+import { cookies } from "next/headers";
 
 // Extrae el public_id de una URL de Cloudinary para poder borrarla
 function extractPublicId(url: string): string | null {
@@ -118,12 +119,9 @@ export async function POST(request: Request) {
       { algorithm: "HS256", expiresIn: "15m" },
     );
 
-    const response = NextResponse.json(
-      { message: "Usuario registrado con éxito", user },
-      { status: 201 },
-    );
+    const cookieStore = await cookies();
 
-    response.cookies.set("accesstoken", accesstoken, {
+    cookieStore.set("accesstoken", accesstoken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -131,7 +129,10 @@ export async function POST(request: Request) {
       maxAge: 60 * 15,
     });
 
-    return response;
+    return NextResponse.json(
+      { message: "Usuario registrado con éxito", user },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Error en el registro:", error);
     return NextResponse.json(
