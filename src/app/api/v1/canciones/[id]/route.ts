@@ -2,8 +2,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserFromToken } from "@/lib/getUserFromToken";
-import { NestedMiddlewareError } from "next/dist/build/utils";
-import { Estado } from "@/generated/prisma/enums";
 
 export async function GET(
   request: Request,

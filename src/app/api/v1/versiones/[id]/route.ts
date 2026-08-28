@@ -83,7 +83,7 @@ export async function PATCH(
       );
     }
 
-    const { userId, userdb, error } = await getUserFromToken(request);
+    const { userId, error } = await getUserFromToken(request);
 
     if (error) {
       return NextResponse.json(
@@ -102,15 +102,22 @@ export async function PATCH(
 
     if (!version) {
       return NextResponse.json(
-        { error: "La canción no ha sido encontrada" },
+        { error: "La version no ha sido encontrada" },
         { status: 404 },
       );
     }
 
-    // 3. Verificar que el usuario sea dueño de la canción
+    if (version.estado === "verificada") {
+      return NextResponse.json(
+        { error: "La version ya hasido verificada" },
+        { status: 409 },
+      );
+    }
+
+    // 3. Verificar que el usuario sea dueño de la version
     if (version.autorId !== userId) {
       return NextResponse.json(
-        { error: "No tienes permisos para modificar esta canción" },
+        { error: "No tienes permisos para modificar esta version" },
         { status: 403 },
       );
     }

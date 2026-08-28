@@ -1,7 +1,6 @@
 // src/app/api/v1/canciones/[id]/versiones/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/generated/prisma/client";
 import { getUserFromToken } from "@/lib/getUserFromToken";
 
 export async function GET(
@@ -110,13 +109,6 @@ export async function POST(
       { status: 201 },
     );
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      return NextResponse.json(
-        { error: "Error de base de datos al crear la versión" },
-        { status: 400 },
-      );
-    }
-
     return NextResponse.json(
       { error: "Error al crear la versión" },
       { status: 500 },
