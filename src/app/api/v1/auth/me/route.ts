@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getUserFromToken } from "@/lib/getUserFromToken"; // ajusta la ruta según donde la tengas
 
 export async function GET(request: Request) {
@@ -8,8 +7,8 @@ export async function GET(request: Request) {
 
     if (error) {
       return NextResponse.json(
-        { message: error || "No autorizado" },
-        { status: 401 },
+        { message: error.message },
+        { status: error.status },
       );
     }
 
