@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
-    const { userId, userdb, error } = await getUserFromToken(request);
+    const { userId, error } = await getUserFromToken(request);
 
     if (error || !userId) {
       return NextResponse.json(
