@@ -97,6 +97,7 @@ export async function POST(request: Request) {
           rol: "musico",
           fotoPerfilUrl: null,
           eliminadoEn: null,
+          creadoEn: new Date(),
         },
         select: { id: true, email: true, username: true },
       });
@@ -108,6 +109,7 @@ export async function POST(request: Request) {
           username,
           password: hashedPassword,
           metodoAutenticacion: "local",
+          creadoEn: new Date(),
         },
         select: { id: true, email: true, username: true },
       });
