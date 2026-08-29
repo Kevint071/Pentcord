@@ -4,18 +4,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cloudinary from "@/lib/cloudinary";
 import { cookies } from "next/headers";
-
-// Extrae el public_id de una URL de Cloudinary para poder borrarla
-function extractPublicId(url: string): string | null {
-  try {
-    const afterUpload = url.split("/upload/")[1];
-    if (!afterUpload) return null;
-    const withoutVersion = afterUpload.replace(/^v\d+\//, "");
-    return withoutVersion.replace(/\.[^/.]+$/, "");
-  } catch {
-    return null;
-  }
-}
+import { extractPublicId } from "@/lib/extractPublicId"; // el mismo helper que usas en el registro local
 
 export async function POST(request: Request) {
   try {
@@ -115,20 +104,35 @@ export async function POST(request: Request) {
       });
     }
 
+    // Generar access token y refresh token, ambos HS256
     const accesstoken = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET as string,
       { algorithm: "HS256", expiresIn: "15m" },
     );
 
-    const cookieStore = await cookies();
+    const refreshtoken = jwt.sign(
+      { id: user.id },
+      process.env.JWT_REFRESH_SECRET as string,
+      { algorithm: "HS256", expiresIn: "7d" },
+    );
 
+    const cookieStore = await cookies();
+    // Guardar tokens en cookies httpOnly
     cookieStore.set("accesstoken", accesstoken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
-      maxAge: 60 * 15,
+      maxAge: 60 * 15, // 15 minutos
+    });
+
+    cookieStore.set("refreshToken", refreshtoken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 días
     });
 
     return NextResponse.json(
