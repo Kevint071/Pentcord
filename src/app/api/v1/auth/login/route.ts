@@ -31,14 +31,14 @@ export async function POST(request: Request) {
       },
     });
 
-    if (!user) {
+    if (!user || user.metodoAutenticacion === "google") {
       return NextResponse.json(
         { message: "Credenciales invalidas" },
         { status: 401 },
       );
     }
     // Verificar contraseña
-    const hashToCompare = user?.password ?? DUMMY_HASH;
+    const hashToCompare = user.password ?? DUMMY_HASH;
 
     const passwordValida = await bcrypt.compare(password, hashToCompare);
 
