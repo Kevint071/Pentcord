@@ -31,18 +31,13 @@ export async function POST(request: Request) {
       },
     });
 
-    if (!user || user.metodoAutenticacion === "google") {
-      return NextResponse.json(
-        { message: "Credenciales invalidas" },
-        { status: 401 },
-      );
-    }
     // Verificar contraseña
-    const hashToCompare = user.password ?? DUMMY_HASH;
-
+    const isLocalUser =
+      user && user.metodoAutenticacion === "local" && user.password;
+    const hashToCompare = isLocalUser ? user.password! : DUMMY_HASH;
     const passwordValida = await bcrypt.compare(password, hashToCompare);
 
-    if (!passwordValida) {
+    if (!passwordValida || !user || user.metodoAutenticacion === "google") {
       return NextResponse.json(
         { message: "Credenciales invalidas" },
         { status: 401 },
