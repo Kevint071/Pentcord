@@ -6,6 +6,7 @@ import { PantallaDeLogin } from "@/components/sesion/PantallaDeLogin";
 const refrescar = vi.fn().mockResolvedValue(undefined);
 const replace = vi.fn();
 let volverA: string | null = null;
+let estado: "cargando" | "autenticado" | "anonimo" = "anonimo";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace, push: vi.fn() }),
@@ -13,7 +14,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/lib/sesion/SesionProvider", () => ({
-  useSesion: () => ({ refrescar }),
+  useSesion: () => ({ estado, refrescar }),
 }));
 
 function respuestaFalsa(cuerpo: unknown, status = 200) {
@@ -27,6 +28,7 @@ let fetchSimulado: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
   volverA = null;
+  estado = "anonimo";
   fetchSimulado = vi.fn();
   vi.stubGlobal("fetch", fetchSimulado);
 });
@@ -125,6 +127,26 @@ describe("PantallaDeLogin", () => {
     expect(await screen.findByText("/versiones/12?tono=D", { selector: "code" }))
       .toBeInTheDocument();
     expect(replace).toHaveBeenCalledWith("/versiones/12?tono=D");
+  });
+
+  test("con sesión activa manda directo a donde iba el usuario", () => {
+    estado = "autenticado";
+    volverA = "/versiones/12?tono=D";
+
+    render(<PantallaDeLogin />);
+
+    expect(
+      screen.queryByRole("heading", { name: "Inicia sesión" }),
+    ).not.toBeInTheDocument();
+    expect(replace).toHaveBeenCalledWith("/versiones/12?tono=D");
+  });
+
+  test("con sesión activa y sin volverA manda al inicio", () => {
+    estado = "autenticado";
+
+    render(<PantallaDeLogin />);
+
+    expect(replace).toHaveBeenCalledWith("/");
   });
 
   test("mostrar/ocultar contraseña cambia el tipo del campo", async () => {

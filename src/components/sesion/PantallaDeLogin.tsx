@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CampoDeTexto } from "@/components/ui/Campo";
 import { Aviso } from "@/components/ui/Aviso";
@@ -28,7 +28,13 @@ export function PantallaDeLogin() {
   const parametros = useSearchParams();
   const volverA = parametros.get("volverA");
   const router = useRouter();
-  const { refrescar } = useSesion();
+  const { estado, refrescar } = useSesion();
+
+  // Si ya hay sesión activa, esta pantalla no tiene nada que ofrecer: se
+  // manda directo a donde iba el usuario (o al inicio).
+  useEffect(() => {
+    if (estado === "autenticado") router.replace(volverA || "/");
+  }, [estado, volverA, router]);
 
   // El encabezado enlaza directo a "Registrarse" con `?modo=crear`, para no
   // hacer a quien ya sabe que quiere una cuenta pasar primero por "Entrar".
@@ -93,6 +99,14 @@ export function PantallaDeLogin() {
     } finally {
       setEnviando(false);
     }
+  }
+
+  if (estado === "cargando" || estado === "autenticado") {
+    return (
+      <p className="px-4 py-16 text-center text-sm text-tinta-suave">
+        Comprobando tu sesión…
+      </p>
+    );
   }
 
   return (
