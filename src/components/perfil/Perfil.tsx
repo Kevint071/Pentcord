@@ -9,7 +9,7 @@ import { Avatar } from "@/components/perfil/Avatar";
 import { EtiquetaDeEstado } from "@/components/ui/EtiquetaDeEstado";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { Aviso } from "@/components/ui/Aviso";
-import { Boton, BotonEnlace } from "@/components/ui/Boton";
+import { BotonEnlace } from "@/components/ui/Boton";
 import { Confirmacion } from "@/components/ui/Confirmacion";
 
 const LIMITE_FOTO = 10 * 1024 * 1024;
@@ -34,8 +34,7 @@ const ESTADOS_ELIMINABLES: Estado[] = ["pendiente", "verificada", "rechazada"];
  * `administrador`.
  */
 export function Perfil() {
-  const { usuario, esAdministrador, establecerUsuario, cerrarSesion, usarApi } =
-    useSesion();
+  const { usuario, esAdministrador, establecerUsuario, usarApi } = useSesion();
 
   if (!usuario) return null;
 
@@ -71,16 +70,6 @@ export function Perfil() {
       </dl>
 
       <MisAportes />
-
-      <section className="mt-8 border-t border-pauta pt-6">
-        <p className="directiva">{"{cuenta}"}</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Boton variante="secundario" onClick={() => void cerrarSesion()}>
-            Cerrar sesión
-          </Boton>
-          <EliminarCuenta onEliminar={() => usarApi("/usuarios", { method: "DELETE" })} />
-        </div>
-      </section>
 
       {esAdministrador ? (
         <section className="mt-6 rounded-xl border border-acorde-borde bg-acorde-suave px-4 py-4">
@@ -311,50 +300,3 @@ function MisAportes() {
   );
 }
 
-function EliminarCuenta({ onEliminar }: { onEliminar: () => Promise<unknown> }) {
-  const { cerrarSesion } = useSesion();
-  const [abierta, setAbierta] = useState(false);
-  const [enviando, setEnviando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function confirmar() {
-    setEnviando(true);
-    setError(null);
-    try {
-      await onEliminar();
-      await cerrarSesion();
-    } catch (causa) {
-      setError(mensajeDeError(causa));
-      setEnviando(false);
-    }
-  }
-
-  return (
-    <>
-      <Boton variante="peligro" onClick={() => setAbierta(true)}>
-        Eliminar cuenta
-      </Boton>
-      {error ? (
-        <div className="mt-2 w-full">
-          <Aviso tono="alerta">{error}</Aviso>
-        </div>
-      ) : null}
-      <Confirmacion
-        abierta={abierta}
-        titulo="¿Eliminar tu cuenta?"
-        descripcion={
-          <>
-            Tus versiones ya verificadas siguen visibles en el catálogo para
-            los demás. Tu perfil, tus favoritos y el resto de tu cuenta dejan
-            de estar disponibles y no vas a poder recuperarlos.
-          </>
-        }
-        textoConfirmar="Eliminar cuenta"
-        peligro
-        confirmando={enviando}
-        onConfirmar={() => void confirmar()}
-        onCancelar={() => setAbierta(false)}
-      />
-    </>
-  );
-}
