@@ -82,6 +82,7 @@ export const UserScalarFieldEnum = {
   googleId: 'googleId',
   rol: 'rol',
   fotoPerfilUrl: 'fotoPerfilUrl',
+  tema: 'tema',
   creadoEn: 'creadoEn',
   eliminadoEn: 'eliminadoEn'
 } as const

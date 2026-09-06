@@ -43,6 +43,7 @@ export type UserMinAggregateOutputType = {
   googleId: string | null
   rol: $Enums.Rol | null
   fotoPerfilUrl: string | null
+  tema: string | null
   creadoEn: Date | null
   eliminadoEn: Date | null
 }
@@ -56,6 +57,7 @@ export type UserMaxAggregateOutputType = {
   googleId: string | null
   rol: $Enums.Rol | null
   fotoPerfilUrl: string | null
+  tema: string | null
   creadoEn: Date | null
   eliminadoEn: Date | null
 }
@@ -69,6 +71,7 @@ export type UserCountAggregateOutputType = {
   googleId: number
   rol: number
   fotoPerfilUrl: number
+  tema: number
   creadoEn: number
   eliminadoEn: number
   _all: number
@@ -92,6 +95,7 @@ export type UserMinAggregateInputType = {
   googleId?: true
   rol?: true
   fotoPerfilUrl?: true
+  tema?: true
   creadoEn?: true
   eliminadoEn?: true
 }
@@ -105,6 +109,7 @@ export type UserMaxAggregateInputType = {
   googleId?: true
   rol?: true
   fotoPerfilUrl?: true
+  tema?: true
   creadoEn?: true
   eliminadoEn?: true
 }
@@ -118,6 +123,7 @@ export type UserCountAggregateInputType = {
   googleId?: true
   rol?: true
   fotoPerfilUrl?: true
+  tema?: true
   creadoEn?: true
   eliminadoEn?: true
   _all?: true
@@ -218,6 +224,7 @@ export type UserGroupByOutputType = {
   googleId: string | null
   rol: $Enums.Rol
   fotoPerfilUrl: string | null
+  tema: string | null
   creadoEn: Date
   eliminadoEn: Date | null
   _count: UserCountAggregateOutputType | null
@@ -254,6 +261,7 @@ export type UserWhereInput = {
   googleId?: Prisma.StringNullableFilter<"User"> | string | null
   rol?: Prisma.EnumRolFilter<"User"> | $Enums.Rol
   fotoPerfilUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  tema?: Prisma.StringNullableFilter<"User"> | string | null
   creadoEn?: Prisma.DateTimeFilter<"User"> | Date | string
   eliminadoEn?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   favoritos?: Prisma.FavoritoListRelationFilter
@@ -269,6 +277,7 @@ export type UserOrderByWithRelationInput = {
   googleId?: Prisma.SortOrderInput | Prisma.SortOrder
   rol?: Prisma.SortOrder
   fotoPerfilUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  tema?: Prisma.SortOrderInput | Prisma.SortOrder
   creadoEn?: Prisma.SortOrder
   eliminadoEn?: Prisma.SortOrderInput | Prisma.SortOrder
   favoritos?: Prisma.FavoritoOrderByRelationAggregateInput
@@ -287,6 +296,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   googleId?: Prisma.StringNullableFilter<"User"> | string | null
   rol?: Prisma.EnumRolFilter<"User"> | $Enums.Rol
   fotoPerfilUrl?: Prisma.StringNullableFilter<"User"> | string | null
+  tema?: Prisma.StringNullableFilter<"User"> | string | null
   creadoEn?: Prisma.DateTimeFilter<"User"> | Date | string
   eliminadoEn?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   favoritos?: Prisma.FavoritoListRelationFilter
@@ -302,6 +312,7 @@ export type UserOrderByWithAggregationInput = {
   googleId?: Prisma.SortOrderInput | Prisma.SortOrder
   rol?: Prisma.SortOrder
   fotoPerfilUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  tema?: Prisma.SortOrderInput | Prisma.SortOrder
   creadoEn?: Prisma.SortOrder
   eliminadoEn?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
@@ -323,6 +334,7 @@ export type UserScalarWhereWithAggregatesInput = {
   googleId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   rol?: Prisma.EnumRolWithAggregatesFilter<"User"> | $Enums.Rol
   fotoPerfilUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  tema?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   creadoEn?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   eliminadoEn?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
 }
@@ -335,6 +347,7 @@ export type UserCreateInput = {
   googleId?: string | null
   rol?: $Enums.Rol
   fotoPerfilUrl?: string | null
+  tema?: string | null
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
   favoritos?: Prisma.FavoritoCreateNestedManyWithoutUserInput
@@ -350,6 +363,7 @@ export type UserUncheckedCreateInput = {
   googleId?: string | null
   rol?: $Enums.Rol
   fotoPerfilUrl?: string | null
+  tema?: string | null
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
   favoritos?: Prisma.FavoritoUncheckedCreateNestedManyWithoutUserInput
@@ -364,6 +378,7 @@ export type UserUpdateInput = {
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   fotoPerfilUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tema?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   favoritos?: Prisma.FavoritoUpdateManyWithoutUserNestedInput
@@ -379,6 +394,7 @@ export type UserUncheckedUpdateInput = {
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   fotoPerfilUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tema?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   favoritos?: Prisma.FavoritoUncheckedUpdateManyWithoutUserNestedInput
@@ -394,6 +410,7 @@ export type UserCreateManyInput = {
   googleId?: string | null
   rol?: $Enums.Rol
   fotoPerfilUrl?: string | null
+  tema?: string | null
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
 }
@@ -406,6 +423,7 @@ export type UserUpdateManyMutationInput = {
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   fotoPerfilUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tema?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -419,6 +437,7 @@ export type UserUncheckedUpdateManyInput = {
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   fotoPerfilUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tema?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -432,6 +451,7 @@ export type UserCountOrderByAggregateInput = {
   googleId?: Prisma.SortOrder
   rol?: Prisma.SortOrder
   fotoPerfilUrl?: Prisma.SortOrder
+  tema?: Prisma.SortOrder
   creadoEn?: Prisma.SortOrder
   eliminadoEn?: Prisma.SortOrder
 }
@@ -449,6 +469,7 @@ export type UserMaxOrderByAggregateInput = {
   googleId?: Prisma.SortOrder
   rol?: Prisma.SortOrder
   fotoPerfilUrl?: Prisma.SortOrder
+  tema?: Prisma.SortOrder
   creadoEn?: Prisma.SortOrder
   eliminadoEn?: Prisma.SortOrder
 }
@@ -462,6 +483,7 @@ export type UserMinOrderByAggregateInput = {
   googleId?: Prisma.SortOrder
   rol?: Prisma.SortOrder
   fotoPerfilUrl?: Prisma.SortOrder
+  tema?: Prisma.SortOrder
   creadoEn?: Prisma.SortOrder
   eliminadoEn?: Prisma.SortOrder
 }
@@ -543,6 +565,7 @@ export type UserCreateWithoutVersionesCreadasInput = {
   googleId?: string | null
   rol?: $Enums.Rol
   fotoPerfilUrl?: string | null
+  tema?: string | null
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
   favoritos?: Prisma.FavoritoCreateNestedManyWithoutUserInput
@@ -557,6 +580,7 @@ export type UserUncheckedCreateWithoutVersionesCreadasInput = {
   googleId?: string | null
   rol?: $Enums.Rol
   fotoPerfilUrl?: string | null
+  tema?: string | null
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
   favoritos?: Prisma.FavoritoUncheckedCreateNestedManyWithoutUserInput
@@ -586,6 +610,7 @@ export type UserUpdateWithoutVersionesCreadasInput = {
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   fotoPerfilUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tema?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   favoritos?: Prisma.FavoritoUpdateManyWithoutUserNestedInput
@@ -600,6 +625,7 @@ export type UserUncheckedUpdateWithoutVersionesCreadasInput = {
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   fotoPerfilUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tema?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   favoritos?: Prisma.FavoritoUncheckedUpdateManyWithoutUserNestedInput
@@ -613,6 +639,7 @@ export type UserCreateWithoutFavoritosInput = {
   googleId?: string | null
   rol?: $Enums.Rol
   fotoPerfilUrl?: string | null
+  tema?: string | null
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
   versionesCreadas?: Prisma.VersionCreateNestedManyWithoutAutorInput
@@ -627,6 +654,7 @@ export type UserUncheckedCreateWithoutFavoritosInput = {
   googleId?: string | null
   rol?: $Enums.Rol
   fotoPerfilUrl?: string | null
+  tema?: string | null
   creadoEn?: Date | string
   eliminadoEn?: Date | string | null
   versionesCreadas?: Prisma.VersionUncheckedCreateNestedManyWithoutAutorInput
@@ -656,6 +684,7 @@ export type UserUpdateWithoutFavoritosInput = {
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   fotoPerfilUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tema?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   versionesCreadas?: Prisma.VersionUpdateManyWithoutAutorNestedInput
@@ -670,6 +699,7 @@ export type UserUncheckedUpdateWithoutFavoritosInput = {
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rol?: Prisma.EnumRolFieldUpdateOperationsInput | $Enums.Rol
   fotoPerfilUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tema?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   creadoEn?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eliminadoEn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   versionesCreadas?: Prisma.VersionUncheckedUpdateManyWithoutAutorNestedInput
@@ -724,6 +754,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   googleId?: boolean
   rol?: boolean
   fotoPerfilUrl?: boolean
+  tema?: boolean
   creadoEn?: boolean
   eliminadoEn?: boolean
   favoritos?: boolean | Prisma.User$favoritosArgs<ExtArgs>
@@ -740,6 +771,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   googleId?: boolean
   rol?: boolean
   fotoPerfilUrl?: boolean
+  tema?: boolean
   creadoEn?: boolean
   eliminadoEn?: boolean
 }, ExtArgs["result"]["user"]>
@@ -753,6 +785,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   googleId?: boolean
   rol?: boolean
   fotoPerfilUrl?: boolean
+  tema?: boolean
   creadoEn?: boolean
   eliminadoEn?: boolean
 }, ExtArgs["result"]["user"]>
@@ -766,11 +799,12 @@ export type UserSelectScalar = {
   googleId?: boolean
   rol?: boolean
   fotoPerfilUrl?: boolean
+  tema?: boolean
   creadoEn?: boolean
   eliminadoEn?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "email" | "metodoAutenticacion" | "password" | "googleId" | "rol" | "fotoPerfilUrl" | "creadoEn" | "eliminadoEn", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "email" | "metodoAutenticacion" | "password" | "googleId" | "rol" | "fotoPerfilUrl" | "tema" | "creadoEn" | "eliminadoEn", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   favoritos?: boolean | Prisma.User$favoritosArgs<ExtArgs>
   versionesCreadas?: boolean | Prisma.User$versionesCreadasArgs<ExtArgs>
@@ -794,6 +828,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     googleId: string | null
     rol: $Enums.Rol
     fotoPerfilUrl: string | null
+    tema: string | null
     creadoEn: Date
     eliminadoEn: Date | null
   }, ExtArgs["result"]["user"]>
@@ -1229,6 +1264,7 @@ export interface UserFieldRefs {
   readonly googleId: Prisma.FieldRef<"User", 'String'>
   readonly rol: Prisma.FieldRef<"User", 'Rol'>
   readonly fotoPerfilUrl: Prisma.FieldRef<"User", 'String'>
+  readonly tema: Prisma.FieldRef<"User", 'String'>
   readonly creadoEn: Prisma.FieldRef<"User", 'DateTime'>
   readonly eliminadoEn: Prisma.FieldRef<"User", 'DateTime'>
 }

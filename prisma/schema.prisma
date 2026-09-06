@@ -16,6 +16,7 @@ model User {
   googleId            String?             @map("google_id")
   rol                 Rol                 @default(musico)
   fotoPerfilUrl       String?             @map("foto_perfil_url")
+  tema                String?             @db.VarChar(10) @map("tema")
   creadoEn            DateTime            @default(now()) @map("creado_en")
   eliminadoEn         DateTime?           @map("eliminado_en")
 
