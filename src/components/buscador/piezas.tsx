@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 
 /**
  * Las piezas visuales de la portada, separadas de la lógica del buscador.
@@ -7,27 +8,50 @@ import type { ReactNode } from "react";
  * detrás de un límite de Suspense y no entra en el HTML prerrenderizado. Estas
  * piezas sí, y con ellas se construye una espera que es idéntica a la pantalla
  * real: quien entra ve la portada de inmediato, no un "cargando".
+ *
+ * `FilaDeCancion` vive aquí porque la usan los dos sitios que listan canciones:
+ * los resultados de una búsqueda y el catálogo de la portada. Una canción se ve
+ * igual se haya llegado a ella buscando o mirando.
  */
 
 export function Contenedor({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">{children}</div>
+    <div className="mx-auto w-full max-w-2xl px-4 sm:px-6">{children}</div>
   );
 }
 
-export function Encabezamiento() {
+/**
+ * La portada entera: el pentagrama en blanco antes de escribir nada. Nada de
+ * titular ni de demo — el buscador es lo primero que se ve al entrar, posado
+ * sobre la pauta como el título que se apunta arriba de una hoja de cifrado.
+ */
+export function Portada({ children }: { children: ReactNode }) {
   return (
-    <h1 className="rotulo text-[clamp(2.5rem,11vw,4.5rem)] text-tinta">
-      Encuentra la versión.
-      <br />
-      <span className="text-acorde">Cámbiala de tono.</span>
-    </h1>
+    <section className="relative flex min-h-[44svh] items-center justify-center overflow-hidden py-10 sm:min-h-[48svh]">
+      <div
+        aria-hidden="true"
+        className="pauta-pentagrama absolute inset-x-0 top-1/2 h-40 -translate-y-1/2 opacity-70 sm:h-48"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute left-1/2 top-1/2 size-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-acorde-suave opacity-40 blur-3xl sm:size-[32rem]"
+      />
+      <Contenedor>
+        <div className="relative">
+          <p className="directiva text-center">{"{buscar}"}</p>
+          <h1 className="rotulo mt-2 text-center text-[clamp(1.75rem,6vw,2.5rem)] text-tinta">
+            Busca una canción
+          </h1>
+          <div className="mt-6">{children}</div>
+        </div>
+      </Contenedor>
+    </section>
   );
 }
 
 export function MarcoDeBusqueda({ children }: { children: ReactNode }) {
   return (
-    <div className="flex items-center gap-3 rounded-full border border-pauta-fuerte bg-hoja-alta px-5 py-3 shadow-hoja focus-within:border-acorde">
+    <div className="flex items-center gap-3 rounded-full border border-pauta-fuerte bg-hoja-alta px-5 py-4 shadow-hoja transition-colors focus-within:border-acorde">
       <svg
         viewBox="0 0 24 24"
         className="size-5 shrink-0 text-tinta-tenue"
@@ -55,32 +79,46 @@ export function MarcoDeBusqueda({ children }: { children: ReactNode }) {
 }
 
 /**
- * Espécimen: una línea de canción tal y como la pinta PentCord. Explica el
- * producto mejor que un párrafo, y desaparece en cuanto el usuario busca.
+ * Una canción en una lista. Pensada para ir dentro de un `<ul>` con
+ * `divide-y divide-pauta`: el separador fino hace de pauta y evita convertir
+ * cada canción en una tarjeta.
  */
-export function Muestra() {
+export function FilaDeCancion({
+  id,
+  titulo,
+  artista,
+}: {
+  id: number;
+  titulo: string;
+  artista: string;
+}) {
   return (
-    <figure className="mt-10 border-t border-pauta pt-6">
-      <div className="cifrado text-tinta">
-        <p className="cifrado-linea">
-          <span className="cifrado-segmento">
-            <span className="cifrado-acorde">C</span>
-            <span className="cifrado-letra">Cuando salga el </span>
+    <li>
+      <Link
+        href={`/canciones/${id}`}
+        className="group -mx-3 flex items-center gap-4 rounded-lg px-3 py-4 transition-colors hover:bg-hoja"
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-medium text-tinta">{titulo}</span>
+          <span className="mt-0.5 block truncate font-mono text-[0.8125rem] text-tinta-suave">
+            {artista}
           </span>
-          <span className="cifrado-segmento">
-            <span className="cifrado-acorde">G</span>
-            <span className="cifrado-letra">sol sobre el </span>
-          </span>
-          <span className="cifrado-segmento">
-            <span className="cifrado-acorde">Am</span>
-            <span className="cifrado-letra">valle</span>
-          </span>
-        </p>
-      </div>
-      <figcaption className="mt-3 text-sm leading-relaxed text-tinta-suave">
-        Así se lee una canción aquí: cada acorde encima de su sílaba exacta. Un
-        toque en el selector la pasa a tu tono, o a grados, sin recargar nada.
-      </figcaption>
-    </figure>
+        </span>
+        <svg
+          viewBox="0 0 24 24"
+          className="size-4 shrink-0 text-tinta-tenue transition-colors group-hover:text-acorde"
+          aria-hidden="true"
+        >
+          <path
+            d="m9 5 7 7-7 7"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </Link>
+    </li>
   );
 }

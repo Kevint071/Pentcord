@@ -26,7 +26,7 @@ describe("distancia entre tonos", () => {
 });
 
 describe("SelectorDeTono", () => {
-  test("expone las doce teclas como un grupo de opciones", () => {
+  test("expone los doce tonos como un grupo de opciones", () => {
     render(
       <SelectorDeTono tonoActivo="C" tonoOriginal="C" onCambiar={() => {}} />,
     );
@@ -48,7 +48,7 @@ describe("SelectorDeTono", () => {
     ).toBeInTheDocument();
   });
 
-  test("un toque en una tecla pide ese tono", async () => {
+  test("un toque en un tono lo pide", async () => {
     const alCambiar = vi.fn();
     const usuario = userEvent.setup();
 
@@ -61,8 +61,8 @@ describe("SelectorDeTono", () => {
     expect(alCambiar).toHaveBeenCalledWith("Eb");
   });
 
-  // Las flechas se mueven por la escala cromática, no por el orden visual de
-  // las teclas: a la derecha de C está Db, no D.
+  // La fila está en orden cromático, así que las flechas y el ojo van juntos:
+  // a la derecha de C está Db.
   test("las flechas se mueven de semitono en semitono", async () => {
     const alCambiar = vi.fn();
     const usuario = userEvent.setup();
@@ -93,7 +93,7 @@ describe("SelectorDeTono", () => {
     expect(alCambiar).toHaveBeenLastCalledWith("A");
   });
 
-  // Tabulación itinerante: las doce teclas son un solo alto de tabulador.
+  // Tabulación itinerante: los doce tonos son un solo alto de tabulador.
   test("solo el tono activo entra en el orden de tabulación", async () => {
     const usuario = userEvent.setup();
 

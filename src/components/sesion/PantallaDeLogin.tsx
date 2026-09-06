@@ -30,7 +30,11 @@ export function PantallaDeLogin() {
   const router = useRouter();
   const { refrescar } = useSesion();
 
-  const [modo, setModo] = useState<Modo>("entrar");
+  // El encabezado enlaza directo a "Registrarse" con `?modo=crear`, para no
+  // hacer a quien ya sabe que quiere una cuenta pasar primero por "Entrar".
+  const [modo, setModo] = useState<Modo>(
+    parametros.get("modo") === "crear" ? "crear" : "entrar",
+  );
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

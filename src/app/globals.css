@@ -164,6 +164,34 @@
   color: var(--color-tinta-tenue);
 }
 
+/* --- Portada: el pentagrama en blanco --------------------------------------
+ * Antes de escribir nada, una hoja de cifrado es esto: cinco líneas fijas.
+ * El buscador se posa encima como el título que se apunta primero, arriba de
+ * la primera pauta — no hay nada que explicar antes de eso. */
+@utility pauta-pentagrama {
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-image:
+    linear-gradient(var(--color-pauta), var(--color-pauta)),
+    linear-gradient(var(--color-pauta), var(--color-pauta)),
+    linear-gradient(var(--color-pauta), var(--color-pauta)),
+    linear-gradient(var(--color-pauta), var(--color-pauta)),
+    linear-gradient(var(--color-pauta), var(--color-pauta));
+  background-position:
+    center calc(50% - 2.5rem),
+    center calc(50% - 1.25rem),
+    center 50%,
+    center calc(50% + 1.25rem),
+    center calc(50% + 2.5rem);
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 12%,
+    black 88%,
+    transparent
+  );
+}
+
 /* Salta al contenido: visible solo con teclado. */
 @utility salto-contenido {
   position: absolute;

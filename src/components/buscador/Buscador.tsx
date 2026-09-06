@@ -1,17 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { mensajeDeError, pedirApi } from "@/lib/api/cliente";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { Aviso } from "@/components/ui/Aviso";
 import {
   Contenedor,
-  Encabezamiento,
+  Portada,
   MarcoDeBusqueda,
-  Muestra,
+  FilaDeCancion,
 } from "./piezas";
+import { Inicio } from "@/components/inicio/Inicio";
 
 /**
  * D.1 · Buscador de canciones (HU-02).
@@ -132,17 +132,14 @@ export function Buscador() {
   const sugerencias = respuesta?.autoresSugeridos ?? [];
 
   return (
-    <Contenedor>
-      <section className="pt-10 pb-8 sm:pt-16">
-        <Encabezamiento />
-
+    <>
+      <Portada>
         <form
           role="search"
           onSubmit={(evento) => {
             evento.preventDefault();
             irA({ q: textoEscrito, page: 1 });
           }}
-          className="mt-7"
         >
           <label htmlFor="busqueda" className="sr-only">
             Buscar por título o artista
@@ -155,14 +152,14 @@ export function Buscador() {
               onChange={(evento) => setTextoEscrito(evento.target.value)}
               placeholder="Título o artista"
               autoComplete="off"
-              className="w-full bg-transparent text-base text-tinta outline-none placeholder:text-tinta-tenue"
+              className="w-full bg-transparent text-lg text-tinta outline-none placeholder:text-tinta-tenue"
             />
           </MarcoDeBusqueda>
         </form>
 
         {/* Fichas de artista: acotan cuando varios artistas comparten título. */}
         {sugerencias.length > 1 || autor ? (
-          <div className="mt-4 flex flex-wrap items-center gap-2">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
             <span className="directiva">{"{artista}"}</span>
             {autor ? (
               <button
@@ -188,78 +185,52 @@ export function Buscador() {
             )}
           </div>
         ) : null}
-
-        {!hayBusqueda ? <Muestra /> : null}
-      </section>
+      </Portada>
 
       {hayBusqueda ? (
-        <section aria-live="polite" aria-busy={cargando} className="pb-4">
-          {vigente?.error ? (
-            <Aviso tono="alerta">{vigente.error}</Aviso>
-          ) : cargando ? (
-            <p className="py-10 text-center text-sm text-tinta-suave">
-              Buscando…
-            </p>
-          ) : respuesta && respuesta.data.length === 0 ? (
-            <EstadoVacio
-              titulo="Sin resultados"
-              descripcion={
-                autor
-                  ? `No hay canciones de ${autor} que coincidan. Prueba con otro título o quita el filtro de artista.`
-                  : "Prueba con otra palabra del título o con el nombre del artista."
-              }
-            />
-          ) : respuesta ? (
-            <>
-              <p className="directiva mb-3">
-                {respuesta.pagination.total}{" "}
-                {respuesta.pagination.total === 1 ? "canción" : "canciones"}
+        <Contenedor>
+          <section aria-live="polite" aria-busy={cargando} className="pb-10">
+            {vigente?.error ? (
+              <Aviso tono="alerta">{vigente.error}</Aviso>
+            ) : cargando ? (
+              <p className="py-10 text-center text-sm text-tinta-suave">
+                Buscando…
               </p>
-
-              <ul className="grid gap-2">
-                {respuesta.data.map((cancion) => (
-                  <li key={cancion.id}>
-                    <Link
-                      href={`/canciones/${cancion.id}`}
-                      className="group flex items-center gap-4 rounded-xl border border-pauta bg-hoja px-4 py-3.5 transition-colors hover:border-acorde-borde hover:bg-hoja-alta"
-                    >
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-medium text-tinta">
-                          {cancion.titulo}
-                        </span>
-                        <span className="mt-0.5 block truncate font-mono text-[0.8125rem] text-tinta-suave">
-                          {cancion.artista}
-                        </span>
-                      </span>
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="size-4 shrink-0 text-tinta-tenue transition-colors group-hover:text-acorde"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="m9 5 7 7-7 7"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-
-              <Paginacion
-                pagina={respuesta.pagination.page}
-                total={respuesta.pagination.totalPages}
-                onIr={(destino) => irA({ page: destino })}
+            ) : respuesta && respuesta.data.length === 0 ? (
+              <EstadoVacio
+                titulo="Sin resultados"
+                descripcion={
+                  autor
+                    ? `No hay canciones de ${autor} que coincidan. Prueba con otro título o quita el filtro de artista.`
+                    : "Prueba con otra palabra del título o con el nombre del artista."
+                }
               />
-            </>
-          ) : null}
-        </section>
-      ) : null}
-    </Contenedor>
+            ) : respuesta ? (
+              <>
+                <p className="directiva mb-1">
+                  {respuesta.pagination.total}{" "}
+                  {respuesta.pagination.total === 1 ? "canción" : "canciones"}
+                </p>
+
+                <ul className="divide-y divide-pauta">
+                  {respuesta.data.map((cancion) => (
+                    <FilaDeCancion key={cancion.id} {...cancion} />
+                  ))}
+                </ul>
+
+                <Paginacion
+                  pagina={respuesta.pagination.page}
+                  total={respuesta.pagination.totalPages}
+                  onIr={(destino) => irA({ page: destino })}
+                />
+              </>
+            ) : null}
+          </section>
+        </Contenedor>
+      ) : (
+        <Inicio />
+      )}
+    </>
   );
 }
 

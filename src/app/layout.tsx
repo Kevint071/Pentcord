@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Big_Shoulders, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans, Oswald } from "next/font/google";
 import "./globals.css";
 import { Encabezado } from "@/components/nav/Encabezado";
-import { BarraNavegacion } from "@/components/nav/BarraNavegacion";
 import { SesionProvider } from "@/lib/sesion/SesionProvider";
 import { GUION_DE_TEMA } from "@/components/tema/guionDeTema";
 
@@ -12,7 +11,7 @@ import { GUION_DE_TEMA } from "@/components/tema/guionDeTema";
  * - Interfaz: legible y neutra, con buenas tildes y eñes.
  * - Monoespaciada: el sustrato del cifrado. La alineación entre la línea de
  *   acordes y la letra depende de que todos los caracteres midan igual (C.1). */
-const fuenteRotulo = Big_Shoulders({
+const fuenteRotulo = Oswald({
   variable: "--fuente-rotulo",
   subsets: ["latin"],
   weight: ["600", "700"],
@@ -72,12 +71,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 
           <Encabezado />
 
-          {/* El espacio inferior deja sitio a la barra fija de móvil. */}
-          <main id="contenido" className="flex flex-1 flex-col pb-24 md:pb-10">
+          <main id="contenido" className="flex flex-1 flex-col pb-10">
             {children}
           </main>
-
-          <BarraNavegacion />
         </SesionProvider>
       </body>
     </html>

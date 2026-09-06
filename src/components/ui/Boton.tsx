@@ -3,8 +3,16 @@ import type { ComponentProps, ReactNode } from "react";
 
 type Variante = "primario" | "secundario" | "discreto" | "peligro";
 
+/** `compacto` es para sitios con poco ancho, como el encabezado en un móvil. */
+type Tamano = "normal" | "compacto";
+
 const BASE =
-  "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50";
+
+const TAMANOS: Record<Tamano, string> = {
+  normal: "px-4 py-2 text-sm",
+  compacto: "px-3 py-1.5 text-[0.8125rem]",
+};
 
 const VARIANTES: Record<Variante, string> = {
   // El azul de bolígrafo se reserva para los acordes y el tono. Las acciones
@@ -19,14 +27,19 @@ const VARIANTES: Record<Variante, string> = {
 
 export function Boton({
   variante = "primario",
+  tamano = "normal",
   className = "",
   children,
   ...resto
-}: ComponentProps<"button"> & { variante?: Variante; children: ReactNode }) {
+}: ComponentProps<"button"> & {
+  variante?: Variante;
+  tamano?: Tamano;
+  children: ReactNode;
+}) {
   return (
     <button
       {...resto}
-      className={`${BASE} ${VARIANTES[variante]} ${className}`}
+      className={`${BASE} ${TAMANOS[tamano]} ${VARIANTES[variante]} ${className}`}
     >
       {children}
     </button>
@@ -35,12 +48,20 @@ export function Boton({
 
 export function BotonEnlace({
   variante = "primario",
+  tamano = "normal",
   className = "",
   children,
   ...resto
-}: ComponentProps<typeof Link> & { variante?: Variante; children: ReactNode }) {
+}: ComponentProps<typeof Link> & {
+  variante?: Variante;
+  tamano?: Tamano;
+  children: ReactNode;
+}) {
   return (
-    <Link {...resto} className={`${BASE} ${VARIANTES[variante]} ${className}`}>
+    <Link
+      {...resto}
+      className={`${BASE} ${TAMANOS[tamano]} ${VARIANTES[variante]} ${className}`}
+    >
       {children}
     </Link>
   );
