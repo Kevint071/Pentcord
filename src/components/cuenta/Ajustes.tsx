@@ -26,28 +26,23 @@ export function Ajustes() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pt-8 pb-16 sm:px-6 sm:pt-12">
-      <p className="directiva">{"{cuenta}"}</p>
-      <h1 className="rotulo mt-3 text-[clamp(2rem,8vw,3.25rem)] text-tinta">
+      <h1 className="rotulo text-[clamp(2rem,8vw,3.25rem)] text-tinta">
         Ajustes
       </h1>
 
       <section className="mt-6 border-t border-pauta pt-6">
-        <p className="directiva">{"{cambiar contraseña}"}</p>
         {usuario.metodoAutenticacion === "google" ? (
-          <div className="mt-3">
-            <Aviso tono="neutro">
-              Tu cuenta usa Google para entrar: no tiene una contraseña propia
-              que cambiar aquí.
-            </Aviso>
-          </div>
+          <Aviso tono="neutro">
+            Tu cuenta usa Google para entrar: no tiene una contraseña propia
+            que cambiar aquí.
+          </Aviso>
         ) : (
           <FormularioDeContrasena usarApi={usarApi} />
         )}
       </section>
 
       <section className="mt-8 border-t border-pauta pt-6">
-        <p className="directiva">{"{cuenta}"}</p>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
           <Boton variante="secundario" onClick={() => void cerrarSesion()}>
             Cerrar sesión
           </Boton>

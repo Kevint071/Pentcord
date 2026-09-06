@@ -34,12 +34,11 @@ export function Portada({ children }: { children: ReactNode }) {
       />
       <div
         aria-hidden="true"
-        className="absolute left-1/2 top-1/2 size-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-acorde-suave opacity-40 blur-3xl sm:size-[32rem]"
+        className="absolute left-1/2 top-1/2 size-104 -translate-x-1/2 -translate-y-1/2 rounded-full bg-acorde-suave opacity-40 blur-3xl sm:size-128"
       />
       <Contenedor>
         <div className="relative">
-          <p className="directiva text-center">{"{buscar}"}</p>
-          <h1 className="rotulo mt-2 text-center text-[clamp(1.75rem,6vw,2.5rem)] text-tinta">
+          <h1 className="rotulo text-center text-[clamp(1.75rem,6vw,2.5rem)] text-tinta">
             Busca una canción
           </h1>
           <div className="mt-6">{children}</div>

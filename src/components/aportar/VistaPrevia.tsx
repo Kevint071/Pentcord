@@ -50,12 +50,9 @@ export function VistaPrevia({
 
   return (
     <div>
-      <div className="mb-3 flex items-baseline justify-between gap-3">
-        <p className="directiva">{"{vista previa}"}</p>
-        <p className="font-mono text-[0.8125rem] text-tinta-suave">
-          tono {tono}
-        </p>
-      </div>
+      <p className="mb-3 font-mono text-[0.8125rem] text-tinta-suave">
+        tono {tono}
+      </p>
 
       <div className="rounded-xl border border-pauta bg-hoja px-4 py-4 sm:px-5">
         {vacia ? (

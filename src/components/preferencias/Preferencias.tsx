@@ -19,8 +19,7 @@ export function Preferencias() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pt-8 pb-16 sm:px-6 sm:pt-12">
-      <p className="directiva">{"{preferencias}"}</p>
-      <h1 className="rotulo mt-3 text-[clamp(2rem,8vw,3.25rem)] text-tinta">
+      <h1 className="rotulo text-[clamp(2rem,8vw,3.25rem)] text-tinta">
         Preferencias
       </h1>
 

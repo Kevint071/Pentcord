@@ -97,8 +97,7 @@ export function PantallaDeLogin() {
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-4 py-10 sm:px-6">
-      <p className="directiva text-center">{"{sesión}"}</p>
-      <h1 className="rotulo mt-3 text-center text-[clamp(2rem,8vw,2.75rem)] text-tinta">
+      <h1 className="rotulo text-center text-[clamp(2rem,8vw,2.75rem)] text-tinta">
         {modo === "entrar" ? "Inicia sesión" : "Crea tu cuenta"}
       </h1>
       <p className="mt-2 text-center text-sm leading-relaxed text-tinta-suave">

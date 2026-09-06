@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
  * tarea del plan depende, en vez de fingir una pantalla vacía.
  */
 export function PantallaPendiente({
-  seccion,
+  seccion: _seccion,
   titulo,
   descripcion,
   tarea,
@@ -22,8 +22,7 @@ export function PantallaPendiente({
 }) {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pt-8 sm:px-6 sm:pt-12">
-      <p className="directiva">{`{${seccion}}`}</p>
-      <h1 className="rotulo mt-3 text-[clamp(2rem,8vw,3.25rem)] text-tinta">
+      <h1 className="rotulo text-[clamp(2rem,8vw,3.25rem)] text-tinta">
         {titulo}
       </h1>
       <p className="mt-3 max-w-prose text-sm leading-relaxed text-tinta-suave">

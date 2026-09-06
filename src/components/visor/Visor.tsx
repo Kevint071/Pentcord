@@ -145,27 +145,24 @@ export function Visor({ versionId }: { versionId: string }) {
       {/* Consola de lectura. Se queda pegada bajo el encabezado para poder
           cambiar de tono a mitad de canción sin volver arriba. */}
       <div className="sticky top-14 z-20 -mx-4 mt-5 border-y border-pauta bg-papel/95 px-4 py-3 backdrop-blur-sm sm:-mx-6 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <p className="directiva">{"{tono}"}</p>
-          <div className="flex items-center gap-3">
-            <span
-              aria-live="polite"
-              className={`font-mono text-[0.8125rem] ${
-                transportada ? "text-acorde" : "text-tinta-suave"
-              }`}
+        <div className="flex flex-wrap items-center gap-3">
+          <span
+            aria-live="polite"
+            className={`font-mono text-[0.8125rem] ${
+              transportada ? "text-acorde" : "text-tinta-suave"
+            }`}
+          >
+            {etiquetaDeDistancia(tonoOriginal, tono)}
+          </span>
+          {transportada ? (
+            <button
+              type="button"
+              onClick={() => setTono(tonoOriginal)}
+              className="rounded-full border border-pauta-fuerte px-2.5 py-0.5 font-mono text-[0.6875rem] text-tinta-suave transition-colors hover:border-tinta-tenue hover:text-tinta"
             >
-              {etiquetaDeDistancia(tonoOriginal, tono)}
-            </span>
-            {transportada ? (
-              <button
-                type="button"
-                onClick={() => setTono(tonoOriginal)}
-                className="rounded-full border border-pauta-fuerte px-2.5 py-0.5 font-mono text-[0.6875rem] text-tinta-suave transition-colors hover:border-tinta-tenue hover:text-tinta"
-              >
-                volver a {tonoOriginal}
-              </button>
-            ) : null}
-          </div>
+              volver a {tonoOriginal}
+            </button>
+          ) : null}
         </div>
 
         <div className="mt-2">

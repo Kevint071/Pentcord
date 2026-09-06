@@ -121,13 +121,10 @@ export function DetalleDeCancion({ id }: { id: string }) {
       </header>
 
       <section className="mt-6">
-        <div className="mb-3 flex items-baseline justify-between gap-4">
-          <p className="directiva">{"{versiones}"}</p>
-          <p className="font-mono text-[0.8125rem] text-tinta-suave">
-            {visibles.length}{" "}
-            {visibles.length === 1 ? "disponible" : "disponibles"}
-          </p>
-        </div>
+        <p className="mb-3 font-mono text-[0.8125rem] text-tinta-suave">
+          {visibles.length}{" "}
+          {visibles.length === 1 ? "disponible" : "disponibles"}
+        </p>
 
         {visibles.length === 0 ? (
           <EstadoVacio

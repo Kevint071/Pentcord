@@ -83,7 +83,6 @@ export function Catalogo() {
 
       {artistas.length > 1 ? (
         <div className="mt-6 flex flex-wrap items-center gap-2">
-          <span className="directiva">{"{artista}"}</span>
           {artistas.slice(0, CUANTOS_ARTISTAS).map((nombre) => (
             <Link
               key={nombre}

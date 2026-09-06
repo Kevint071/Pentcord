@@ -40,8 +40,7 @@ export function Perfil() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pt-8 pb-16 sm:px-6 sm:pt-12">
-      <p className="directiva">{"{perfil}"}</p>
-      <h1 className="rotulo mt-3 text-[clamp(2rem,8vw,3.25rem)] text-tinta">
+      <h1 className="rotulo text-[clamp(2rem,8vw,3.25rem)] text-tinta">
         {usuario.username}
       </h1>
 
@@ -73,8 +72,7 @@ export function Perfil() {
 
       {esAdministrador ? (
         <section className="mt-6 rounded-xl border border-acorde-borde bg-acorde-suave px-4 py-4">
-          <p className="directiva text-acorde">{"{administración}"}</p>
-          <p className="mt-2 text-sm leading-relaxed text-tinta">
+          <p className="text-sm leading-relaxed text-tinta">
             Tienes rol de administrador. Las versiones pendientes ya se pueden
             listar y su contenido ya se puede leer sin bloqueos de visibilidad
             (RN-015), pero el panel para aprobar o rechazar (E.5) sigue
@@ -219,8 +217,6 @@ function MisAportes() {
 
   return (
     <section className="mt-8 border-t border-pauta pt-6">
-      <p className="directiva">{"{mis aportes}"}</p>
-
       {error ? (
         <div className="mt-3">
           <Aviso tono="alerta">{error}</Aviso>

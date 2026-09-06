@@ -63,8 +63,7 @@ export function Favoritos() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pt-8 sm:px-6 sm:pt-12">
-      <p className="directiva">{"{favoritos}"}</p>
-      <h1 className="rotulo mt-3 text-[clamp(2rem,8vw,3.25rem)] text-tinta">
+      <h1 className="rotulo text-[clamp(2rem,8vw,3.25rem)] text-tinta">
         Tus favoritos
       </h1>
       <p className="mt-3 max-w-prose text-sm leading-relaxed text-tinta-suave">

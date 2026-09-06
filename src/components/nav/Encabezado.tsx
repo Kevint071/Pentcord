@@ -50,7 +50,7 @@ export function Encabezado() {
             /* `order-last` + `w-full`: en móvil el riel salta de línea y ocupa
                el ancho entero; el borde superior va a sangre, de ahí el margen
                negativo que compensa el acolchado del contenedor. */
-            className="order-last -mx-4 w-full border-t border-pauta px-4 sm:-mx-6 sm:px-6 md:order-none md:mx-0 md:ml-auto md:w-auto md:border-t-0 md:px-0"
+            className="order-last -mx-4 w-full border-t border-pauta px-4 sm:-mx-6 sm:px-6 md:order-0 md:mx-0 md:ml-auto md:w-auto md:border-t-0 md:px-0"
           >
             <ul className="flex md:gap-1">
               {DESTINOS.map((destino) => {

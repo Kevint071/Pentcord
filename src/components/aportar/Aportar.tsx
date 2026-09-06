@@ -318,8 +318,7 @@ export function Aportar({ cancionId }: { cancionId: number | null }) {
       </Link>
 
       <header className="mt-4">
-        <p className="directiva">{"{aportar}"}</p>
-        <h1 className="rotulo mt-2 text-[clamp(2rem,8vw,3.25rem)] text-tinta">
+        <h1 className="rotulo text-[clamp(2rem,8vw,3.25rem)] text-tinta">
           {esNueva ? "Aportar una canción" : "Aportar una versión"}
         </h1>
         {destino.tipo === "version" ? (
@@ -528,8 +527,7 @@ function AporteRecibido({
 }) {
   return (
     <div className="py-6 sm:py-10">
-      <p className="directiva">{"{aporte recibido}"}</p>
-      <h1 className="rotulo mt-2 text-[clamp(2rem,8vw,3.25rem)] text-tinta">
+      <h1 className="rotulo text-[clamp(2rem,8vw,3.25rem)] text-tinta">
         Gracias
       </h1>
 

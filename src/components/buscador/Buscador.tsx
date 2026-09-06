@@ -160,7 +160,6 @@ export function Buscador() {
         {/* Fichas de artista: acotan cuando varios artistas comparten título. */}
         {sugerencias.length > 1 || autor ? (
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-            <span className="directiva">{"{artista}"}</span>
             {autor ? (
               <button
                 type="button"
@@ -207,7 +206,7 @@ export function Buscador() {
               />
             ) : respuesta ? (
               <>
-                <p className="directiva mb-1">
+                <p className="mb-1 font-mono text-[0.8125rem] text-tinta-suave">
                   {respuesta.pagination.total}{" "}
                   {respuesta.pagination.total === 1 ? "canción" : "canciones"}
                 </p>
