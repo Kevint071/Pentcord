@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DESTINOS, esDestinoActivo } from "./destinos";
-import { InterruptorDeTema } from "@/components/tema/InterruptorDeTema";
 import { MenuDePerfil } from "@/components/nav/MenuDePerfil";
 import { BotonEnlace } from "@/components/ui/Boton";
 import { useSesion } from "@/lib/sesion/SesionProvider";
@@ -28,6 +27,11 @@ import { rutaDeLogin } from "@/lib/api/cliente";
  * destino del riel que exige cuenta, y de todas formas llevaba al login.
  * Mientras se confirma la sesión no se enseña ninguno de los dos, para no
  * prometer un estado que puede no ser cierto un instante después.
+ *
+ * El interruptor de tema ya no vive aquí: es la "pestaña" fija que pinta el
+ * layout raíz, fuera de este `<header>`. Si volviera a colgar de una fila con
+ * `backdrop-blur-sm`, su `position: fixed` quedaría anclado a esa fila (el
+ * filtro crea su propio *containing block*) en vez de al viewport.
  */
 export function Encabezado() {
   const ruta = usePathname();
@@ -102,7 +106,6 @@ export function Encabezado() {
             </>
           ) : null}
 
-          <InterruptorDeTema />
           {estado === "autenticado" ? <MenuDePerfil /> : null}
         </div>
       </div>
