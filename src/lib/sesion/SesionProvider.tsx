@@ -41,6 +41,8 @@ import {
 } from "@/lib/api/cliente";
 
 export type Rol = "musico" | "administrador";
+export type MetodoAutenticacion = "local" | "google";
+export type Tema = "light" | "dark";
 
 export type UsuarioDeSesion = {
   id: number;
@@ -48,6 +50,8 @@ export type UsuarioDeSesion = {
   email: string | null;
   rol: Rol;
   fotoPerfilUrl: string | null;
+  tema: Tema | null;
+  metodoAutenticacion: MetodoAutenticacion;
 };
 
 type EstadoDeSesion = "cargando" | "autenticado" | "anonimo";

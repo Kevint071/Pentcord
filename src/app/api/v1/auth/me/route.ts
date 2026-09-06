@@ -20,6 +20,8 @@ export async function GET(request: Request) {
         rol: userdb.rol,
         fotoPerfilUrl: userdb.fotoPerfilUrl,
         creadoEn: userdb.creadoEn,
+        tema: userdb.tema,
+        metodoAutenticacion: userdb.metodoAutenticacion,
       },
       { status: 200 },
     );
