@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Estado } from "@/generated/prisma/enums";
 import { mensajeDeError, pedirApi } from "@/lib/api/cliente";
 import { useSesion } from "@/lib/sesion/SesionProvider";
+import { Avatar } from "@/components/perfil/Avatar";
 import { EtiquetaDeEstado } from "@/components/ui/EtiquetaDeEstado";
 import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { Aviso } from "@/components/ui/Aviso";
@@ -46,8 +47,9 @@ export function Perfil() {
       </h1>
 
       <FotoDePerfil
+        id={usuario.id}
+        username={usuario.username}
         fotoActual={usuario.fotoPerfilUrl}
-        inicial={usuario.username.charAt(0).toUpperCase()}
         onSubida={(url) => establecerUsuario({ ...usuario, fotoPerfilUrl: url })}
         subir={(cuerpoCrudo) =>
           usarApi<{ url: string }>("/usuarios/me/foto", {
@@ -97,13 +99,15 @@ export function Perfil() {
 }
 
 function FotoDePerfil({
+  id,
+  username,
   fotoActual,
-  inicial,
   onSubida,
   subir,
 }: {
+  id: number;
+  username: string;
   fotoActual: string | null;
-  inicial: string;
   onSubida: (url: string) => void;
   subir: (cuerpoCrudo: FormData) => Promise<{ url: string }>;
 }) {
@@ -141,16 +145,7 @@ function FotoDePerfil({
 
   return (
     <div className="mt-6 flex items-center gap-4">
-      <div className="size-20 shrink-0 overflow-hidden rounded-full border border-pauta bg-hoja">
-        {fotoActual ? (
-          // eslint-disable-next-line @next/next/no-img-element -- viene de Cloudinary, no del build local.
-          <img src={fotoActual} alt="" className="size-full object-cover" />
-        ) : (
-          <div className="rotulo grid size-full place-items-center text-2xl text-tinta-tenue">
-            {inicial}
-          </div>
-        )}
-      </div>
+      <Avatar id={id} username={username} fotoPerfilUrl={fotoActual} tamano="lg" />
       <div>
         <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-pauta-fuerte bg-hoja px-4 py-2 text-sm font-medium text-tinta transition-colors hover:border-tinta-tenue has-disabled:cursor-not-allowed has-disabled:opacity-50">
           {subiendo ? "Subiendo…" : "Cambiar foto"}
