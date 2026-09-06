@@ -39,6 +39,7 @@ import {
   rutaDeLogin,
   type OpcionesDePeticion,
 } from "@/lib/api/cliente";
+import { aplicarTema, leerTema } from "@/lib/tema/tema";
 
 export type Rol = "musico" | "administrador";
 export type MetodoAutenticacion = "local" | "google";
@@ -100,6 +101,12 @@ export function SesionProvider({ children }: { children: React.ReactNode }) {
       setUsuario(usuario);
       setEstado("autenticado");
       setApiDeSesionDisponible(true);
+      if (
+        (usuario.tema === "light" || usuario.tema === "dark") &&
+        usuario.tema !== leerTema()
+      ) {
+        aplicarTema(usuario.tema);
+      }
     } catch (error) {
       setUsuario(null);
       setEstado("anonimo");
