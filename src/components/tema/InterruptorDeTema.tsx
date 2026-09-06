@@ -1,53 +1,33 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { CLAVE_DE_TEMA } from "./guionDeTema";
-
-type Tema = "light" | "dark";
-
-const EVENTO = "pentcord:tema";
-
-/**
- * El tema real no vive en React: vive en el atributo `data-theme` del documento
- * (lo pone el guion previo al pintado) y en la preferencia del sistema. Así que
- * se lee como lo que es, un almacén externo, en vez de copiarlo a un estado.
- */
-function leerTema(): Tema {
-  const marcado = document.documentElement.getAttribute("data-theme");
-  if (marcado === "light" || marcado === "dark") return marcado;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
+import { useSesion } from "@/lib/sesion/SesionProvider";
+import { EVENTO_DE_TEMA, aplicarTema, leerTema, type Tema } from "@/lib/tema/tema";
 
 function suscribirse(alCambiar: () => void) {
   const consulta = window.matchMedia("(prefers-color-scheme: dark)");
   consulta.addEventListener("change", alCambiar);
-  window.addEventListener(EVENTO, alCambiar);
+  window.addEventListener(EVENTO_DE_TEMA, alCambiar);
   return () => {
     consulta.removeEventListener("change", alCambiar);
-    window.removeEventListener(EVENTO, alCambiar);
+    window.removeEventListener(EVENTO_DE_TEMA, alCambiar);
   };
 }
 
 export function InterruptorDeTema({ className = "" }: { className?: string }) {
   // En el servidor no se sabe qué tema resolverá el navegador, así que el botón
   // se dibuja neutro hasta hidratar en vez de adivinar y corregirse después.
-  const tema = useSyncExternalStore<Tema | null>(
-    suscribirse,
-    leerTema,
-    () => null,
-  );
+  const tema = useSyncExternalStore<Tema | null>(suscribirse, leerTema, () => null);
+  const { estado, usarApi } = useSesion();
 
   function alternar() {
     const siguiente: Tema = leerTema() === "dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", siguiente);
-    try {
-      localStorage.setItem(CLAVE_DE_TEMA, siguiente);
-    } catch {
-      // Modo privado o almacenamiento bloqueado: el tema dura esta sesión.
+    aplicarTema(siguiente);
+    if (estado === "autenticado") {
+      usarApi("/usuarios/me/tema", { method: "PATCH", cuerpo: { tema: siguiente } }).catch(
+        () => {},
+      );
     }
-    window.dispatchEvent(new Event(EVENTO));
   }
 
   const vaAOscuro = tema !== "dark";
