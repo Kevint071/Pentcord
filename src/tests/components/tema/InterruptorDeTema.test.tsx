@@ -3,7 +3,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { InterruptorDeTema } from "@/components/tema/InterruptorDeTema";
 
-const usarApi = vi.fn().mockResolvedValue(undefined);
+const pedirApi = vi.fn().mockResolvedValue(undefined);
+vi.mock("@/lib/api/cliente", () => ({ pedirApi: (...args: unknown[]) => pedirApi(...args) }));
+
 const usarSesion = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/sesion/SesionProvider", () => ({ useSesion: usarSesion }));
 
@@ -20,7 +22,7 @@ window.matchMedia ??= ((query: string) => ({
 
 beforeEach(() => {
   document.documentElement.removeAttribute("data-theme");
-  usarApi.mockClear();
+  pedirApi.mockClear();
 });
 
 afterEach(() => {
@@ -29,32 +31,32 @@ afterEach(() => {
 
 describe("InterruptorDeTema", () => {
   test("con sesión, alternar guarda el tema en la cuenta", async () => {
-    usarSesion.mockReturnValue({ estado: "autenticado", usarApi });
+    usarSesion.mockReturnValue({ estado: "autenticado" });
     const user = userEvent.setup();
     render(<InterruptorDeTema />);
 
     await user.click(screen.getByRole("button"));
 
-    expect(usarApi).toHaveBeenCalledWith("/usuarios/me/tema", {
+    expect(pedirApi).toHaveBeenCalledWith("/usuarios/me/tema", {
       method: "PATCH",
       cuerpo: { tema: "dark" },
     });
   });
 
   test("sin sesión, alternar no llama a la API", async () => {
-    usarSesion.mockReturnValue({ estado: "anonimo", usarApi });
+    usarSesion.mockReturnValue({ estado: "anonimo" });
     const user = userEvent.setup();
     render(<InterruptorDeTema />);
 
     await user.click(screen.getByRole("button"));
 
-    expect(usarApi).not.toHaveBeenCalled();
+    expect(pedirApi).not.toHaveBeenCalled();
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
   });
 
-  test("un fallo de red al guardar no rompe el cambio local", async () => {
-    usarApi.mockRejectedValueOnce(new Error("red caída"));
-    usarSesion.mockReturnValue({ estado: "autenticado", usarApi });
+  test("un fallo al guardar (incluida una sesión expirada) no rompe el cambio local", async () => {
+    pedirApi.mockRejectedValueOnce(new Error("red caída"));
+    usarSesion.mockReturnValue({ estado: "autenticado" });
     const user = userEvent.setup();
     render(<InterruptorDeTema />);
 

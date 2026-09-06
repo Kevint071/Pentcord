@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 /**
  * Pantalla que todavía no está construida.
  *
- * Existe porque los cuatro destinos de la barra fija (C.2) tienen que llevar a
+ * Existe porque los destinos de la barra fija (C.2) tienen que llevar a
  * algún sitio desde el primer día. Dice con todas las letras qué falta y de qué
  * tarea del plan depende, en vez de fingir una pantalla vacía.
  */

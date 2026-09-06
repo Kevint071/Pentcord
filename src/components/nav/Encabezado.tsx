@@ -22,11 +22,12 @@ import { rutaDeLogin } from "@/lib/api/cliente";
  * subrayada es la sección actual (la misma "marca de traste" que llevaba la
  * barra inferior, ahora bajo la etiqueta).
  *
- * Qué se enseña depende de la sesión: con cuenta, las cuatro secciones; sin
- * ella, "Iniciar sesión" y "Registrarse" **en los dos anchos** — los tres
- * destinos que exigen cuenta solo llevaban al login de todas formas. Mientras
- * se confirma la sesión no se enseña ninguno de los dos, para no prometer un
- * estado que puede no ser cierto un instante después.
+ * Qué se enseña depende de la sesión: con cuenta, el riel de Buscar/Aportar
+ * más el menú de avatar (Favoritos/Perfil/Ajustes/Preferencias); sin ella,
+ * "Iniciar sesión" y "Registrarse" **en los dos anchos** — Aportar es el único
+ * destino del riel que exige cuenta, y de todas formas llevaba al login.
+ * Mientras se confirma la sesión no se enseña ninguno de los dos, para no
+ * prometer un estado que puede no ser cierto un instante después.
  */
 export function Encabezado() {
   const ruta = usePathname();

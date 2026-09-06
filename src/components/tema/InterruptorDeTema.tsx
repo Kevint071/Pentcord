@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { useSesion } from "@/lib/sesion/SesionProvider";
+import { pedirApi } from "@/lib/api/cliente";
 import { EVENTO_DE_TEMA, aplicarTema, leerTema, type Tema } from "@/lib/tema/tema";
 
 function suscribirse(alCambiar: () => void) {
@@ -18,13 +19,15 @@ export function InterruptorDeTema({ className = "" }: { className?: string }) {
   // En el servidor no se sabe qué tema resolverá el navegador, así que el botón
   // se dibuja neutro hasta hidratar en vez de adivinar y corregirse después.
   const tema = useSyncExternalStore<Tema | null>(suscribirse, leerTema, () => null);
-  const { estado, usarApi } = useSesion();
+  const { estado } = useSesion();
 
   function alternar() {
     const siguiente: Tema = leerTema() === "dark" ? "light" : "dark";
     aplicarTema(siguiente);
     if (estado === "autenticado") {
-      usarApi("/usuarios/me/tema", { method: "PATCH", cuerpo: { tema: siguiente } }).catch(
+      // `pedirApi` (no `usarApi`): un 401 aquí no debe expulsar a login —
+      // guardar el tema es una operación de baja importancia, no crítica.
+      pedirApi("/usuarios/me/tema", { method: "PATCH", cuerpo: { tema: siguiente } }).catch(
         () => {},
       );
     }
