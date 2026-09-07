@@ -14,15 +14,20 @@ import { Aviso } from "./Aviso";
  * parpadea con datos vacíos antes de redirigir.
  */
 export function ExigeSesion({ children }: { children: React.ReactNode }) {
-  const { estado, apiDeSesionDisponible } = useSesion();
+  const { estado, apiDeSesionDisponible, saliendo } = useSesion();
   const router = useRouter();
 
   useEffect(() => {
-    if (estado !== "anonimo" || !apiDeSesionDisponible) return;
+    // Mientras `cerrarSesion` está navegando a su propio destino (el inicio),
+    // no hay que competir con esa navegación redirigiendo a login: la sesión
+    // pasa por "anonimo" antes de que la ruta protegida llegue a cambiar.
+    if (estado !== "anonimo" || !apiDeSesionDisponible || saliendo) return;
     router.replace(
       rutaDeLogin(`${window.location.pathname}${window.location.search}`),
     );
-  }, [estado, apiDeSesionDisponible, router]);
+  }, [estado, apiDeSesionDisponible, saliendo, router]);
+
+  if (saliendo) return null;
 
   if (estado === "cargando") {
     return (

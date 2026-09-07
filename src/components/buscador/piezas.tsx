@@ -27,14 +27,14 @@ export function Contenedor({ children }: { children: ReactNode }) {
  */
 export function Portada({ children }: { children: ReactNode }) {
   return (
-    <section className="relative flex min-h-[44svh] items-center justify-center overflow-hidden py-10 sm:min-h-[48svh]">
+    <section className="relative flex items-center justify-center py-8 sm:min-h-[48svh] sm:py-10">
       <div
         aria-hidden="true"
-        className="pauta-pentagrama absolute inset-x-0 top-1/2 h-40 -translate-y-1/2 opacity-70 sm:h-48"
+        className="pauta-pentagrama pointer-events-none absolute inset-x-0 top-1/2 h-40 -translate-y-1/2 opacity-70 sm:h-48"
       />
       <div
         aria-hidden="true"
-        className="absolute left-1/2 top-1/2 size-104 -translate-x-1/2 -translate-y-1/2 rounded-full bg-acorde-suave opacity-40 blur-3xl sm:size-128"
+        className="pointer-events-none absolute left-1/2 top-1/2 size-104 -translate-x-1/2 -translate-y-1/2 rounded-full bg-acorde-suave opacity-40 blur-3xl sm:size-128"
       />
       <Contenedor>
         <div className="relative">
@@ -50,10 +50,10 @@ export function Portada({ children }: { children: ReactNode }) {
 
 export function MarcoDeBusqueda({ children }: { children: ReactNode }) {
   return (
-    <div className="flex items-center gap-3 rounded-full border border-pauta-fuerte bg-hoja-alta px-5 py-4 shadow-hoja transition-colors focus-within:border-acorde">
+    <div className="group/buscar mx-auto flex w-full max-w-xl items-center gap-3 rounded-2xl border border-pauta-fuerte bg-hoja-alta px-4 py-3.5 shadow-hoja transition-all duration-150 focus-within:border-acorde focus-within:shadow-[0_0_0_4px_var(--color-acorde-suave)] sm:px-5 sm:py-4">
       <svg
         viewBox="0 0 24 24"
-        className="size-5 shrink-0 text-tinta-tenue"
+        className="size-5 shrink-0 text-tinta-tenue transition-colors group-focus-within/buscar:text-acorde sm:size-5.5"
         aria-hidden="true"
       >
         <circle

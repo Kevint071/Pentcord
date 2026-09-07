@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Oswald } from "next/font/google";
 import "./globals.css";
 import { Encabezado } from "@/components/nav/Encabezado";
+import { InterruptorDeTema } from "@/components/tema/InterruptorDeTema";
 import { SesionProvider } from "@/lib/sesion/SesionProvider";
 import { GUION_DE_TEMA } from "@/components/tema/guionDeTema";
 
@@ -54,13 +55,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es"
-      className={`${fuenteRotulo.variable} ${fuenteUi.variable} ${fuenteMono.variable} h-full antialiased`}
+      className={`${fuenteRotulo.variable} ${fuenteUi.variable} ${fuenteMono.variable} h-full overflow-x-clip antialiased`}
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: GUION_DE_TEMA }} />
       </head>
-      <body className="flex min-h-full flex-col">
+      <body className="flex min-h-full flex-col overflow-x-clip">
         <SesionProvider>
           <a
             href="#contenido"
@@ -70,6 +71,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </a>
 
           <Encabezado />
+          <InterruptorDeTema variante="pestana" />
 
           <main id="contenido" className="flex flex-1 flex-col pb-10">
             {children}

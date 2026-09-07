@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DESTINOS, esDestinoActivo } from "./destinos";
-import { InterruptorDeTema } from "@/components/tema/InterruptorDeTema";
 import { MenuDePerfil } from "@/components/nav/MenuDePerfil";
 import { BotonEnlace } from "@/components/ui/Boton";
 import { useSesion } from "@/lib/sesion/SesionProvider";
@@ -28,6 +27,11 @@ import { rutaDeLogin } from "@/lib/api/cliente";
  * destino del riel que exige cuenta, y de todas formas llevaba al login.
  * Mientras se confirma la sesión no se enseña ninguno de los dos, para no
  * prometer un estado que puede no ser cierto un instante después.
+ *
+ * El interruptor de tema ya no vive aquí: es la "pestaña" fija que pinta el
+ * layout raíz, fuera de este `<header>`. Si volviera a colgar de una fila con
+ * `backdrop-blur-sm`, su `position: fixed` quedaría anclado a esa fila (el
+ * filtro crea su propio *containing block*) en vez de al viewport.
  */
 export function Encabezado() {
   const ruta = usePathname();
@@ -47,10 +51,7 @@ export function Encabezado() {
         {estado === "autenticado" ? (
           <nav
             aria-label="Secciones principales"
-            /* `order-last` + `w-full`: en móvil el riel salta de línea y ocupa
-               el ancho entero; el borde superior va a sangre, de ahí el margen
-               negativo que compensa el acolchado del contenedor. */
-            className="order-last -mx-4 w-full border-t border-pauta px-4 sm:-mx-6 sm:px-6 md:order-0 md:mx-0 md:ml-auto md:w-auto md:border-t-0 md:px-0"
+            className="order-last -mx-4 basis-full grow border-t border-pauta px-4 sm:-mx-6 sm:px-6 md:order-0 md:mx-0 md:ml-auto md:basis-auto md:grow-0 md:border-t-0 md:px-0"
           >
             <ul className="flex md:gap-1">
               {DESTINOS.map((destino) => {
@@ -60,11 +61,10 @@ export function Encabezado() {
                     <Link
                       href={destino.href}
                       aria-current={activo ? "page" : undefined}
-                      className={`flex h-11 items-center justify-center gap-2 border-b-2 text-sm font-medium transition-colors md:h-auto md:rounded-full md:border-b-0 md:px-3 md:py-1.5 ${
-                        activo
+                      className={`flex h-11 items-center justify-center gap-2 border-b-2 text-sm font-medium transition-colors md:h-auto md:rounded-full md:border-b-0 md:px-3 md:py-1.5 ${activo
                           ? "border-acorde text-tinta md:bg-acorde-suave md:text-acorde"
                           : "border-transparent text-tinta-suave md:hover:bg-hoja md:hover:text-tinta"
-                      }`}
+                        }`}
                     >
                       <destino.icono className="hidden size-4.5 md:block" />
                       {destino.etiqueta}
@@ -77,9 +77,8 @@ export function Encabezado() {
         ) : null}
 
         <div
-          className={`flex h-14 items-center gap-2 sm:gap-3 ${
-            estado === "autenticado" ? "ml-auto md:ml-0" : "ml-auto"
-          }`}
+          className={`flex h-14 items-center gap-2 sm:gap-3 ${estado === "autenticado" ? "ml-auto md:ml-0" : "ml-auto"
+            }`}
         >
           {estado === "anonimo" ? (
             <>
@@ -102,7 +101,6 @@ export function Encabezado() {
             </>
           ) : null}
 
-          <InterruptorDeTema />
           {estado === "autenticado" ? <MenuDePerfil /> : null}
         </div>
       </div>
