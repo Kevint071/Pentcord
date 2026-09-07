@@ -55,13 +55,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es"
-      className={`${fuenteRotulo.variable} ${fuenteUi.variable} ${fuenteMono.variable} h-full antialiased`}
+      className={`${fuenteRotulo.variable} ${fuenteUi.variable} ${fuenteMono.variable} h-full overflow-x-clip antialiased`}
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: GUION_DE_TEMA }} />
       </head>
-      <body className="flex min-h-full flex-col">
+      <body className="flex min-h-full flex-col overflow-x-clip">
         <SesionProvider>
           <a
             href="#contenido"
