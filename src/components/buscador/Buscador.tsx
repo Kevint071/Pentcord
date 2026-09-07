@@ -152,7 +152,7 @@ export function Buscador() {
               onChange={(evento) => setTextoEscrito(evento.target.value)}
               placeholder="Título o artista"
               autoComplete="off"
-              className="w-full bg-transparent text-lg text-tinta outline-none placeholder:text-tinta-tenue"
+              className="w-full min-w-0 appearance-none bg-transparent text-[clamp(1rem,3.6vw,1.1875rem)] font-medium text-tinta outline-none placeholder:font-normal placeholder:text-tinta-tenue"
             />
           </MarcoDeBusqueda>
         </form>

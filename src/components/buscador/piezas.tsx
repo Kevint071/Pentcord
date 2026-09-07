@@ -50,10 +50,10 @@ export function Portada({ children }: { children: ReactNode }) {
 
 export function MarcoDeBusqueda({ children }: { children: ReactNode }) {
   return (
-    <div className="flex items-center gap-3 rounded-full border border-pauta-fuerte bg-hoja-alta px-5 py-4 shadow-hoja transition-colors focus-within:border-acorde">
+    <div className="group/buscar mx-auto flex w-full max-w-xl items-center gap-3 rounded-2xl border border-pauta-fuerte bg-hoja-alta px-4 py-3.5 shadow-hoja transition-all duration-150 focus-within:border-acorde focus-within:shadow-[0_0_0_4px_var(--color-acorde-suave)] sm:px-5 sm:py-4">
       <svg
         viewBox="0 0 24 24"
-        className="size-5 shrink-0 text-tinta-tenue"
+        className="size-5 shrink-0 text-tinta-tenue transition-colors group-focus-within/buscar:text-acorde sm:size-5.5"
         aria-hidden="true"
       >
         <circle
