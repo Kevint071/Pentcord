@@ -27,7 +27,7 @@ export function Contenedor({ children }: { children: ReactNode }) {
  */
 export function Portada({ children }: { children: ReactNode }) {
   return (
-    <section className="relative flex min-h-[44svh] items-center justify-center overflow-hidden py-10 sm:min-h-[48svh]">
+    <section className="relative flex items-center justify-center overflow-hidden py-8 sm:min-h-[48svh] sm:py-10">
       <div
         aria-hidden="true"
         className="pauta-pentagrama absolute inset-x-0 top-1/2 h-40 -translate-y-1/2 opacity-70 sm:h-48"

@@ -1,28 +1,25 @@
 import { Contenedor } from "@/components/buscador/piezas";
 import { BotonEnlace } from "@/components/ui/Boton";
-import { Catalogo } from "./Catalogo";
 import { DemoDeTransporte } from "./DemoDeTransporte";
 
 /**
  * Portada · lo que va **debajo** del buscador cuando todavía no se ha buscado
  * nada. En cuanto hay búsqueda desaparece: los resultados ocupan ese sitio.
  *
- * El orden responde a lo que le pasa a quien acaba de entrar: primero canciones
- * que puede abrir ahora mismo (el catálogo), después la prueba de lo único que
- * PentCord hace distinto (transportar), y al final la puerta de entrada para
- * quien no encontró la suya. Nada de esto explica la app antes de dejar usarla:
- * el campo de búsqueda sigue siendo lo primero de la página.
+ * El orden responde a lo que le pasa a quien acaba de entrar: primero la
+ * prueba de lo único que PentCord hace distinto (transportar), y al final la
+ * puerta de entrada para quien no encontró la suya. Nada de esto explica la
+ * app antes de dejar usarla: el campo de búsqueda sigue siendo lo primero de
+ * la página.
  *
- * Las tres franjas se separan con una línea fina, como las pautas de una hoja,
+ * Las dos franjas se separan con una línea fina, como las pautas de una hoja,
  * en vez de con tarjetas: la única caja de la página es la del cifrado, que sí
  * representa un papel.
  */
 export function Inicio() {
   return (
     <Contenedor>
-      <Catalogo />
-
-      <section className="border-t border-pauta py-10">
+      <section className="border-t border-pauta pt-8 pb-10 sm:pt-10">
         <h2 className="rotulo text-2xl text-tinta">Prueba el transporte</h2>
         <p className="mt-2 max-w-[58ch] text-sm leading-relaxed text-tinta-suave">
           Toca un tono y los acordes se reescriben al momento, con la ortografía
