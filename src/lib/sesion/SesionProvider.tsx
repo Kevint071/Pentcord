@@ -31,7 +31,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ErrorDeApi,
   ErrorDeRed,
@@ -72,6 +72,12 @@ type ValorDelContexto = {
   /** Cierra la sesión a petición del usuario (E.4) y vuelve al inicio. */
   cerrarSesion: () => Promise<void>;
   /**
+   * `true` mientras `cerrarSesion` está navegando lejos de la pantalla
+   * protegida en la que se pidió. Evita que `ExigeSesion` compita con esa
+   * navegación y redirija a `/login` en su lugar (ver `cerrarSesion`).
+   */
+  saliendo: boolean;
+  /**
    * `pedirApi` con la política de sesión aplicada: un `UNAUTHENTICATED` cierra
    * la sesión y redirige al login recordando dónde estaba el usuario.
    */
@@ -86,14 +92,37 @@ function ubicacionActual() {
   return `${window.location.pathname}${window.location.search}`;
 }
 
+/**
+ * Avisa a las demás pestañas de la misma sesión de navegador que se cerró
+ * sesión, para que no la sigan dando por buena hasta su próxima revalidación
+ * (foco/visibilidad). No hay nada que sincronizar en sentido contrario: un
+ * login nuevo ya llega solo a cada pestaña la próxima vez que llama a la API.
+ */
+const CANAL_SESION = "pentcord:sesion";
+
 export function SesionProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [estado, setEstado] = useState<EstadoDeSesion>("cargando");
   const [usuario, setUsuario] = useState<UsuarioDeSesion | null>(null);
   const [apiDeSesionDisponible, setApiDeSesionDisponible] = useState(true);
+  const [saliendo, setSaliendo] = useState(false);
+
+  // La navegación de `cerrarSesion` es asíncrona: hasta que la ruta cambie de
+  // verdad, `ExigeSesion` sigue montado sobre la pantalla protegida y vería
+  // `estado === "anonimo"` antes de que el `push("/")` termine. `saliendo` se
+  // apaga en cuanto el pathname cambia, que es cuando ya no hace falta. Se
+  // ajusta durante el render (no en un efecto) siguiendo el patrón de React
+  // para "resetear estado cuando cambia algo" sin un re-render de más.
+  const [pathnameAnterior, setPathnameAnterior] = useState(pathname);
+  if (pathname !== pathnameAnterior) {
+    setPathnameAnterior(pathname);
+    setSaliendo(false);
+  }
 
   // Evita que dos revalidaciones simultáneas se pisen.
   const consultaEnCurso = useRef<Promise<void> | null>(null);
+  const canalSesion = useRef<BroadcastChannel | null>(null);
 
   const consultar = useCallback(async () => {
     try {
@@ -134,6 +163,26 @@ export function SesionProvider({ children }: { children: React.ReactNode }) {
     void refrescar();
   }, [refrescar]);
 
+  // Si se cierra sesión en otra pestaña, esta se entera al instante en vez de
+  // esperar a que vuelva a tener el foco (BroadcastChannel no existe en todos
+  // los navegadores objetivo — sin él, la pestaña simplemente espera a su
+  // próxima revalidación, como antes).
+  useEffect(() => {
+    if (typeof BroadcastChannel === "undefined") return;
+    const canal = new BroadcastChannel(CANAL_SESION);
+    canalSesion.current = canal;
+    canal.onmessage = (evento) => {
+      if (evento.data === "cerrada") {
+        setUsuario(null);
+        setEstado("anonimo");
+      }
+    };
+    return () => {
+      canal.close();
+      canalSesion.current = null;
+    };
+  }, []);
+
   // El token vence a los 15 minutos: el momento más probable de descubrirlo es
   // al volver a la pestaña.
   useEffect(() => {
@@ -164,13 +213,19 @@ export function SesionProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const cerrarSesion = useCallback(async () => {
-    // No existe (todavía) un `POST /auth/logout` que borre la cookie httpOnly
-    // desde el servidor — es trabajo de backend, fuera de este alcance (ver
-    // docs/pendientes-backend-y-frontend.md). Mientras tanto, esto solo limpia
-    // el estado local: la cookie sigue viva hasta que venza (15 min) o hasta
-    // que ese endpoint exista.
+    setSaliendo(true);
     setUsuario(null);
     setEstado("anonimo");
+    try {
+      // `DELETE /auth/logout` (backend, commit 5ccdf2a) borra la cookie
+      // httpOnly `accesstoken` desde el servidor — el navegador no puede
+      // hacerlo por su cuenta. Si la llamada falla (red caída, ya no había
+      // sesión) igual se sigue: el estado local ya quedó limpio arriba.
+      await pedirApi("/auth/logout", { method: "DELETE" });
+    } catch {
+      // Best effort: nada que mostrarle al usuario por esto.
+    }
+    canalSesion.current?.postMessage("cerrada");
     router.push("/");
   }, [router]);
 
@@ -198,6 +253,7 @@ export function SesionProvider({ children }: { children: React.ReactNode }) {
       expirarSesion,
       establecerUsuario,
       cerrarSesion,
+      saliendo,
       usarApi,
     }),
     [
@@ -208,6 +264,7 @@ export function SesionProvider({ children }: { children: React.ReactNode }) {
       expirarSesion,
       establecerUsuario,
       cerrarSesion,
+      saliendo,
       usarApi,
     ],
   );
