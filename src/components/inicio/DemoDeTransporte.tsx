@@ -22,9 +22,7 @@ import type { Tono } from "@/domain/musica/tipos";
 const TONO_ORIGINAL: Tono = "C";
 
 const FRAGMENTO = parsearChordPro(
-  ["{coro}", "[C]Cuando salga el [G]sol sobre el [Am]valle", "[F]volveremos a [C]cantar"].join(
-    "\n",
-  ),
+  ["[C]Cuando salga el [G]sol sobre el [Am]valle", "[F]volveremos a [C]cantar"].join("\n"),
 );
 
 export function DemoDeTransporte() {
@@ -41,7 +39,8 @@ export function DemoDeTransporte() {
   );
 
   return (
-    <div className="rounded-xl border border-pauta-fuerte bg-hoja p-4 shadow-hoja sm:p-6">
+    <div>
+      <div aria-hidden className="h-9" />
       <Cifrado cifrado={cifrado} />
 
       <div className="mt-6">

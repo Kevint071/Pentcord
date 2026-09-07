@@ -19,7 +19,7 @@ import { DemoDeTransporte } from "./DemoDeTransporte";
 export function Inicio() {
   return (
     <Contenedor>
-      <section className="border-t border-pauta pt-8 pb-10 sm:pt-10">
+      <section className="pt-8 pb-10 sm:pt-10">
         <h2 className="rotulo text-2xl text-tinta">Prueba el transporte</h2>
         <p className="mt-2 max-w-[58ch] text-sm leading-relaxed text-tinta-suave">
           Toca un tono y los acordes se reescriben al momento, con la ortografía
