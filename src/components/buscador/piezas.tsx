@@ -30,11 +30,11 @@ export function Portada({ children }: { children: ReactNode }) {
     <section className="relative flex items-center justify-center py-8 sm:min-h-[48svh] sm:py-10">
       <div
         aria-hidden="true"
-        className="pauta-pentagrama absolute inset-x-0 top-1/2 h-40 -translate-y-1/2 opacity-70 sm:h-48"
+        className="pauta-pentagrama pointer-events-none absolute inset-x-0 top-1/2 h-40 -translate-y-1/2 opacity-70 sm:h-48"
       />
       <div
         aria-hidden="true"
-        className="absolute left-1/2 top-1/2 size-104 -translate-x-1/2 -translate-y-1/2 rounded-full bg-acorde-suave opacity-40 blur-3xl sm:size-128"
+        className="pointer-events-none absolute left-1/2 top-1/2 size-104 -translate-x-1/2 -translate-y-1/2 rounded-full bg-acorde-suave opacity-40 blur-3xl sm:size-128"
       />
       <Contenedor>
         <div className="relative">
