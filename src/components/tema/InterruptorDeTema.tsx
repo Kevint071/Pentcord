@@ -33,7 +33,7 @@ const FORMAS: Record<Variante, string> = {
   boton:
     "grid size-9 place-items-center rounded-full border border-pauta text-tinta-suave transition-colors hover:border-pauta-fuerte hover:text-tinta",
   pestana:
-    "group fixed top-24 right-0 z-40 grid h-14 w-8 place-items-center text-tinta-suave drop-shadow-md transition-colors hover:text-tinta sm:top-28",
+    "group fixed right-0 z-40 grid h-14 w-8 place-items-center text-tinta-suave drop-shadow-md transition-colors hover:text-tinta top-28",
 };
 
 export function InterruptorDeTema({
