@@ -7,6 +7,7 @@ import { Aviso } from "@/components/ui/Aviso";
 import { Boton } from "@/components/ui/Boton";
 import { useSesion } from "@/lib/sesion/SesionProvider";
 import { mensajeDeError, pedirApi } from "@/lib/api/cliente";
+import { googleLogin } from "@/lib/login";
 
 type Modo = "entrar" | "crear";
 
@@ -135,7 +136,9 @@ export function PantallaDeLogin() {
               tabIndex={activo ? 0 : -1}
               onClick={() => cambiarModo(valor)}
               className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
-                activo ? "bg-tinta text-papel" : "text-tinta-suave hover:text-tinta"
+                activo
+                  ? "bg-tinta text-papel"
+                  : "text-tinta-suave hover:text-tinta"
               }`}
             >
               {etiqueta}
@@ -184,7 +187,9 @@ export function PantallaDeLogin() {
           error={erroresDeCampo.password}
         />
 
-        {errorApi ? <Aviso tono="alerta">{mensajeDeError(errorApi)}</Aviso> : null}
+        {errorApi ? (
+          <Aviso tono="alerta">{mensajeDeError(errorApi)}</Aviso>
+        ) : null}
 
         <Boton type="submit" disabled={enviando} className="mt-1 w-full">
           {enviando
@@ -194,6 +199,14 @@ export function PantallaDeLogin() {
             : modo === "entrar"
               ? "Entrar"
               : "Crear cuenta"}
+        </Boton>
+      </form>
+
+      <br></br>
+
+      <form action={googleLogin}>
+        <Boton type="submit" className="mt-1 w-full2">
+          Entrar con google
         </Boton>
       </form>
 

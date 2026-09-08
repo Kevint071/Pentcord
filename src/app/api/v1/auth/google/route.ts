@@ -27,42 +27,51 @@ async function getAvailableUsername(base: string, excludeId?: number) {
   }
 }
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  "http://localhost:3000/api/v1/auth/google",
+);
 
-export async function POST(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const { idToken } = await req.json();
+    const { searchParams } = new URL(request.url);
 
-    if (!idToken) {
+    const code = searchParams.get("code");
+
+    if (!code) {
       return NextResponse.json(
-        { message: "idToken es requerido" },
+        { error: "No se recibió el código de Google" },
         { status: 400 },
       );
     }
 
-    // 1. Validar el token con Google
-    let payload;
-    try {
-      const ticket = await client.verifyIdToken({
-        idToken,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-      payload = ticket.getPayload();
-    } catch (err) {
+    // 1. Intercambiar el code por tokens
+    const { tokens } = await googleClient.getToken(code);
+
+    if (!tokens.id_token) {
       return NextResponse.json(
-        { message: "Token de Google inválido" },
+        { error: "Google no devolvió un ID token" },
         { status: 401 },
       );
     }
+
+    // 2. Verificar el ID token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
 
     if (!payload || !payload.email) {
       return NextResponse.json(
-        { message: "No se pudo obtener la información del usuario" },
+        { error: "Token de Google inválido" },
         { status: 401 },
       );
     }
 
-    const { email, name, picture, sub: googleId, email_verified } = payload;
+    const { sub: googleId, email, name, picture, email_verified } = payload;
 
     if (!email_verified) {
       return NextResponse.json(
@@ -172,12 +181,8 @@ export async function POST(req: NextRequest) {
       maxAge: 60 * 60 * 24 * 7, // 7 días
     });
 
-    return NextResponse.json(
-      { message: "Sesión iniciada con éxito", user },
-      { status: 200 },
-    );
+    return NextResponse.redirect(new URL("/", request.url));
   } catch (error) {
-    console.error("Error en el login con Google:", error);
     return NextResponse.json(
       { message: "Error interno del servidor" },
       { status: 500 },
