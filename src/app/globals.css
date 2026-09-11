@@ -153,6 +153,24 @@
   text-transform: uppercase;
 }
 
+/* Entrada de un mensaje que aparece por algo que hizo quien usa la app (un
+ * error de validación, por ejemplo) — nunca decorativa en un elemento que ya
+ * estaba en pantalla. */
+@utility entra {
+  animation: entrada 0.18s ease-out;
+}
+
+@keyframes entrada {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Etiqueta al estilo de una directiva ChordPro: `{coro}`, `{verso}`. El
  * recurso estructural sale del propio formato del contenido, no es adorno. */
 @utility directiva {
