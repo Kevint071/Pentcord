@@ -66,11 +66,11 @@ const CURVA = "ease-[cubic-bezier(0.16,1,0.3,1)]";
 /**
  * Campo en píldora, como los demás controles redondeados de la app (botones,
  * el interruptor Entrar/Crear cuenta, el buscador): levantado del fondo con
- * `shadow-hoja` en reposo, con un vuelo sutil al pasar el cursor, y un halo de
- * azul acorde al enfocar — el mismo lenguaje del buscador, pero con más
- * presencia porque aquí es el único control de la pantalla. `icono` pone un
- * glifo a la izquierda (sobre, candado…); `type="password"` añade el ojo para
- * mostrar/ocultar a la derecha.
+ * `shadow-hoja` en reposo, con el borde resaltando al pasar el cursor, y un
+ * halo de azul acorde al enfocar — el mismo lenguaje del buscador, pero con
+ * más presencia porque aquí es el único control de la pantalla. `icono` pone
+ * un glifo a la izquierda (sobre, candado…); `type="password"` añade el ojo
+ * para mostrar/ocultar a la derecha.
  */
 export function CampoDeTexto({
   etiqueta,
@@ -94,7 +94,7 @@ export function CampoDeTexto({
         {etiqueta}
       </label>
       <div
-        className={`mt-1.5 flex items-center gap-2.5 rounded-full border bg-hoja-alta px-5 py-3 shadow-hoja transition-all duration-200 ${CURVA} hover:-translate-y-0.5 focus-within:translate-y-0 ${
+        className={`mt-1.5 flex items-center gap-2.5 rounded-full border bg-hoja-alta px-4 py-2.5 shadow-hoja transition-all duration-200 ${CURVA} ${
           error
             ? "border-alerta focus-within:shadow-[0_0_0_4px_var(--color-alerta-suave)]"
             : "border-pauta-fuerte hover:border-tinta-tenue focus-within:border-acorde focus-within:shadow-[0_0_0_4px_var(--color-acorde-suave)]"

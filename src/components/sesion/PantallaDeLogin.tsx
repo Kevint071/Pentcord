@@ -47,6 +47,16 @@ export function PantallaDeLogin() {
   const [modo, setModo] = useState<Modo>(
     parametros.get("modo") === "crear" ? "crear" : "entrar",
   );
+
+  // El encabezado sigue visible (y enlazando a "/login") aun estando ya en
+  // esta pantalla: al ser la misma ruta, Next.js reutiliza esta instancia en
+  // vez de remontarla, así que sin este efecto el `useState` de arriba se
+  // queda con el modo del primer montaje y el clic en "Registrarse" no hace
+  // nada visible.
+  const modoEnUrl = parametros.get("modo");
+  useEffect(() => {
+    setModo(modoEnUrl === "crear" ? "crear" : "entrar");
+  }, [modoEnUrl]);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -128,7 +138,7 @@ export function PantallaDeLogin() {
       <div
         role="radiogroup"
         aria-label="¿Ya tienes cuenta?"
-        className="relative mx-auto mt-6 grid w-full max-w-[15.5rem] grid-cols-2 rounded-full border border-pauta-fuerte bg-hoja p-1"
+        className="relative mx-auto mt-6 grid w-full max-w-62 grid-cols-2 rounded-full border border-pauta-fuerte bg-hoja p-1"
       >
         <span
           aria-hidden="true"
@@ -199,7 +209,12 @@ export function PantallaDeLogin() {
             <Aviso tono="alerta">{mensajeDeError(errorApi)}</Aviso>
           ) : null}
 
-          <Boton type="submit" disabled={enviando} className="mt-1 w-full">
+          <Boton
+            type="submit"
+            tamano="grande"
+            disabled={enviando}
+            className="mt-2 w-full"
+          >
             {enviando
               ? modo === "entrar"
                 ? "Entrando…"
@@ -240,7 +255,7 @@ export function PantallaDeLogin() {
 /** El logo de Google va a color siempre, sea cual sea el tema: es su marca. */
 function LogoDeGoogle() {
   return (
-    <svg viewBox="0 0 18 18" className="size-[18px] shrink-0" aria-hidden="true">
+    <svg viewBox="0 0 18 18" className="size-4.5 shrink-0" aria-hidden="true">
       <path
         fill="#4285F4"
         d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"

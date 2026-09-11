@@ -3,8 +3,13 @@ import type { ComponentProps, ReactNode } from "react";
 
 type Variante = "primario" | "secundario" | "discreto" | "peligro";
 
-/** `compacto` es para sitios con poco ancho, como el encabezado en un móvil. */
-type Tamano = "normal" | "compacto";
+/**
+ * `compacto` es para sitios con poco ancho, como el encabezado en un móvil.
+ * `grande` es para la única acción principal de una pantalla (enviar el
+ * formulario de login/registro): más alto que el resto para que gane la
+ * jerarquía frente a los campos y no se lea como una fila más de la pila.
+ */
+type Tamano = "normal" | "compacto" | "grande";
 
 const BASE =
   "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50";
@@ -12,6 +17,7 @@ const BASE =
 const TAMANOS: Record<Tamano, string> = {
   normal: "px-4 py-2 text-sm",
   compacto: "px-3 py-1.5 text-[0.8125rem]",
+  grande: "px-6 py-3.5 text-base",
 };
 
 const VARIANTES: Record<Variante, string> = {
