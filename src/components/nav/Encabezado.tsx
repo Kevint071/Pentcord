@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DESTINOS, esDestinoActivo } from "./destinos";
+import { BotonDeBuscar, BuscadorDeEncabezado } from "./BuscadorDeEncabezado";
 import { MenuDePerfil } from "@/components/nav/MenuDePerfil";
 import { BotonEnlace } from "@/components/ui/Boton";
 import { useSesion } from "@/lib/sesion/SesionProvider";
@@ -36,6 +38,10 @@ import { rutaDeLogin } from "@/lib/api/cliente";
 export function Encabezado() {
   const ruta = usePathname();
   const { estado } = useSesion();
+  const [buscadorAbierto, setBuscadorAbierto] = useState(false);
+  // En `/buscar` ya está el campo grande: repetirlo aquí sería dos buscadores
+  // a la vez en la misma pantalla.
+  const conBuscador = ruta !== "/buscar";
 
   return (
     <header className="sticky top-0 z-30 border-b border-pauta bg-papel/90 backdrop-blur-sm">
@@ -47,6 +53,13 @@ export function Encabezado() {
         >
           Pent<span className="text-acorde">Cord</span>
         </Link>
+
+        {conBuscador ? (
+          <BuscadorDeEncabezado
+            abierto={buscadorAbierto}
+            onCambiar={setBuscadorAbierto}
+          />
+        ) : null}
 
         {estado === "autenticado" ? (
           <nav
@@ -80,21 +93,34 @@ export function Encabezado() {
           className={`flex h-14 items-center gap-2 sm:gap-3 ${estado === "autenticado" ? "ml-auto md:ml-0" : "ml-auto"
             }`}
         >
+          {conBuscador ? (
+            <BotonDeBuscar
+              abierto={buscadorAbierto}
+              onAlternar={() => setBuscadorAbierto((abierto) => !abierto)}
+            />
+          ) : null}
+
           {estado === "anonimo" ? (
             <>
-              {/* Enlace escueto y un solo botón sólido: en 360 px caben los dos
-                  junto a la marca sin recortar ninguna de las dos palabras. */}
+              {/* En móvil, un solo botón sólido "Entrar": con dos junto a la
+                  marca iba todo apretado en 360 px. Lleva a /login, que ya
+                  trae el selector Entrar / Crear cuenta, así que no se pierde
+                  el registro. Desde `sm` vuelven el enlace escueto y el botón
+                  "Registrarse". El `aria-label` fija el nombre accesible en
+                  los dos anchos, aunque el texto visible cambie. */}
               <Link
                 href={rutaDeLogin(ruta)}
-                className="text-[0.8125rem] font-medium whitespace-nowrap text-tinta-suave transition-colors hover:text-tinta sm:text-sm"
+                aria-label="Iniciar sesión"
+                className="text-sm font-medium whitespace-nowrap text-tinta-suave transition-colors hover:text-tinta max-sm:rounded-full max-sm:bg-tinta max-sm:px-4 max-sm:py-2 max-sm:text-papel max-sm:hover:bg-tinta/85 max-sm:hover:text-papel"
               >
-                Iniciar sesión
+                <span className="sm:hidden">Entrar</span>
+                <span className="max-sm:hidden">Iniciar sesión</span>
               </Link>
               <BotonEnlace
                 href={`${rutaDeLogin(ruta)}&modo=crear`}
                 variante="primario"
                 tamano="compacto"
-                className="whitespace-nowrap"
+                className="whitespace-nowrap max-sm:hidden"
               >
                 Registrarse
               </BotonEnlace>

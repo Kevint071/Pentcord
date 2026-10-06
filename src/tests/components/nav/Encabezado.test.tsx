@@ -1,9 +1,11 @@
 import { expect, test, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { Encabezado } from "@/components/nav/Encabezado";
 
+const empujar = vi.hoisted(() => vi.fn());
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
+  useRouter: () => ({ push: empujar }),
 }));
 
 const usarSesion = vi.hoisted(() => vi.fn());
@@ -75,12 +77,42 @@ test("con sesión hay un solo riel con Buscar y Aportar, más el menú del avata
 
 // Sin la barra inferior, si estos dos accesos se ocultaran en móvil no quedaría
 // ninguna forma de entrar desde un teléfono.
-test("iniciar sesión y registrarse se ven también en móvil", () => {
+// En móvil solo queda "Entrar" (lleva a /login, que ya tiene el selector de
+// crear cuenta); "Registrarse" aparece desde `sm`.
+test("en móvil queda un solo acceso, 'Entrar', y 'Registrarse' se oculta", () => {
   usarSesion.mockReturnValue({ estado: "anonimo" });
   render(<Encabezado />);
 
-  const acciones = screen
-    .getByRole("link", { name: "Registrarse" })
-    .closest("div");
-  expect(acciones?.className).not.toMatch(/(^|\s)hidden(\s|$)/);
+  const entrar = screen.getByRole("link", { name: "Iniciar sesión" });
+  expect(entrar).toHaveTextContent("Entrar");
+  expect(entrar.closest("div")?.className).not.toMatch(/(^|\s)hidden(\s|$)/);
+  expect(entrar.className).not.toMatch(/(^|\s)hidden(\s|$)/);
+  expect(screen.getByRole("link", { name: "Registrarse" }).className).toMatch(
+    /max-sm:hidden/,
+  );
+});
+
+// El buscador del encabezado es un atajo a /buscar; en móvil se despliega con
+// una lupa (aria-expanded) y desde md es un campo fijo.
+test("el encabezado ofrece un buscador y una lupa que lo despliega en móvil", () => {
+  usarSesion.mockReturnValue({ estado: "anonimo" });
+  render(<Encabezado />);
+
+  expect(screen.getByRole("search", { name: "Buscar canciones" })).toBeInTheDocument();
+  expect(screen.getByRole("searchbox", { name: "Buscar por título o artista" })).toBeInTheDocument();
+
+  const lupa = screen.getByRole("button", { name: "Buscar" });
+  expect(lupa).toHaveAttribute("aria-expanded", "false");
+  fireEvent.click(lupa);
+  expect(lupa).toHaveAttribute("aria-expanded", "true");
+});
+
+test("enviar el buscador del encabezado lleva a /buscar con el término", () => {
+  usarSesion.mockReturnValue({ estado: "anonimo" });
+  render(<Encabezado />);
+
+  fireEvent.change(screen.getByRole("searchbox"), { target: { value: " valle & mar " } });
+  fireEvent.submit(screen.getByRole("search"));
+
+  expect(empujar).toHaveBeenCalledWith("/buscar?q=valle%20%26%20mar");
 });
