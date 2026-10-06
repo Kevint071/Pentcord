@@ -133,9 +133,9 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
+    *:not([data-suave], [data-suave] *),
+    *:not([data-suave], [data-suave] *)::before,
+    *:not([data-suave], [data-suave] *)::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
@@ -208,6 +208,289 @@
     black 88%,
     transparent
   );
+}
+
+/* --- Inicio: la hoja que se reescribe --------------------------------------
+ * Todo lo que se mueve en la cabecera del inicio. Curvas de salida rápidas
+ * (`cubic-bezier(.22,1,.36,1)`): las cosas llegan y se asientan, como un trazo
+ * de bolígrafo, en vez de rebotar. Con movimiento reducido solo quedan los
+ * fundidos y el trazo (ver el bloque `prefers-reduced-motion` al final). */
+
+/* Las cinco pautas salen de detrás de la hoja hacia el borde de la pantalla y se
+ * trazan de izquierda a derecha, una tras otra. Se desvanecen por la izquierda
+ * para no llegar nunca al título: cruzar las letras se leía como ruido. El
+ * `display` y la dirección van en el marcado (utilidades de Tailwind): una regla
+ * mía sin capa aquí pisaría su `hidden` y las pautas saldrían también en móvil. */
+.hero-pauta {
+  padding-block: 0.5rem;
+  mask-image: linear-gradient(to right, transparent, black 28%, black 100%);
+}
+
+.hero-pauta-linea {
+  display: block;
+  height: 1px;
+  background: var(--color-pauta);
+  transform-origin: left center;
+  animation: hero-traza 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i) * 90ms);
+}
+
+@keyframes hero-traza {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* El título se apunta palabra a palabra. Solo opacidad y desplazamiento, sin
+ * `overflow: hidden`: una máscara recortaría la tilde de la «Ú». */
+.hero-palabra {
+  animation: hero-palabra 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(0.15s + var(--i) * 75ms);
+}
+
+@keyframes hero-palabra {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em) rotate(1.5deg);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+/* El círculo a boli sobre «tú»: se dibuja cuando el título ya está escrito. */
+.hero-circulo {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: hero-circulo 0.9s cubic-bezier(0.65, 0, 0.35, 1) 1.05s forwards;
+}
+
+@keyframes hero-circulo {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Botones y aviso entran detrás del título (`--t` = retraso de cada uno). */
+.hero-entra {
+  animation: hero-entra 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--t, 0s);
+}
+
+@keyframes hero-entra {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Secciones bajo la cabecera: aparecen al entrar en pantalla. Solo donde el
+ * navegador sabe animar por scroll (`animation-timeline`); en el resto se ven
+ * ya puestas, sin perder nada. */
+@supports (animation-timeline: view()) {
+  .revela {
+    animation: revela linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 55%;
+  }
+}
+
+@keyframes revela {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* La hoja de cifrado entra desde la derecha y luego flota, apenas ladeada. */
+.hero-hoja-entrada {
+  animation: hero-hoja-entrada 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+}
+
+@keyframes hero-hoja-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero-hoja {
+  transform: rotate(-1.4deg);
+  animation: hero-flota 7s ease-in-out 1.4s infinite;
+}
+
+@keyframes hero-flota {
+  0%,
+  100% {
+    transform: rotate(-1.4deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-0.6deg) translateY(-7px);
+  }
+}
+
+/* Al cambiar de tono, cada acorde se reescribe con un pequeño retraso en
+ * cascada y pasa de tinta oscura a azul de bolígrafo, como la tinta fresca. */
+.hero-cifrado .cifrado-acorde {
+  animation: hero-acorde 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero-cifrado .cifrado-segmento:nth-child(2) .cifrado-acorde {
+  animation-delay: 90ms;
+}
+.hero-cifrado .cifrado-segmento:nth-child(3) .cifrado-acorde {
+  animation-delay: 180ms;
+}
+.hero-cifrado .cifrado-segmento:nth-child(4) .cifrado-acorde {
+  animation-delay: 270ms;
+}
+.hero-cifrado .cifrado-segmento:nth-child(5) .cifrado-acorde {
+  animation-delay: 360ms;
+}
+
+@keyframes hero-acorde {
+  from {
+    opacity: 0;
+    transform: translateY(0.7em) rotate(-5deg);
+    filter: blur(3px);
+    color: var(--color-tinta);
+  }
+  60% {
+    color: var(--color-tinta);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+    color: var(--color-acorde);
+  }
+}
+
+/* Demo de escritura (`Funciones`): cada acorde nuevo aparece como escrito a
+ * boli, sin cascada porque ya van entrando uno a uno al ritmo de la tecla. */
+.escribe-cifrado .cifrado-acorde {
+  animation: hero-acorde 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* El cursor de lo que se está escribiendo. */
+.escribe-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  margin-inline-start: 1px;
+  vertical-align: text-bottom;
+  background: var(--color-tinta);
+  animation: escribe-cursor 1s steps(1) infinite;
+}
+
+@keyframes escribe-cursor {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* La letra del tono en la cabecera de la hoja rueda al cambiar. */
+.hero-tono {
+  animation: hero-tono 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes hero-tono {
+  from {
+    opacity: 0;
+    transform: translateY(-0.8em) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Acordes fantasma del fondo: derivan despacio, cada uno a su ritmo (`--d`). */
+.hero-fantasma {
+  opacity: 0.22;
+  animation: hero-fantasma var(--d, 10s) ease-in-out infinite;
+}
+
+@keyframes hero-fantasma {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-3deg);
+    opacity: 0.14;
+  }
+  50% {
+    transform: translate(10px, -14px) rotate(3deg);
+    opacity: 0.32;
+  }
+}
+
+/* Con «reducir animaciones» (Windows lo activa a menudo sin que lo sepa quien lo
+ * usa: escritorios remotos, ahorro de batería) la cabecera no se queda muerta,
+ * pero deja de desplazar, inclinar, desenfocar y flotar —lo que de verdad
+ * marea— y se queda con lo que no se mueve de sitio: fundidos, el trazo del
+ * bolígrafo y el cambio de color. Conservan retrasos y duración de las reglas de
+ * arriba (solo se cambia `animation-name`). El resto de la app sigue con la
+ * regla global de `@layer base`, de la que `[data-suave]` queda exento. */
+@keyframes hero-fundido {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hero-acorde-suave {
+  from {
+    opacity: 0;
+    color: var(--color-tinta);
+  }
+  60% {
+    color: var(--color-tinta);
+  }
+  to {
+    opacity: 1;
+    color: var(--color-acorde);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-pauta-linea,
+  .hero-palabra,
+  .hero-entra,
+  .hero-hoja-entrada,
+  .hero-tono,
+  .revela {
+    animation-name: hero-fundido;
+  }
+
+  .hero-cifrado .cifrado-acorde,
+  .escribe-cifrado .cifrado-acorde {
+    animation-name: hero-acorde-suave;
+  }
+
+  /* Sin flotar: la hoja se queda quieta, ya ladeada. */
+  .hero-hoja,
+  .hero-fantasma {
+    animation: none;
+  }
 }
 
 /* Salta al contenido: visible solo con teclado. */

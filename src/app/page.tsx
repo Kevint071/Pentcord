@@ -1,29 +1,26 @@
-import { Suspense } from "react";
-import { Buscador } from "@/components/buscador/Buscador";
-import { Portada, MarcoDeBusqueda } from "@/components/buscador/piezas";
+import { redirect } from "next/navigation";
+import { Inicio } from "@/components/inicio/Inicio";
 
 /**
- * D.1 · Inicio.
+ * Inicio. Hasta el 2026-09-11 esta ruta era el buscador; desde entonces el
+ * buscador vive en `/buscar` y aquí se elige entre buscar y aportar.
  *
- * El buscador lee el término y la página de la URL con `useSearchParams`, así
- * que va detrás de un límite de Suspense. La espera no es un "cargando": es
- * la misma portada, sin el campo enfocable todavía, así que quien entra ve la
- * pantalla real desde el primer pintado y no hay salto al hidratar.
+ * Las búsquedas de antes se compartían como `/?q=…`, así que una URL con
+ * parámetros de búsqueda se reenvía a su sitio nuevo en vez de aterrizar en
+ * una portada que ignora lo que se pedía.
  */
-function PortadaEnEspera() {
-  return (
-    <Portada>
-      <MarcoDeBusqueda>
-        <span className="text-lg text-tinta-tenue">Título o artista</span>
-      </MarcoDeBusqueda>
-    </Portada>
-  );
-}
+export default async function Home(props: PageProps<"/">) {
+  const parametros = await props.searchParams;
 
-export default function Home() {
-  return (
-    <Suspense fallback={<PortadaEnEspera />}>
-      <Buscador />
-    </Suspense>
-  );
+  const busqueda = new URLSearchParams();
+  for (const clave of ["q", "autor", "page"] as const) {
+    const valor = parametros[clave];
+    const texto = Array.isArray(valor) ? valor[0] : valor;
+    if (texto) busqueda.set(clave, texto);
+  }
+
+  const cadena = busqueda.toString();
+  if (cadena) redirect(`/buscar?${cadena}`);
+
+  return <Inicio />;
 }
