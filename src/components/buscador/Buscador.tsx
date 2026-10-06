@@ -11,10 +11,10 @@ import {
   MarcoDeBusqueda,
   FilaDeCancion,
 } from "./piezas";
-import { Inicio } from "@/components/inicio/Inicio";
 
 /**
- * D.1 · Buscador de canciones (HU-02).
+ * D.1 · Buscador de canciones (HU-02). Vive en `/buscar` desde el 2026-09-11;
+ * antes era la pantalla de inicio.
  *
  * El término y la página viven en la URL, así que el botón "atrás" del
  * navegador funciona, un resultado se puede compartir, y al volver de una
@@ -80,7 +80,9 @@ export function Buscador() {
       if (p > 1) query.set("page", String(p));
 
       const cadena = query.toString();
-      router.replace(cadena ? `/?${cadena}` : "/", { scroll: false });
+      router.replace(cadena ? `/buscar?${cadena}` : "/buscar", {
+        scroll: false,
+      });
     },
     [router, termino, autor],
   );
@@ -101,9 +103,10 @@ export function Buscador() {
   // Solo la última búsqueda pintada gana, aunque llegue antes una anterior.
   const peticion = useRef(0);
 
+  // Sin término no hay excepción: se pide el catálogo entero, alfabético y
+  // paginado. Buscar sin escribir nada es hojear, que es lo que se espera de
+  // un buscador — y así la pantalla no abre vacía.
   useEffect(() => {
-    if (!hayBusqueda) return;
-
     const actual = ++peticion.current;
 
     pedirApi<RespuestaDeBusqueda>("/canciones", {
@@ -122,18 +125,18 @@ export function Buscador() {
           setResultado({ clave, error: mensajeDeError(causa) });
         }
       });
-  }, [clave, termino, autor, pagina, hayBusqueda]);
+  }, [clave, termino, autor, pagina]);
 
   // Lo recibido solo se pinta si corresponde a la búsqueda actual: así no se
   // enseñan por un instante los resultados de la búsqueda anterior.
   const vigente = resultado?.clave === clave ? resultado : null;
-  const cargando = hayBusqueda && vigente === null;
+  const cargando = vigente === null;
   const respuesta = vigente?.datos ?? null;
   const sugerencias = respuesta?.autoresSugeridos ?? [];
 
   return (
     <>
-      <Portada>
+      <Portada titulo="Busca una canción">
         <form
           role="search"
           onSubmit={(evento) => {
@@ -186,16 +189,16 @@ export function Buscador() {
         ) : null}
       </Portada>
 
-      {hayBusqueda ? (
-        <Contenedor>
-          <section aria-live="polite" aria-busy={cargando} className="pb-10">
-            {vigente?.error ? (
-              <Aviso tono="alerta">{vigente.error}</Aviso>
-            ) : cargando ? (
-              <p className="py-10 text-center text-sm text-tinta-suave">
-                Buscando…
-              </p>
-            ) : respuesta && respuesta.data.length === 0 ? (
+      <Contenedor>
+        <section aria-live="polite" aria-busy={cargando} className="pb-10">
+          {vigente?.error ? (
+            <Aviso tono="alerta">{vigente.error}</Aviso>
+          ) : cargando ? (
+            <p className="py-10 text-center text-sm text-tinta-suave">
+              {hayBusqueda ? "Buscando…" : "Abriendo el catálogo…"}
+            </p>
+          ) : respuesta && respuesta.data.length === 0 ? (
+            hayBusqueda ? (
               <EstadoVacio
                 titulo="Sin resultados"
                 descripcion={
@@ -204,31 +207,35 @@ export function Buscador() {
                     : "Prueba con otra palabra del título o con el nombre del artista."
                 }
               />
-            ) : respuesta ? (
-              <>
-                <p className="mb-1 font-mono text-[0.8125rem] text-tinta-suave">
-                  {respuesta.pagination.total}{" "}
-                  {respuesta.pagination.total === 1 ? "canción" : "canciones"}
-                </p>
+            ) : (
+              <EstadoVacio
+                titulo="El catálogo está vacío"
+                descripcion="Todavía no hay ninguna canción aportada. Escribe la primera y queda para todos."
+              />
+            )
+          ) : respuesta ? (
+            <>
+              <p className="mb-1 font-mono text-[0.8125rem] text-tinta-suave">
+                {hayBusqueda ? null : "Todo el catálogo · "}
+                {respuesta.pagination.total}{" "}
+                {respuesta.pagination.total === 1 ? "canción" : "canciones"}
+              </p>
 
-                <ul className="divide-y divide-pauta">
-                  {respuesta.data.map((cancion) => (
-                    <FilaDeCancion key={cancion.id} {...cancion} />
-                  ))}
-                </ul>
+              <ul className="divide-y divide-pauta">
+                {respuesta.data.map((cancion) => (
+                  <FilaDeCancion key={cancion.id} {...cancion} />
+                ))}
+              </ul>
 
-                <Paginacion
-                  pagina={respuesta.pagination.page}
-                  total={respuesta.pagination.totalPages}
-                  onIr={(destino) => irA({ page: destino })}
-                />
-              </>
-            ) : null}
-          </section>
-        </Contenedor>
-      ) : (
-        <Inicio />
-      )}
+              <Paginacion
+                pagina={respuesta.pagination.page}
+                total={respuesta.pagination.totalPages}
+                onIr={(destino) => irA({ page: destino })}
+              />
+            </>
+          ) : null}
+        </section>
+      </Contenedor>
     </>
   );
 }

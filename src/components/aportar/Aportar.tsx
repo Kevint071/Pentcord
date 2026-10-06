@@ -310,7 +310,7 @@ export function Aportar({ cancionId }: { cancionId: number | null }) {
   return (
     <Contenedor>
       <Link
-        href={destino.tipo === "version" ? `/canciones/${destino.cancion.id}` : "/"}
+        href={destino.tipo === "version" ? `/canciones/${destino.cancion.id}` : "/buscar"}
         className="inline-flex items-center gap-1.5 text-sm text-tinta-suave transition-colors hover:text-tinta"
       >
         <span aria-hidden="true">←</span>{" "}

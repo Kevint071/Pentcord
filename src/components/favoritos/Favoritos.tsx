@@ -88,7 +88,7 @@ export function Favoritos() {
                 <EstadoVacio
                   titulo="Aún no hay nada aquí"
                   descripcion="Cuando guardes una versión, aparecerá en esta lista para que la encuentres sin buscarla de nuevo."
-                  accion={<BotonEnlace href="/">Buscar canciones</BotonEnlace>}
+                  accion={<BotonEnlace href="/buscar">Buscar canciones</BotonEnlace>}
                 />
               );
             }

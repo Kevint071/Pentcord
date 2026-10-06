@@ -21,11 +21,19 @@ export function Contenedor({ children }: { children: ReactNode }) {
 }
 
 /**
- * La portada entera: el pentagrama en blanco antes de escribir nada. Nada de
- * titular ni de demo — el buscador es lo primero que se ve al entrar, posado
- * sobre la pauta como el título que se apunta arriba de una hoja de cifrado.
+ * El encabezamiento de una pantalla de primer nivel: el pentagrama en blanco
+ * con el rótulo posado encima, como el título que se apunta arriba de una hoja
+ * de cifrado. Lo usan las dos puertas de la app — el inicio (`/`) con sus dos
+ * acciones y la búsqueda (`/buscar`) con su campo—, así que el rótulo viene de
+ * fuera: el armazón es el mismo, lo que se posa encima no.
  */
-export function Portada({ children }: { children: ReactNode }) {
+export function Portada({
+  titulo,
+  children,
+}: {
+  titulo: string;
+  children: ReactNode;
+}) {
   return (
     <section className="relative flex items-center justify-center py-8 sm:min-h-[48svh] sm:py-10">
       <div
@@ -38,8 +46,8 @@ export function Portada({ children }: { children: ReactNode }) {
       />
       <Contenedor>
         <div className="relative">
-          <h1 className="rotulo text-center text-[clamp(1.75rem,6vw,2.5rem)] text-tinta">
-            Busca una canción
+          <h1 className="rotulo mx-auto max-w-[22ch] text-center text-[clamp(1.75rem,6vw,2.5rem)] text-balance text-tinta">
+            {titulo}
           </h1>
           <div className="mt-6">{children}</div>
         </div>

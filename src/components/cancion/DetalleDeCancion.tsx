@@ -80,7 +80,7 @@ export function DetalleDeCancion({ id }: { id: string }) {
         <EstadoVacio
           titulo="Esta canción no está"
           descripcion="Puede que se haya retirado del catálogo o que el enlace esté mal."
-          accion={<BotonEnlace href="/">Volver a buscar</BotonEnlace>}
+          accion={<BotonEnlace href="/buscar">Volver a buscar</BotonEnlace>}
         />
       </Contenedor>
     );
@@ -105,7 +105,7 @@ export function DetalleDeCancion({ id }: { id: string }) {
   return (
     <Contenedor>
       <Link
-        href="/"
+        href="/buscar"
         className="inline-flex items-center gap-1.5 text-sm text-tinta-suave transition-colors hover:text-tinta"
       >
         <span aria-hidden="true">←</span> Buscar

@@ -93,7 +93,7 @@ export function Visor({ versionId }: { versionId: string }) {
         <EstadoVacio
           titulo="Esta versión no está"
           descripcion="Puede que se haya retirado del catálogo o que el enlace esté mal."
-          accion={<BotonEnlace href="/">Volver a buscar</BotonEnlace>}
+          accion={<BotonEnlace href="/buscar">Volver a buscar</BotonEnlace>}
         />
       </Contenedor>
     );
@@ -123,7 +123,7 @@ export function Visor({ versionId }: { versionId: string }) {
     <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
       <div className="pt-6 sm:pt-10">
         <Link
-          href="/"
+          href="/buscar"
           className="inline-flex items-center gap-1.5 text-sm text-tinta-suave transition-colors hover:text-tinta"
         >
           <span aria-hidden="true">←</span> Buscar

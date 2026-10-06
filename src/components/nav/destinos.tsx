@@ -17,16 +17,18 @@ export type Destino = {
 };
 
 export const DESTINOS: Destino[] = [
-  { href: "/", etiqueta: "Buscar", exigeSesion: false, icono: IconoBuscar },
+  { href: "/buscar", etiqueta: "Buscar", exigeSesion: false, icono: IconoBuscar },
   { href: "/aportar", etiqueta: "Aportar", exigeSesion: true, icono: IconoAportar },
 ];
 
 /** El destino activo es el de la ruta más específica que coincide. */
 export function esDestinoActivo(href: string, ruta: string) {
-  if (href === "/") {
-    // Buscar también manda mientras se navega el catálogo público.
+  if (href === "/buscar") {
+    // Buscar también manda mientras se navega el catálogo público. El inicio
+    // (`/`) queda fuera a propósito: desde el 2026-09-11 es una pantalla
+    // propia, no la de buscar, y no debe subrayar ninguna pestaña del riel.
     return (
-      ruta === "/" ||
+      ruta === "/buscar" ||
       ruta.startsWith("/canciones") ||
       ruta.startsWith("/versiones")
     );
