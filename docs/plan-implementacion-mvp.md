@@ -125,7 +125,7 @@
 - [ ] Helper central `requireAuth` / `requireAdmin`. Hoy la validación de rol está **copiada literalmente en 3 endpoints**.
 - [x] **`GET /api/v1/auth/me`** — existe desde el 2026-08-23 (`src/app/api/v1/auth/me/route.ts`) y ya lo consume C.3. Proyección segura: nunca `password` ni `googleId`. **Pendiente de B.0:** responde el usuario plano (`{ id, username, ... }`, no `{ data }`) y sus errores como `{ message: <objeto de error, no texto> }` en vez del catálogo — un bug propio (pasa el objeto `error` completo de `getUserFromToken`, no `error.message`). El frontend ya compensa ambas cosas (ver "Cómo quedó C.3", más abajo).
 - [ ] Bloquear el login de una cuenta con `eliminadoEn` (RN-018).
-- [ ] **`POST /api/v1/auth/logout`** — no existe ninguna ruta que pueda borrar la cookie httpOnly desde el cliente, y E.4 ("cerrar sesión") la necesita. Se había agregado el 2026-08-23 pero se revirtió a pedido: el backend ya no lo toca este frontend. Mientras tanto, "Cerrar sesión" en Perfil solo limpia el estado local (`SesionProvider.cerrarSesion`); la cookie sigue siendo válida hasta que expire (15 min). Detalle en `docs/pendientes-backend-y-frontend.md`.
+- [x] **`DELETE /api/v1/auth/logout`** — la persona de backend la agregó el 2026-08-27 (`src/app/api/v1/auth/logout/route.ts`, commit `5ccdf2a`), después de que este documento la diera por revertida el 2026-08-23. Nadie actualizó este punto ni conectó el frontend hasta el 2026-09-06: `SesionProvider.cerrarSesion` llama ahora a `DELETE /auth/logout` (best effort — si falla, igual limpia el estado local) antes de navegar. Detalle en `docs/pendientes-backend-y-frontend.md`.
 
 ### B.3 · Reglas de negocio no enforced
 
@@ -230,7 +230,7 @@ Ninguno de los tres toca reglas de negocio nuevas: son huecos que ya estaban ano
 | C.4 | `pedirApi` envía la cookie del mismo origen y normaliza el error al catálogo de `src/lib/errors.ts`. Importa los tipos con `import type` porque `errors.ts` arrastra `next/server`, que no puede entrar en el bundle del navegador. `rutaDeLogin` codifica el contexto y `mensajeDeCampo` saca el mensaje en línea de un `VALIDATION_ERROR`. | `src/lib/api/cliente.ts` |
 | D.1 | Buscador con el término, el artista y la página en la URL (atrás/adelante funcionan y un resultado se puede compartir), rebote de 350 ms, y guarda contra respuestas fuera de orden. Estado vacío neutro. La portada se prerrenderiza entera: la espera de Suspense es la misma pantalla, no un "cargando". | `src/app/page.tsx`, `src/components/buscador/*` |
 | D.2 | Lista de versiones con el tono como dato principal, etiqueta de estado solo en las propias, y estados separados para "no existe" y "sin versiones". | `src/app/canciones/[id]/page.tsx`, `src/components/cancion/DetalleDeCancion.tsx` |
-| D.3 | Pantalla completa: selector de tono con forma de octava de piano (las flechas se mueven de semitono en semitono, `Inicio` vuelve al original, tabulación itinerante), conmutador notas/grados, aviso de acordes no reconocidos y render del cifrado. **Funcionó sobre datos de ejemplo hasta el 2026-08-24**; ver "Cómo quedó D.3" abajo. | `src/app/versiones/[id]/page.tsx`, `src/components/visor/*` |
+| D.3 | Pantalla completa: selector de tono en tira cromática (los 12 tonos en fila, las flechas se mueven de semitono en semitono, `Inicio` vuelve al original, tabulación itinerante), conmutador notas/grados, aviso de acordes no reconocidos y render del cifrado. **Funcionó sobre datos de ejemplo hasta el 2026-08-24**; ver "Cómo quedó D.3" abajo. | `src/app/versiones/[id]/page.tsx`, `src/components/visor/*` |
 
 **Verificado (2026-08-22, C y D sobre la maqueta):** `npm run build` ✅ (20 rutas: 14 de API + 6 de página), `npm run test:run` ✅ (43 pruebas, 6 archivos), `npm run lint` ✅ (0 errores; siguen los 12 avisos preexistentes de variables sin usar en los route handlers). Contraste comprobado número a número: **todos** los pares de texto y fondo pasan 4.5:1 en claro y en oscuro.
 
@@ -242,6 +242,31 @@ Estados nuevos que la pantalla no tenía en la maqueta: "cargando" mientras lleg
 
 **Verificado:** `npm run test:run` ✅ (204 pruebas, 20 archivos — suma `src/tests/components/visor/Visor.test.tsx`, nuevo, con el dominio real sin mockear), `npm run build` ✅ (mismas 20 rutas), `npm run lint` ✅ (0 errores; los mismos avisos preexistentes de antes, ninguno nuevo).
 
+### El selector de tono deja de ser un piano (2026-09-05)
+
+`SelectorDeTono` era una octava de piano: siete teclas blancas y cinco negras. Se ha sustituido por una **tira cromática** — los doce tonos en una fila de celdas iguales, en orden de semitono. El motivo es de producto, no estético: PentCord lo usan guitarras, bajos y voces, no solo teclados, y el control no debe hablar el idioma de un instrumento concreto.
+
+Efecto lateral que sí es una mejora: el orden en pantalla pasa a coincidir con el de las flechas. En el piano, a la derecha de C se veía D pero `→` llevaba a Db; ahora el ojo y el teclado van al mismo sitio. Se quitó también la tabla `CROMATICA` local, que duplicaba `TONOS` del dominio.
+
+Lo que **no** cambia: la API del componente (mismas props, mismo `etiqueta`, mismo `tonoOriginal: null` de E.3), el punto que marca el tono original (RN-002), `Inicio` para volver a casa y la tabulación itinerante. Por eso las nueve pruebas de `SelectorDeTono.test.tsx` pasaron sin tocar ninguna aserción; solo se reescribieron los títulos que hablaban de "teclas". Los dos consumidores (`Visor.tsx`, `Aportar.tsx`) no se tocaron.
+
+### Portada con landing y encabezado según sesión (2026-09-05)
+
+Pedido explícito de diseño (no de una `HU-xx`/`RN-xxx` del enunciado): la portada no explicaba la app antes de exponer el buscador, y el encabezado enseñaba los cuatro destinos aunque no hubiera sesión, cuando tres de los cuatro (Favoritos, Aportar, Perfil) solo llevan al login en ese caso.
+
+| Qué se hizo | Detalle | Archivos |
+| --- | --- | --- |
+| `LandingHero` sobre el buscador | Titular en tres frases que **es** el flujo de 3 clics ya documentado (buscar → abrir → cambiar el tono), no una frase de marketing aparte. Al lado, `DemoDeTransporte`: reutiliza `SelectorDeTono` y el motor real (`parsearAcorde` / `transportarAcorde` / `nombrarAcorde`) sobre un espécimen fijo — tocar un tono transporta de verdad, no es una animación de mentira. Debajo, tres pasos (Buscar / Abrir / Cambiar el tono) que son la misma secuencia, no una lista genérica. | `src/components/inicio/LandingHero.tsx`, `src/components/inicio/DemoDeTransporte.tsx`, `src/app/page.tsx` |
+| Encabezado según sesión | Con sesión, el riel de siempre (Buscar/Favoritos/Aportar/Perfil) sin cambios. Sin sesión, "Iniciar sesión" y "Registrarse" — los tres destinos que exigían cuenta ya redirigían al login igual, así que no se pierde ningún camino real. Mientras `estado === "cargando"` no se enseña ninguno de los dos, para no prometer un estado que puede no ser cierto un instante después (mismo criterio que `ExigeSesion`). `Registrarse` enlaza a `/login?modo=crear`, que ahora sí preselecciona "Crear cuenta" en `PantallaDeLogin`. | `src/components/nav/Encabezado.tsx`, `src/components/sesion/PantallaDeLogin.tsx` |
+
+**Verificado:** `npm run test:run` ✅ (208 pruebas, 21 archivos — suma `src/tests/components/nav/Encabezado.test.tsx` y dos pruebas nuevas en `src/tests/app/page.test.tsx`; el único fallo de la suite es preexistente y de backend — `versiones/route.test.ts`, sin tocar), `npx tsc --noEmit` ✅, `npm run build` ✅ (mismas rutas), `npm run lint` ✅ (0 errores, mismos avisos preexistentes). Probado a mano en el navegador (Playwright), claro y oscuro, escritorio y móvil (390px): la demo transporta de verdad (C→D da D/A/Bm), y `Iniciar sesión`/`Registrarse` navegan a `/login` con el modo correcto.
+
+**Decisiones y desviaciones:**
+
+1. **El buscador pierde su encabezado h1 y su espécimen estático (`Muestra`).** El h1 "Cámbiala de tono." se mudó al `LandingHero`; la sección de resultados ahora abre con un h2 ("Busca una canción") para no duplicar el titular. `Muestra` (la línea de ejemplo estática) se borró: `DemoDeTransporte` hace ese trabajo mejor, en vivo, con el mismo espécimen (`C G Am` sobre "Cuando salga el sol sobre el valle") — por eso las pruebas viejas de `page.test.tsx` que buscaban ese texto siguieron pasando sin tocar la aserción, solo cambió de dónde sale.
+2. **Barra inferior de móvil, sin cambios.** Sigue mostrando los cuatro destinos con o sin sesión, tal cual pide Fase 7 §1 — este cambio es solo del riel de escritorio del encabezado, que es la parte que literalmente decía "todas esas opciones". En móvil el encabezado nunca mostró ese riel (ya era `hidden md:block`), así que no hay nada que reemplazar ahí.
+3. **`npm install` fue necesario para poder verificar `npm run build`.** `google-auth-library` estaba en `package.json`/lockfile pero no en `node_modules` (desfase de instalación de una sesión anterior, ajeno a este cambio); sin sincronizarlo, `next build` fallaba por un módulo no encontrado antes de llegar a compilar nada de esta portada. Solo se corrió `npm install`, sin tocar el código del backend.
+
 **Desviaciones y deuda que dejan estos bloques:**
 
 1. ~~**D.3 es una maqueta.**~~ **Resuelto el 2026-08-24** — ver "Cómo quedó D.3" arriba.
@@ -249,8 +274,129 @@ Estados nuevos que la pantalla no tenía en la maqueta: "cargando" mientras lleg
 3. ~~El filtro de visibilidad de D.2 no arregla RN-015 del todo.~~ **Resuelto el 2026-08-23** — ver B.3: nuevo endpoint `GET /canciones/{id}/versiones` con el filtro real en el servidor; D.2 ya no filtra en el cliente.
 4. **B.0 sigue pendiente y el cliente lo compensa.** `pedirApi` deduce el código a partir del status para las dos formas heredadas de error (`{ message }` en `auth/*`, `{ error: "texto" }` en el resto). Ese código de compatibilidad se puede borrar en cuanto los 12 route handlers usen `errorResponse()`.
 5. ~~**Pantallas de relleno, para que la barra fija tenga a dónde llevar.**~~ Ya no queda ninguna: `/favoritos` y `/perfil` dejaron de serlo con E.2 y E.4, y `/aportar` con E.3 (todas el 2026-08-23). `src/components/ui/PantallaPendiente.tsx` se quedó sin usar: bórralo cuando esté claro que no hace falta para E.5. `/login` ya conserva el parámetro `volverA` (la parte que sí es del Bloque C); el formulario es E.1.
-6. **Aviso del build:** `next/font` no encuentra métricas de sustitución para Big Shoulders y no genera una fuente de respaldo ajustada. Hay pila de respaldo declarada (`Arial Narrow`, `system-ui`), pero puede haber un pequeño salto de maquetación en los rótulos mientras carga la fuente.
+6. ~~**Aviso del build:** `next/font` no encuentra métricas de sustitución para Big Shoulders y no genera una fuente de respaldo ajustada.~~ **Resuelto el 2026-09-05** — la familia "Big Shoulders" de Google Fonts se fusionó en una sola fuente variable (eje `opsz`), y la base de métricas que trae Next (`capsize-font-metrics.json`) solo tiene entradas para los nombres viejos separados (`bigShouldersDisplay`, `bigShouldersText`, etc.), no para el nombre fusionado; por eso ninguna variante de Big Shoulders puede generar fuente de respaldo ajustada hoy. Se cambió el rótulo a **Oswald** (misma voz condensada, mismos pesos 600/700), que sí tiene métricas registradas. `src/app/layout.tsx` y la pila de respaldo en `globals.css` (`--font-rotulo`) no necesitaron más cambios.
 7. **Los 3 clics se cumplen:** buscar → tocar la canción (1) → tocar la versión (2) → tocar el tono (3).
+
+### La portada vuelve a ser solo el buscador (2026-09-05)
+
+Pedido explícito de diseño, en la misma sesión que el cambio anterior: `LandingHero` volvía a poner algo delante del buscador — justo lo que ese cambio decía resolver. Se revierte el enfoque: nada explica la app antes de dejarla usar. El buscador **es** la portada.
+
+Se borran `src/components/inicio/LandingHero.tsx` y `DemoDeTransporte.tsx` enteros (sin reemplazo: no queda ningún resumen del flujo de 3 clics en la portada). En su lugar, `piezas.tsx` gana `Portada`, que envuelve el propio formulario de búsqueda: la etiqueta `{buscar}`, un `h1` moderado ("Busca una canción", ya no la frase de marketing "Cámbiala de tono") y el campo, centrados en el alto libre bajo el encabezado (`min-h-[56svh]`/`62svh`) para que el buscador sea lo primero que se ve al entrar, sin necesidad de bajar. Detrás, de fondo: un pentagrama de cinco líneas fijas (nueva utilidad `pauta-pentagrama` en `globals.css`, con el propio token `--color-pauta` — la pauta de una hoja de cifrado en blanco) y un resplandor azul-tinta (`bg-acorde-suave` desenfocado) centrado tras el campo, como si el buscador fuera el título que se apunta arriba de la primera pauta. Es la única licencia visual del cambio; todo lo demás se mantiene en los tonos neutros ya existentes.
+
+La lista de resultados deja las tarjetas con borde redondeado y sombra por un listado con separadores finos (`divide-y divide-pauta`) y resalte de fondo al pasar el cursor — menos "tarjetas", más lista.
+
+| Qué se hizo | Detalle | Archivos |
+| --- | --- | --- |
+| Portada = buscador | `Encabezamiento` se sustituye por `Portada` (misma pieza estática, sin `useSearchParams`, apta para el HTML prerrenderizado). `Buscador.tsx` y el `PortadaEnEspera` de `page.tsx` la usan igual. | `src/components/buscador/piezas.tsx`, `src/components/buscador/Buscador.tsx`, `src/app/page.tsx` |
+| Fondo de pentagrama | Utilidad `pauta-pentagrama` (cinco líneas fijas vía `background-image` en capas, sin repetir) + resplandor con `blur-3xl`. Reactivo a claro/oscuro porque usa los tokens semánticos existentes, no colores nuevos. | `src/app/globals.css` |
+| Resultados sin tarjetas | `rounded-xl border ... shadow` → `divide-y divide-pauta` con `hover:bg-hoja`. | `src/components/buscador/Buscador.tsx` |
+
+**Verificado:** `npm run test:run` ✅ (206 pruebas, 21 archivos — reescritas las dos pruebas de `page.test.tsx` que dependían de `LandingHero`/`DemoDeTransporte`; el único fallo sigue siendo el mismo preexistente de backend, `versiones/route.test.ts`, sin tocar), `npx tsc --noEmit` ✅, `npm run build` ✅ (mismas rutas), `npm run lint` ✅ (0 errores, mismos avisos preexistentes). Probado a mano en el navegador (Playwright): claro y oscuro, escritorio (1280px) y móvil (390px) — el buscador es visible sin desplazar en los cuatro casos, y una búsqueda real (`?q=a`) sigue devolviendo canciones, fichas de artista y paginación con el estilo nuevo.
+
+**Decisión:** el rediseño se acotó a la portada (`piezas.tsx`, `Buscador.tsx`, `page.tsx`) y al fondo global (`globals.css`); el encabezado, `PantallaDeLogin` y `SelectorDeTono` no se tocaron en este cambio — ya habían tenido su propio rediseño el mismo día (ver arriba) y el pedido apuntaba explícitamente a "la portada".
+
+### La portada gana contenido debajo, y el encabezado se queda con toda la navegación (2026-09-05)
+
+Tercer pedido de diseño de la misma sesión, en dos partes: la portada «estaba muy sola» —pero **debajo** del buscador, no encima (eso ya se decidió dos veces)— y en móvil la barra fija de iconos sobraba, con "Iniciar sesión" y "Registrarse" a la vista en el encabezado.
+
+| Qué se hizo | Detalle | Archivos |
+| --- | --- | --- |
+| Tres franjas bajo el buscador | Solo cuando **no** hay búsqueda; en cuanto se busca, los resultados ocupan ese sitio. (1) *Abre una canción*: canciones reales del catálogo y fichas de artista que enlazan a `/?autor=…`, la respuesta a «no sé qué escribir». (2) *Prueba el transporte*: el visor en pequeño, con el motor de verdad. (3) *¿Falta la canción que tocas?*: la puerta a `/aportar`, diciendo que hace falta cuenta. Se separan con línea fina, no con tarjetas: la única caja de la página es la del cifrado, que sí representa un papel. | `src/components/inicio/Inicio.tsx`, `Catalogo.tsx`, `DemoDeTransporte.tsx` |
+| El encabezado es la única navegación | Se borra `BarraNavegacion` (la barra fija inferior de móvil) y con ella el `pb-24` que le reservaba sitio. Un solo `<nav>` sirve a los dos anchos y cambia de forma con CSS: pastillas con icono a la derecha de la marca en escritorio; en móvil salta a una segunda línea del propio encabezado y se convierte en **pestañas de texto** a lo ancho, sin iconos, con la sección actual subrayada en azul de acorde (la misma "marca de traste" de antes, ahora bajo la etiqueta). | `src/components/nav/Encabezado.tsx`, `src/app/layout.tsx` |
+| Entrar y registrarse, también en móvil | Dejan de ser `hidden md:flex`. Para que quepan junto a la marca en 360 px: enlace escueto + un solo botón sólido, marca a `text-lg` en móvil y `Boton`/`BotonEnlace` con `tamano="compacto"` (prop nueva; `normal` es lo de siempre, así que ningún otro consumidor cambia). Medido en el navegador: entra en una línea desde 360 px; por debajo salta de línea sin desbordar. | `src/components/nav/Encabezado.tsx`, `src/components/ui/Boton.tsx` |
+| Fila de canción compartida | El resultado de búsqueda y la canción del catálogo son la misma pieza (`FilaDeCancion` en `piezas.tsx`): una canción se ve igual se haya llegado a ella buscando o mirando. | `src/components/buscador/piezas.tsx`, `Buscador.tsx` |
+
+**Verificado:** `npm run test:run` ✅ (212 pruebas, 21 archivos — `page.test.tsx` suma catálogo, demo que transporta de verdad y el caso de catálogo caído; `Encabezado.test.tsx` suma riel único y accesos visibles en móvil; el único fallo sigue siendo el preexistente de backend, `versiones/route.test.ts`, sin tocar), `npx tsc --noEmit` ✅, `npm run build` ✅ (mismas rutas, `/` sigue estática), `npm run lint` ✅ (0 errores; los 12 avisos preexistentes). Probado a mano en el navegador (Playwright) contra la base real, claro y oscuro, en 360 / 390 / 1280 px: el catálogo trae las 4 canciones y los 3 artistas de la base, C→E devuelve E/B/C#m/A/E con "+4 semitonos", y no hay desbordamiento horizontal en ningún ancho.
+
+**Decisiones y desviaciones:**
+
+1. **La barra fija inferior era de Fase 7 §1.** Se quita a pedido explícito. Lo que se pierde es alcance con el pulgar (el teléfono en un atril, una mano libre); lo que se gana es una sola superficie de navegación, sin iconos que descifrar, y ~90 px de alto libre en el visor, que es la pantalla donde el sitio importa. La barra vivía en `layout.tsx`, así que el cambio vale para toda la app, no solo para la portada.
+2. **`DemoDeTransporte` vuelve, pero debajo.** Lo que se revirtió el 2026-09-05 no era la demo sino su sitio: explicaba la app antes de dejar usarla. Ahora está reescrita sobre `parsearChordPro` + `renderizar` + `<Cifrado>` (antes mapeaba los acordes a mano), así que es literalmente el visor en miniatura y no una copia del comportamiento.
+3. **El catálogo no promete "recientes" ni "populares".** `GET /canciones` ordena por título ascendente y no hay ningún campo de fecha ni de uso en la respuesta, así que la sección se llama "Abre una canción" y enseña las 5 primeras. Si algún día el backend ordena por fecha de alta, es cambiar el parámetro, no la pantalla. **No se tocó ningún endpoint.**
+4. **`autoresSugeridos` no está paginado** (lo devuelve entero `GET /canciones` cuando no se filtra por autor). Con el catálogo de hoy son 3 nombres; con miles de canciones esa lista crece sin tope en cada respuesta. La portada solo pinta los 8 primeros, pero el arreglo real es del lado del servidor — anotado en `docs/pendientes-backend-y-frontend.md` como pendiente de backend, no implementado aquí.
+5. **Si el catálogo falla, la sección desaparece** (mismo criterio que el chequeo de duplicados de E.3: si la red falla, se calla). La portada nunca depende de la red para ser usable: el buscador ya está arriba.
+
+### Se quita «Abre una canción» y se ajusta el espaciado móvil de la portada (2026-09-06)
+
+Pedido explícito: la franja de catálogo sobraba en la portada, y en móvil el hueco entre el campo de búsqueda y «Prueba el transporte» se veía demasiado separado.
+
+| Qué se hizo | Detalle | Archivos |
+| --- | --- | --- |
+| Fuera «Abre una canción» | Se borra `Catalogo.tsx` entero (sin reemplazo) y su uso en `Inicio.tsx`, que ahora abre directo con «Prueba el transporte». | `src/components/inicio/Catalogo.tsx` (borrado), `src/components/inicio/Inicio.tsx` |
+| Menos alto forzado en `Portada` en móvil | `min-h-[44svh]` centraba el título y el campo dentro de una franja fija, que en un teléfono alto dejaba mucho vacío arriba y abajo del buscador antes de llegar al contenido. Se quita el `min-h` de base (el alto lo da el contenido + `py-8`) y el `min-h-[48svh]` original queda solo desde `sm:` — el escritorio conserva la portada espaciosa. | `src/components/buscador/piezas.tsx` |
+| Primera franja con menos relleno arriba en móvil | `border-t border-pauta py-10` → `pt-8 pb-10 sm:pt-10` en la sección de «Prueba el transporte», ahora la primera bajo el buscador. | `src/components/inicio/Inicio.tsx` |
+| Pruebas del catálogo, fuera | `page.test.tsx` pierde las dos pruebas atadas a `Catalogo` (la de las canciones listadas y la del catálogo caído) y el mock de `pedirApi`/`beforeEach` que solo existían para ellas. | `src/tests/app/page.test.tsx` |
+
+**Verificado:** `npm run test:run` ✅ (250 pruebas, 29 archivos — el único fallo es el mismo preexistente de backend, `versiones/route.test.ts`, sin tocar), `npx tsc --noEmit` ✅, `npm run build` ✅ (una ruta menos que consultar: `/` ya no depende del catálogo). Probado a mano en el navegador (Playwright) en 390 px y 1280 px: en móvil el buscador y «Prueba el transporte» quedan a un espaciado normal de sección, sin franja vacía de por medio; en escritorio la portada no cambió.
+
+**Decisión:** no se tocó ningún endpoint ni la sección «¿Falta la canción que tocas?». `autoresSugeridos` (deviación 4 de más arriba) deja de aplicar: ya no se pinta en la portada.
+
+### El inicio deja de ser el buscador: dos puertas y `/buscar` (2026-09-11)
+
+Pedido explícito: sacar el buscador del inicio y dejar allí dos botones, «Buscar canciones» y «Aportar», con el de aportar llevando al login si no hay sesión.
+
+**Concepto:** el inicio pasa a ser la bifurcación entre los dos verbos del cancionero — leer una canción o escribirla. No son dos botones iguales: buscar se usará muchas más veces que aportar, así que se lleva la variante sólida (`primario`, `grande`, `min-w-56`) y aportar se queda en `secundario` con menos ancho (`min-w-44`). La asimetría es la jerarquía; dos pastillas idénticas centradas no dirían nada sobre qué hacer primero. Se reutiliza el armazón de `Portada` (pauta + halo) en vez de inventar lenguaje visual nuevo, y nada va dentro de una tarjeta: la única caja de la app sigue siendo la del cifrado.
+
+| Qué se hizo | Detalle | Archivos |
+| --- | --- | --- |
+| Buscar se muda a `/buscar` | La página nueva es literalmente lo que había en `/`: el `Suspense` con la portada en espera y el `<Buscador>`. `Buscador` escribe ahora la URL sobre `/buscar` y ya no pinta `<Inicio>` cuando no hay término. | `src/app/buscar/page.tsx` (nuevo), `src/components/buscador/Buscador.tsx` |
+| El inicio, dos puertas | `Inicio.tsx` se reescribe: deja de ser «lo que va debajo del buscador» y pasa a ser la pantalla entera. Se elimina la sección «¿Falta la canción que tocas?» — el botón «Aportar» ya la cubre y dos llamadas al mismo sitio en una pantalla diluyen la jerarquía. La demo del transporte se conserva, debajo de la pauta fina. | `src/components/inicio/Inicio.tsx`, `src/app/page.tsx` |
+| `Portada` recibe el rótulo | El armazón lo comparten las dos pantallas, así que el `<h1>` viene por prop (`titulo`) en vez de estar escrito dentro. De paso, `max-w-[22ch]` + `text-balance` para que el título nuevo, más largo, no parta mal. | `src/components/buscador/piezas.tsx` |
+| Aportar avisa antes del clic | El botón es un `<Link href="/aportar">` normal: el gating lo sigue haciendo `ExigeSesion`, que manda a `/login?volverA=%2Faportar`. Debajo, atado con `aria-describedby`, «Necesitas una cuenta.» — decirlo antes es más honesto que descubrirlo después del redirect. No se añadió ningún mecanismo de sesión nuevo. | `src/components/inicio/Inicio.tsx` |
+| Enlaces viejos al buscador | Todos los «← Buscar» / «Volver a buscar» / «Buscar canciones» apuntaban a `/` y ahora apuntan a `/buscar`. | `src/components/cancion/DetalleDeCancion.tsx`, `src/components/visor/Visor.tsx`, `src/components/favoritos/Favoritos.tsx`, `src/components/aportar/Aportar.tsx` |
+| Riel de navegación | El destino «Buscar» pasa a `/buscar`, y `esDestinoActivo` deja de tratar `/` como buscar: en el inicio no se subraya ninguna pestaña. | `src/components/nav/destinos.tsx` |
+| URLs de búsqueda ya compartidas | `/?q=…&autor=…&page=…` hace `redirect()` a `/buscar?…` con los mismos parámetros, para que un enlace que alguien pasó por ahí no aterrice en una portada que ignora lo que pedía. | `src/app/page.tsx` |
+| Pruebas | `page.test.tsx` se reescribe alrededor del inicio nuevo (las dos puertas, el aviso de cuenta, que ya no hay `searchbox`, el redirect y su ausencia) y se añade `src/tests/app/buscar/page.test.tsx` (el campo, que no arrastra la portada del inicio, y que el término se escribe sobre `/buscar`). `destinos.test.ts` se ajusta a la ruta nueva y gana una prueba de que el inicio no activa ninguna sección. | `src/tests/app/page.test.tsx`, `src/tests/app/buscar/page.test.tsx` (nuevo), `src/tests/components/nav/destinos.test.ts` |
+
+**Verificado:** `npm run test:run` ✅ (257 pruebas, 31 archivos; 3 fallos, **ninguno de este cambio** — 2 salen del trabajo sin commitear en `PantallaDeLogin.tsx`/`Campo.tsx` y 1 es el preexistente de backend en `versiones/route.test.ts`; comprobado con `git stash` que los tres fallan igual sin estos cambios). `npx tsc --noEmit` ✅ sin salida. `npm run lint` ✅ sin hallazgos nuevos en los archivos tocados (los 2 errores y 15 avisos son todos preexistentes o del trabajo en curso de login). `npm run build` ✅, 29 rutas. **No se probó a mano en el navegador**: no hay Playwright instalado (F.3 sigue pendiente) y las reglas del proyecto piden no usarlo sin pedido explícito.
+
+**Desviaciones y deuda:**
+
+1. **`/` pasa de estática a dinámica (`ƒ`)** porque lee `searchParams` para el redirect de compatibilidad. Es el precio de no romper los enlaces `/?q=…` ya compartidos. Cuando se dé por amortizado ese redirect, borrarlo devuelve `/` a prerenderizado estático.
+2. **`/buscar` sin término queda vacía debajo del campo.** Ese hueco lo llenaba `Inicio`, que ahora es su propia pantalla. Se deja vacío a propósito: la `Portada` ocupa 48svh y el campo centrado es la pantalla. Lo natural ahí sería «recién aportadas», pero no hay endpoint que lo sirva (`GET /canciones` no ordena por fecha de alta); queda anotado como hueco de backend, no implementado.
+3. **El copy del `<h1>` del inicio** («Canciones con acordes, en el tono que tú tocas.») es una propuesta, no un texto validado con nadie. Vive en un solo sitio, `Inicio.tsx`.
+4. **Sin sesión, el riel del encabezado sigue oculto** (`Encabezado` solo lo pinta con `estado === "autenticado"`). No se tocó: quien entra anónimo navega desde el inicio y desde los «← Buscar» de cada pantalla.
+
+### Retoque visual del inicio: dos botones en fila (2026-09-11)
+
+Pedido explícito: el inicio «se ve horrible, sobre todo ese toggle de añadir canción y buscar» → «hazlo como 2 botones uno al lado del otro». Hubo un intento intermedio con dos puertas apiladas a todo el ancho, y se descartó con el pedido de dejarlas en fila.
+
+**Concepto:** el marco partido en dos mitades (`bg-tinta` | papel, mismo borde) se leía como un interruptor —dos estados de una misma cosa— y no como dos destinos. Ahora son dos botones sueltos con `gap-3` entre ellos. La jerarquía la siguen dando los rellenos de `Boton` (`primario` en tinta para buscar, `secundario` en papel con borde para aportar).
+
+| Qué se hizo | Detalle | Archivos |
+| --- | --- | --- |
+| Dos botones sueltos en fila | Pastillas `rounded-full` con icono, en `flex flex-wrap gap-3`. Se estilan con las mismas clases de color que `primario`/`secundario`, pero no con `BotonEnlace`: su tamaño `grande` (px-6, text-base) no deja los dos en una fila a 360 px, y sobrescribir el relleno por `className` choca con sus propias clases. En móvil llevan `px-4 py-3 text-[0.9375rem]` y desde `sm:` `px-6 py-3.5 text-base`. Por debajo de ~360 px `flex-wrap` baja «Aportar» a otra línea en vez de desbordar. | `src/components/inicio/Inicio.tsx` |
+| Encabezado propio, alineado a la izquierda | El inicio deja de usar `Portada`: rótulo a la izquierda y más grande (`clamp(2.25rem,9vw,3.5rem)`, `max-w-[16ch]`), posado sobre el mismo `pauta-pentagrama`, y sin el halo difuminado. `/buscar` sigue con `Portada` tal cual. | `src/components/inicio/Inicio.tsx` |
+| Aviso de cuenta | Se queda «Aportar necesita una cuenta.» debajo de la fila, atado con `aria-describedby`, ahora alineado a la izquierda con los botones. | `src/components/inicio/Inicio.tsx` |
+| La demo, sobre una hoja | El fragmento va dentro de un `<figure>` en `bg-hoja-alta` con borde y `shadow-hoja` (la única caja de la app es la del cifrado). La distancia al original («Tono original», «+2 semitonos») sube a la cabecera de la hoja, junto a los acordes que cambian. Se quita el espaciador vacío `h-9` que había encima. | `src/components/inicio/DemoDeTransporte.tsx` |
+| Pruebas | El aviso de cuenta se comprueba como descripción accesible del enlace «Aportar», y la prueba del marco compartido pasa a «las dos puertas van en la misma fila». | `src/tests/app/page.test.tsx` |
+
+**Verificado:** `npx vitest run src/tests/app/page.test.tsx` ✅ (7 pruebas). `npx tsc --noEmit` ✅. `npx eslint` sobre los archivos tocados ✅. Los 2 fallos de `PantallaDeLogin.test.tsx` que salen al correr `src/tests/components` son del trabajo sin commitear en login, no de este cambio. **No se probó en el navegador** (sin Playwright, por regla del proyecto). Los anchos a 360 px están calculados a mano, no medidos.
+
+**Segunda ronda, mismo día** (pedido: título centrado, uno de los dos botones solo texto, los dos centrados, y el ejemplo sin caja, sin fondo y sin la palabra «Ejemplo»). Esto reemplaza parte de la tabla de arriba:
+
+- **Rótulo y acciones centrados.** Fila `justify-center` con `gap-x-6`. Aviso de cuenta centrado debajo.
+- **Aportar pasa a enlace de texto** («Aportar una canción», subrayado fino en `pauta-fuerte` que se oscurece a `tinta` al pasar el ratón). Buscar queda como la única pastilla sólida. La jerarquía ya no es solo de color: es de forma. Como ya no hay dos pastillas, desaparecen las constantes `BOTON`/`PRINCIPAL`/`SECUNDARIO` y el problema de ancho a 360 px: el enlace de texto no lleva relleno lateral.
+- **La demo, suelta.** Fuera el `<figure>` con fondo, borde y sombra, y fuera el «Ejemplo». La distancia al original vuelve debajo del selector, centrada, como en el visor.
+- **Pruebas:** el enlace se busca como «Aportar una canción».
+
+**Tercera ronda (2026-10-05)** — pedido: título nuevo «más animado», sin que la tilde de la «Ú» estorbe; después, **quitar los botones** del inicio y que se vea bien en móvil. Esto reemplaza lo de las dos rondas anteriores sobre botones y aviso de cuenta:
+
+| Qué se hizo | Detalle | Archivos |
+| --- | --- | --- |
+| Cabecera animada, «la hoja que se reescribe» | Componente de cliente nuevo: pentagrama que se traza, título escrito palabra a palabra, círculo a boli sobre «tú» y una hoja de cifrado que cambia de tono sola (usa `renderizar` real). Alineado a la izquierda en dos columnas desde `lg:`. | `src/components/inicio/HeroInicio.tsx` (nuevo), `src/app/globals.css` |
+| La tilde | `line-height` del título de `1.08` a `1.16` y entrada solo con opacidad/desplazamiento, sin máscara que recorte la tilde. | `HeroInicio.tsx` |
+| Sin botones ni aviso de cuenta | Fuera «Buscar canciones», «Aportar una canción» y «Aportar necesita una cuenta.»: la barra ya ofrece Buscar/Aportar en todas las pantallas. Se añade un subtítulo de una línea. **Desviación:** el pedido original (secc. anterior) era tener esos dos accesos en el inicio; ahora la portada no tiene ninguna acción propia. | `HeroInicio.tsx`, `Inicio.tsx` |
+| Fuera «Prueba el transporte» | Se borra `DemoDeTransporte.tsx` (a pedido: la cabecera ya enseña el mismo cambio de tono). Pasó antes por una versión intermedia en dos columnas con la demo sobre una hoja. | `DemoDeTransporte.tsx` (borrado), `Inicio.tsx` |
+| Dos bloques nuevos bajo la cabecera | `Funciones.tsx`: (1) «Escribe el acorde donde cae», con el ChordPro escribiéndose solo y su vista previa real encima de la letra (RN-011); (2) «Notas o grados, como prefieras», que alterna C/G y notas/grados para que se vea que los grados no cambian con el tono (RN-004). Dos columnas desde `lg:`, el segundo bloque invertido; entrada al hacer scroll (`animation-timeline: view()` solo donde el navegador lo soporta). Las demos son decorativas y arrancan al entrar en pantalla (`IntersectionObserver`); sin esa API quedan en su estado final. | `src/components/inicio/Funciones.tsx` (nuevo), `Inicio.tsx`, `globals.css` |
+| Móvil | Se parte de lo que gustó en escritorio (pentagrama, acordes flotando, título con aire) y se traduce a una columna. Título `clamp(2.6rem,12vw,4.75rem)`, que se parte como en escritorio y sin ninguna línea detrás. Cuatro acordes flotantes puestos en los huecos de las líneas cortas y alrededor de la hoja. La hoja de la cabecera entra desde abajo. | `HeroInicio.tsx`, `globals.css` |
+| Pentagrama sin cruzar el título | Las pautas pasaban por detrás de las letras (escritorio) y, por un bug, salían también en móvil: la regla `.hero-pauta { display: flex }` sin capa pisaba el `hidden` de Tailwind, y se sumaban a unas pautas que yo había puesto bajo cada renglón del título (`hero-reglado`, **eliminado**). Ahora el pentagrama va dentro de la columna de la hoja (`lg:` en adelante): sale de detrás de la tarjeta hacia el borde derecho y se desvanece por la izquierda antes de llegar al título. En una columna (móvil y tableta) no hay pentagrama. El `display` y la dirección pasan al marcado para no repetir el choque con las utilidades. | `HeroInicio.tsx`, `globals.css` |
+| Movimiento con «reducir animaciones» | Windows activa `prefers-reduced-motion` a menudo sin que se note, y la regla global de `@layer base` más la versión inicial de la cabecera dejaban la portada sin ninguna animación. Ahora, con esa preferencia, la cabecera y la demo (`[data-suave]`, exentas de la regla global) conservan fundidos, el trazo del círculo y el cambio de color de los acordes, y pierden solo lo que desplaza, inclina, desenfoca o flota (se cambia `animation-name`, no los tiempos). El tono gira también con la preferencia activa. **Desviación:** la regla del proyecto era apagar todo con movimiento reducido; aquí se relaja a propósito, solo en estas dos secciones. | `src/app/globals.css`, `HeroInicio.tsx`, `Inicio.tsx` |
+| Destello de acordes | El destello era un fondo azul que salía como un bloque ancho; ahora el acorde pasa de `tinta` a `acorde`. El círculo de «tú» lleva `mx-[0.22em]` para no rozar «QUE» ni «TOCAS». | `globals.css`, `HeroInicio.tsx` |
+| `aria-label` en el `<h1>` | Con cada palabra en su `inline-block` el nombre accesible perdía los espacios. | `HeroInicio.tsx` |
+| Pruebas | Se quitan las de los dos enlaces, el aviso y la fila; también la de la demo del transporte, que ya no existe. Entran «se presenta con su título», «no lleva botones de buscar ni de aportar», «explica cómo se escribe y cómo se lee» y «las demos arrancan completas, no vacías». El temporizador no gira sin `matchMedia` (jsdom). | `src/tests/app/page.test.tsx` |
+
+**Verificado:** vitest de `page.test.tsx` ✅ (6), `tsc` ✅, `eslint` ✅. Revisado en capturas de Edge headless emulando 360 y 390 px, con y sin `prefers-reduced-motion` (CDP directo, sin Playwright). La suite completa tiene 3 fallos fuera de la home (`PantallaDeLogin.test.tsx` ×2 y la ruta `versiones`), sin relación con este cambio.
 
 ## Bloque E · Cuenta y contribución
 
@@ -291,7 +437,7 @@ Estados nuevos que la pantalla no tenía en la maqueta: "cargando" mientras lleg
 | E.2 | `BotonDeFavorito`: sin sesión, redirige a `/login?volverA=<página actual>` sin llamar a la API; con sesión, pide `GET /favoritos` una sola vez al montar para saber si ya es favorita, y alterna con `POST`/`DELETE` de forma optimista (revierte y muestra el error si la llamada falla). Se colocó en el encabezado del Visor — es donde un músico decide si le sirvió la versión — no en cada fila de `DetalleDeCancion`, para no disparar N peticiones de "¿es favorita?" por cada versión de una lista. La página de Favoritos lista título/artista/tono (con el join que trae `GET /favoritos` de fábrica) y excluye en silencio las versiones eliminadas (RN-019). | `src/components/favoritos/BotonDeFavorito.tsx`, `src/components/favoritos/Favoritos.tsx`, `src/app/favoritos/page.tsx` |
 | E.4 · foto | `POST /usuarios/me/foto` con `FormData`; se rechaza en el cliente un archivo que no sea imagen o que pese más de 10 MB **antes** de subir nada, así que la foto anterior nunca se toca si la nueva es inválida. | `src/components/perfil/Perfil.tsx` |
 | E.4 · Mis aportes | `GET /myContributions` no trae título ni artista (B.5 sigue abierto), así que el cliente junta los `cancionId` únicos y pide `GET /canciones/{id}` una vez por cada uno (N+1 aceptable al tamaño de MVP) para completar la fila. Etiqueta de estado reutilizada de D.2/D.3. "Solicitar eliminación" llama al mismo `PATCH /versiones/{id}` de dos pasos que ya existía (decisión abierta #1: se mantuvo el flujo de dos pasos, con el botón etiquetado tal cual se sugería), detrás de un modal de confirmación nuevo (`Confirmacion`). | `src/components/perfil/Perfil.tsx`, `src/components/ui/Confirmacion.tsx` |
-| E.4 · cuenta | "Cerrar sesión" limpia el estado local y vuelve al inicio (`SesionProvider.cerrarSesion`) — no hay `POST /auth/logout` que borre la cookie httpOnly desde el servidor (se había agregado y se revirtió a pedido, ver arriba), así que la cookie sigue viva hasta que expire (15 min). "Eliminar cuenta" pide confirmación explicando qué se conserva (las versiones verificadas siguen visibles para los demás) y qué no (el resto de la cuenta, incluidos los favoritos, deja de ser accesible), luego llama a `DELETE /usuarios` (ya existía, y ese sí borra las cookies del lado del servidor) y limpia la sesión. | `src/components/perfil/Perfil.tsx`, `src/lib/sesion/SesionProvider.tsx` |
+| E.4 · cuenta | "Cerrar sesión" limpia el estado local y vuelve al inicio (`SesionProvider.cerrarSesion`). En 2026-08-23 no había `POST /auth/logout` para borrar la cookie httpOnly desde el servidor; desde el 2026-09-06 sí lo llama — ver "Se arregla el logout" más abajo. "Eliminar cuenta" pide confirmación explicando qué se conserva (las versiones verificadas siguen visibles para los demás) y qué no (el resto de la cuenta, incluidos los favoritos, deja de ser accesible), luego llama a `DELETE /usuarios` (ya existía, y ese sí borra las cookies del lado del servidor) y limpia la sesión. | `src/components/perfil/Perfil.tsx`, `src/lib/sesion/SesionProvider.tsx` |
 | C.3 (retocado) | `SesionProvider` ya no espera `{ data: usuario }`: `GET /auth/me` devuelve el usuario plano. Se agregó `cerrarSesion()` al contexto. | `src/lib/sesion/SesionProvider.tsx` |
 
 **Verificado:** `npm run build` ✅ (20 rutas: 14 de API + 6 de página), `npm run test:run` ✅ (52 pruebas, 8 archivos — suma `src/tests/components/favoritos/BotonDeFavorito.test.tsx` y ajusta `PantallaDeLogin.test.tsx` al nuevo flujo de `refrescar()`), `npm run lint` ✅ (0 errores; siguen los avisos preexistentes de variables sin usar en los route handlers). Probado a mano con `curl` de punta a punta: registro → `GET /auth/me` → marcar favorito → listar favoritos.
@@ -303,6 +449,59 @@ Estados nuevos que la pantalla no tenía en la maqueta: "cargando" mientras lleg
 3. **El panel de admin no muestra el nombre de quien aportó**, solo podrá mostrar `autorId` cuando se construya E.5: no existe ningún endpoint que resuelva un id de usuario a `username`.
 4. **`GET /auth/me` sigue sin usar el catálogo de errores** (responde `{ message: <objeto>, }` con un bug propio: anida el objeto de error en vez de su texto). No bloqueó nada porque `SesionProvider` trata cualquier fallo de `/auth/me` como "sin sesión" sin mirar el cuerpo del error; queda anotado en B.0/B.2 para cuando se unifiquen los doce route handlers.
 
+### Se arregla el logout (2026-09-06)
+
+Reporte de usuario: "Cerrar sesión" en `/cuenta` a veces mandaba a
+`/login?volverA=%2Fcuenta` en vez de al inicio, y tras recargar (o volver con
+el botón atrás del navegador) la sesión seguía activa como si nunca se
+hubiera cerrado, de forma repetible siempre.
+
+Dos causas independientes, ambas en el frontend salvo la primera línea:
+
+1. **La cookie httpOnly nunca se invalidaba.** `DELETE /api/v1/auth/logout`
+   existe desde el 2026-08-27 (lo agregó la persona de backend, commit
+   `5ccdf2a`) pero nadie lo conectó ni actualizó los documentos que decían
+   que no existía — ver `docs/pendientes-backend-y-frontend.md`. `cerrarSesion()`
+   ahora lo llama (best effort) antes de navegar.
+2. **Carrera entre `cerrarSesion` y `ExigeSesion`.** Al cerrar sesión desde
+   una pantalla protegida (`/cuenta`), `estado` pasaba a `"anonimo"` antes de
+   que el `router.push("/")` de `cerrarSesion` terminara de navegar.
+   `ExigeSesion`, que sigue montado sobre `/cuenta` en ese instante, veía el
+   mismo cambio de `estado` y disparaba su propio `router.replace` al login —
+   y esa segunda navegación le ganaba la carrera a la primera. Se agregó
+   `saliendo` al contexto de sesión (`true` mientras `cerrarSesion` está en
+   vuelo, se apaga solo cuando el pathname cambia de verdad); `ExigeSesion`
+   no redirige a login mientras esté encendido.
+
+**Verificado:** `npm run test:run` ✅ (252 pruebas — dos nuevas en
+`SesionProvider.test.tsx` para el llamado a `DELETE /auth/logout`; el único
+fallo sigue siendo el mismo preexistente de backend, sin tocar),
+`npx tsc --noEmit` ✅. Probado a mano en el navegador (Playwright): registrar
+cuenta → `/cuenta` → "Cerrar sesión" aterriza en `/` (no en `/login`); volver
+atrás o recargar `/cuenta` después manda a `/login?volverA=%2Fcuenta` en vez
+de mostrar la cuenta como si la sesión siguiera activa.
+
+De paso, se agregó `allowedDevOrigins: ["127.0.0.1"]` a `next.config.ts`: el
+aviso de Next.js sobre orígenes cruzados en dev aparecía por acceder al
+servidor de desarrollo vía `127.0.0.1` en vez de `localhost`, sin relación
+con el bug de logout.
+
+**Ampliación, mismo día:** pedido explícito de "la mejor práctica para
+cerrar sesión". Con la cookie ya invalidándose, quedaba un hueco de
+experiencia: con PentCord abierto en dos pestañas, cerrar sesión en una
+dejaba la otra actuando como autenticada hasta su próxima revalidación
+(cambio de foco/visibilidad). Se agregó sincronización entre pestañas con
+`BroadcastChannel` (`"pentcord:sesion"`): `cerrarSesion()` emite `"cerrada"`
+tras invalidar la cookie, y cada `SesionProvider` suscrito reacciona al
+instante limpiando su estado local (no vuelve a llamar a `DELETE
+/auth/logout`, ya lo hizo la pestaña que inició el cierre). Si la pestaña
+que recibe el aviso está en una pantalla protegida, `ExigeSesion` la manda
+sola a `/login` en cuanto ve `estado === "anonimo"` — mismo mecanismo que ya
+usa para una sesión caducada, sin código nuevo ahí. Navegadores sin
+`BroadcastChannel` simplemente se quedan con el comportamiento de antes
+(esperan a la próxima revalidación). Tercera prueba nueva en
+`SesionProvider.test.tsx` (253 pruebas en total). `src/lib/sesion/SesionProvider.tsx`.
+
 ### Cómo quedó E.3 (2026-08-23)
 
 | Tarea | Qué se hizo | Archivos |
@@ -311,7 +510,7 @@ Estados nuevos que la pantalla no tenía en la maqueta: "cargando" mientras lleg
 | Vista previa (RN-011, RN-012) | Primer consumidor real del Bloque A: `parsearChordPro` en cada tecleo y `renderizar` con el tono elegido, reutilizando el mismo `<Cifrado>` del visor — lo que se ve aquí es literalmente lo que verá quien la toque. En pantalla ancha va al lado del textarea y se queda pegada al desplazarse; en móvil, debajo. El tono elegido manda en la ortografía: en Eb un `[C#]` se pinta `Db`. | `src/components/aportar/VistaPrevia.tsx` |
 | Errores en el punto exacto (RN-013) | El parser no lanza nunca, así que la vista previa no se rompe ni se congela mientras se escribe un acorde a medias. La línea con error se marca en su sitio (`data-linea-error`, borde y fondo de alerta) y debajo va la lista `línea:columna` + mensaje; **cada error es un botón que lleva el cursor a ese punto del textarea**. Guardar se deshabilita mientras haya errores bloqueantes, y al lado del botón se dice por qué. | `src/components/aportar/VistaPrevia.tsx`, `src/components/aportar/errores.ts`, `src/app/globals.css` |
 | Duplicado (RN-010) | El backend no avisa (B.3 sigue abierto), así que lo hace el cliente: con 3+ caracteres de título, rebote de 400 ms contra `GET /canciones?titulo=…` y se quedan solo las coincidencias de título **exacto** (sin distinguir mayúsculas ni tildes, con `localeCompare`). El aviso no bloquea nada — dice que se puede seguir y crear la canción igual — y cada coincidencia trae un botón «Aportar mi versión aquí» que cambia el destino sin perder lo escrito. Si la búsqueda falla, se calla. | `src/components/aportar/Aportar.tsx` |
-| Tono original (RN-002) | Se reutiliza el piano de D.3 en vez de un desplegable: elegir tono es un toque y solo se puede elegir uno de los 12 válidos, así que la regla se cumple por construcción. `SelectorDeTono` acepta ahora `tonoOriginal: null` (aquí no hay "casa" anterior que marcar) y una etiqueta propia para el lector de pantalla. | `src/components/visor/SelectorDeTono.tsx` |
+| Tono original (RN-002) | Se reutiliza la tira cromática de D.3 en vez de un desplegable: elegir tono es un toque y solo se puede elegir uno de los 12 válidos, así que la regla se cumple por construcción. `SelectorDeTono` acepta ahora `tonoOriginal: null` (aquí no hay "casa" anterior que marcar) y una etiqueta propia para el lector de pantalla. | `src/components/visor/SelectorDeTono.tsx` |
 | Confirmación | Tras guardar, la pantalla se sustituye por el acuse: canción, `EtiquetaDeEstado` con el estado **que devolvió la API** (no un "pendiente" escrito a mano — el día que RN-014 exista, un administrador verá "Verificada" sin tocar esto), qué pasa ahora, y tres salidas: ver la versión, ir a la canción, aportar otra. | `src/components/aportar/Aportar.tsx` |
 | Ayuda | Un `<details>` con la sintaxis: acorde entre corchetes pegado a su sílaba, las ocho secciones entre llaves, y los siete tipos de acorde que PentCord sabe transportar. | `src/components/aportar/Aportar.tsx` |
 

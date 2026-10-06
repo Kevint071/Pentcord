@@ -53,25 +53,28 @@ rutas). Detalle completo en "Cómo quedó B.4" dentro de
 
 ## 2 · Backend que sigue faltando (bloquea o degrada al frontend)
 
-### Falta un endpoint de logout
+### ~~Falta un endpoint de logout~~ — resuelto el 2026-09-06
 
-Había agregado `POST /api/v1/auth/logout` (borra `accesstoken`/`refreshtoken`)
-porque no existe ninguna forma de cerrar sesión desde el cliente — la cookie
-es httpOnly, el navegador no puede borrarla por su cuenta. **Se revirtió a
-pedido**: eso lo construye la persona de backend cuando le toque.
+Había agregado `POST /api/v1/auth/logout` porque no existe ninguna forma de
+cerrar sesión desde el cliente — la cookie es httpOnly, el navegador no puede
+borrarla por su cuenta. **Se revirtió a pedido** el 2026-08-23: eso lo
+construiría la persona de backend cuando le tocara.
 
-Mientras tanto, "Cerrar sesión" en Perfil (`SesionProvider.cerrarSesion`, en
-`src/lib/sesion/SesionProvider.tsx`) solo limpia el estado local de React y
-redirige al inicio — la cookie sigue siendo válida hasta que expire (15 min).
-No es un bug del frontend: es la limitación real de no tener el endpoint.
-"Eliminar cuenta" no tiene este problema porque `DELETE /api/v1/usuarios` ya
-existía y ya borra las cookies desde el servidor.
+Lo construyó, el 2026-08-27, como `DELETE /api/v1/auth/logout`
+(`src/app/api/v1/auth/logout/route.ts`, commit `5ccdf2a`) — pero nadie
+actualizó este documento ni conectó el frontend, así que "Cerrar sesión"
+siguió limpiando solo el estado local durante más de una semana: la cookie
+seguía siendo válida hasta que expiraba (15 min), y encima había una carrera
+entre esa navegación y el guardia de `ExigeSesion` que a veces mandaba al
+login en vez de al inicio. `SesionProvider.cerrarSesion` ahora llama a
+`DELETE /auth/logout` (best effort — si falla, igual limpia el estado local
+y navega) antes de redirigir, y la carrera de `ExigeSesion` se corrigió por
+separado.
 
-**Lo que se necesita:** un `POST /api/v1/auth/logout` (o el nombre que la
-persona de backend prefiera) que borre `accesstoken` (y `refreshtoken` si se
-llega a activar, decisión abierta #4 del plan). No necesita sesión previa ni
-falla si ya no había una. En cuanto exista, `cerrarSesion()` debe volver a
-llamarlo antes de limpiar el estado local.
+Pendiente real, menor: el endpoint solo borra las cookies; el mensaje que
+devuelve (`"Cuenta desactivada correctamente"`) es un copy-paste de
+`DELETE /api/v1/usuarios` y no aplica a un logout normal. No lo toqué —
+sigue siendo la persona de backend quien decide el texto.
 
 Orden por impacto en lo que el frontend puede hacer hoy, del resto de gaps:
 
@@ -149,6 +152,20 @@ rutas HTTP y no necesita nada de la persona de backend. Lo que desbloqueó:
 - Sin paginación en `/versiones/pendientes`, `/myContributions` ni
   `/favoritos`. No es bloqueante todavía (catálogos chicos), pero al crecer
   sí.
+- **`autoresSugeridos` de `GET /canciones` no tiene tope.** Cuando no se filtra
+  por autor, la respuesta incluye **todos** los artistas distintos del catálogo,
+  sin paginar, en cada llamada. Hoy son 3 nombres; con miles de canciones esa
+  lista viaja entera en cada búsqueda. Lo consumen las fichas de artista del
+  buscador y el catálogo de la portada (2026-09-05), que pintan como mucho 6 y 8
+  nombres respectivamente — el recorte de verdad tiene que ser del servidor
+  (`take` + un `?artistas=` aparte, o un endpoint propio de artistas).
+- **No hay forma de pedir "las últimas canciones añadidas".** `GET /canciones`
+  ordena por `titulo` ascendente y no expone ninguna fecha de alta, así que lo
+  único que se puede ofrecer sin término de búsqueda es «las primeras por orden
+  alfabético», que no le sirve a nadie. Desde el 2026-09-11 esto deja un hueco
+  visible: `/buscar` sin término es solo el campo, sin nada debajo. Con un
+  `orderBy` por fecha (o un `?orden=recientes`) esa pantalla podría abrir con
+  «recién aportadas» sin cambiar nada más de su estructura.
 
 ### Catálogo de errores (B.0, sin tocar)
 
