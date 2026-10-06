@@ -89,7 +89,7 @@ export function CampoDeTexto({
     <div className="group">
       <label
         htmlFor={id}
-        className={`text-xs font-medium tracking-wide uppercase transition-colors duration-200 ${error ? "text-alerta" : "text-tinta-tenue group-focus-within:text-acorde"}`}
+        className={`text-xs font-semibold tracking-wide uppercase transition-colors duration-200 ${error ? "text-alerta" : "text-tinta-suave group-focus-within:text-acorde"}`}
       >
         {etiqueta}
       </label>
@@ -103,7 +103,7 @@ export function CampoDeTexto({
         {icono ? (
           <span
             aria-hidden="true"
-            className={`flex shrink-0 items-center transition-colors duration-200 ${error ? "text-alerta" : "text-tinta-tenue group-focus-within:text-acorde"}`}
+            className={`flex shrink-0 items-center transition-colors duration-200 ${error ? "text-alerta" : "text-tinta-suave group-focus-within:text-acorde"}`}
           >
             {icono}
           </span>

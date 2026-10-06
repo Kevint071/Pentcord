@@ -126,128 +126,136 @@ export function PantallaDeLogin() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-4 py-10 sm:px-6">
-      <h1 className="rotulo text-center text-[clamp(2rem,8vw,2.75rem)] text-tinta">
-        {modo === "entrar" ? "Inicia sesión" : "Crea tu cuenta"}
-      </h1>
-      <p className="mt-2 text-center text-sm leading-relaxed text-tinta-suave">
-        Buscar y ver canciones no necesita cuenta. Guardar favoritos, aportar
-        contenido y entrar a tu perfil, sí.
-      </p>
-
+    <div className="relative isolate flex flex-1 flex-col justify-center overflow-hidden">
+      {/* La misma pauta de la portada (piezas.tsx#Portada), aquí detrás del
+          formulario: la card se despega de ella con transparencia en vez de
+          taparla, para que entrar/registrarse se sienta la misma hoja que el
+          resto de la app, no una pantalla aparte. */}
       <div
-        role="radiogroup"
-        aria-label="¿Ya tienes cuenta?"
-        className="relative mx-auto mt-6 grid w-full max-w-62 grid-cols-2 rounded-full border border-pauta-fuerte bg-hoja p-1"
-      >
-        <span
-          aria-hidden="true"
-          className="absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-tinta transition-transform duration-300 ease-out"
-          style={{ transform: modo === "crear" ? "translateX(100%)" : "translateX(0)" }}
-        />
-        {OPCIONES.map(({ valor, etiqueta }) => {
-          const activo = modo === valor;
-          return (
-            <button
-              key={valor}
-              type="button"
-              role="radio"
-              aria-checked={activo}
-              tabIndex={activo ? 0 : -1}
-              onClick={() => cambiarModo(valor)}
-              className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors duration-300 ${
-                activo ? "text-papel" : "text-tinta-suave hover:text-tinta"
-              }`}
-            >
-              {etiqueta}
-            </button>
-          );
-        })}
-      </div>
+        aria-hidden="true"
+        className="pauta-pentagrama pointer-events-none absolute inset-x-0 top-1/2 h-56 -translate-y-1/2 opacity-60 sm:h-64"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-1/2 size-88 -translate-x-1/2 -translate-y-1/2 rounded-full bg-acorde-suave opacity-35 blur-3xl sm:size-104"
+      />
 
-      <div className="mt-6 flex flex-col gap-5 rounded-2xl border border-pauta-fuerte bg-hoja p-6 shadow-hoja">
-        <form onSubmit={manejarEnvio} noValidate className="flex flex-col gap-5">
-          {modo === "crear" ? (
-            <CampoDeTexto
-              etiqueta="Nombre de usuario"
-              icono={<IconoPersona />}
-              autoComplete="username"
-              value={username}
-              onChange={(evento) => {
-                setUsername(evento.target.value);
-                limpiarError("username");
-              }}
-              error={erroresDeCampo.username}
-            />
-          ) : null}
-          <CampoDeTexto
-            etiqueta="Correo"
-            type="email"
-            icono={<IconoSobre />}
-            autoComplete="email"
-            value={email}
-            onChange={(evento) => {
-              setEmail(evento.target.value);
-              limpiarError("email");
-            }}
-            error={erroresDeCampo.email}
+      <div className="relative z-10 mx-auto flex w-full max-w-sm flex-col px-4 py-10 sm:px-6">
+        <h1 className="rotulo text-center text-[clamp(2rem,8vw,2.75rem)] text-tinta">
+          {modo === "entrar" ? "Inicia sesión" : "Crea tu cuenta"}
+        </h1>
+        <p className="mt-2 text-center text-sm leading-relaxed text-tinta-suave">
+          Buscar y ver canciones no necesita cuenta. Guardar favoritos, aportar
+          contenido y entrar a tu perfil, sí.
+        </p>
+
+        <div
+          role="radiogroup"
+          aria-label="¿Ya tienes cuenta?"
+          className="relative mx-auto mt-6 grid w-full max-w-62 grid-cols-2 rounded-full border border-pauta-fuerte bg-hoja p-1"
+        >
+          <span
+            aria-hidden="true"
+            className="absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-tinta transition-transform duration-300 ease-out"
+            style={{ transform: modo === "crear" ? "translateX(100%)" : "translateX(0)" }}
           />
-          <CampoDeTexto
-            etiqueta="Contraseña"
-            type="password"
-            icono={<IconoCandado />}
-            autoComplete={modo === "entrar" ? "current-password" : "new-password"}
-            value={password}
-            onChange={(evento) => {
-              setPassword(evento.target.value);
-              limpiarError("password");
-            }}
-            error={erroresDeCampo.password}
-          />
-
-          {errorApi ? (
-            <Aviso tono="alerta">{mensajeDeError(errorApi)}</Aviso>
-          ) : null}
-
-          <Boton
-            type="submit"
-            tamano="grande"
-            disabled={enviando}
-            className="mt-2 w-full"
-          >
-            {enviando
-              ? modo === "entrar"
-                ? "Entrando…"
-                : "Creando cuenta…"
-              : modo === "entrar"
-                ? "Entrar"
-                : "Crear cuenta"}
-          </Boton>
-        </form>
-
-        <div className="flex items-center gap-3" aria-hidden="true">
-          <span className="h-px flex-1 bg-pauta" />
-          <span className="text-xs text-tinta-tenue">o</span>
-          <span className="h-px flex-1 bg-pauta" />
+          {OPCIONES.map(({ valor, etiqueta }) => {
+            const activo = modo === valor;
+            return (
+              <button
+                key={valor}
+                type="button"
+                role="radio"
+                aria-checked={activo}
+                tabIndex={activo ? 0 : -1}
+                onClick={() => cambiarModo(valor)}
+                className={`relative z-10 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors duration-300 ${
+                  activo ? "text-papel" : "text-tinta-suave hover:text-tinta"
+                }`}
+              >
+                {etiqueta}
+              </button>
+            );
+          })}
         </div>
 
-        <form action={googleLogin}>
-          <button
-            type="submit"
-            className="group inline-flex w-full items-center justify-center gap-2.5 rounded-full border border-pauta-fuerte bg-hoja-alta px-4 py-2.5 text-sm font-medium text-tinta transition-all duration-150 hover:border-tinta-tenue hover:shadow-hoja active:scale-[0.98]"
-          >
-            <LogoDeGoogle />
-            {modo === "entrar" ? "Entrar con Google" : "Crear cuenta con Google"}
-          </button>
-        </form>
-      </div>
+        <div className="mt-6 flex flex-col gap-5 rounded-2xl border border-pauta-fuerte bg-hoja/75 p-6 shadow-hoja backdrop-blur-xl">
+          <form onSubmit={manejarEnvio} noValidate className="flex flex-col gap-5">
+            {modo === "crear" ? (
+              <CampoDeTexto
+                etiqueta="Nombre de usuario"
+                icono={<IconoPersona />}
+                autoComplete="username"
+                value={username}
+                onChange={(evento) => {
+                  setUsername(evento.target.value);
+                  limpiarError("username");
+                }}
+                error={erroresDeCampo.username}
+              />
+            ) : null}
+            <CampoDeTexto
+              etiqueta="Correo"
+              type="email"
+              icono={<IconoSobre />}
+              autoComplete="email"
+              value={email}
+              onChange={(evento) => {
+                setEmail(evento.target.value);
+                limpiarError("email");
+              }}
+              error={erroresDeCampo.email}
+            />
+            <CampoDeTexto
+              etiqueta="Contraseña"
+              type="password"
+              icono={<IconoCandado />}
+              autoComplete={modo === "entrar" ? "current-password" : "new-password"}
+              value={password}
+              onChange={(evento) => {
+                setPassword(evento.target.value);
+                limpiarError("password");
+              }}
+              error={erroresDeCampo.password}
+            />
 
-      {volverA ? (
-        <p className="mt-4 text-center text-xs text-tinta-tenue">
-          Al continuar te devolvemos a{" "}
-          <code className="font-mono text-tinta-suave">{volverA}</code>.
-        </p>
-      ) : null}
+            {errorApi ? (
+              <Aviso tono="alerta">{mensajeDeError(errorApi)}</Aviso>
+            ) : null}
+
+            <Boton
+              type="submit"
+              tamano="grande"
+              disabled={enviando}
+              className="mt-2 w-full"
+            >
+              {enviando
+                ? modo === "entrar"
+                  ? "Entrando…"
+                  : "Creando cuenta…"
+                : modo === "entrar"
+                  ? "Entrar"
+                  : "Crear cuenta"}
+            </Boton>
+          </form>
+
+          <div className="flex items-center gap-3" aria-hidden="true">
+            <span className="h-px flex-1 bg-pauta" />
+            <span className="text-xs text-tinta-tenue">o</span>
+            <span className="h-px flex-1 bg-pauta" />
+          </div>
+
+          <form action={googleLogin}>
+            <button
+              type="submit"
+              className="group inline-flex w-full items-center justify-center gap-2.5 rounded-full border border-pauta-fuerte bg-hoja-alta px-4 py-2.5 text-sm font-medium text-tinta transition-all duration-150 hover:border-tinta-tenue hover:shadow-hoja active:scale-[0.98]"
+            >
+              <LogoDeGoogle />
+              {modo === "entrar" ? "Entrar con Google" : "Crear cuenta con Google"}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
